@@ -1,17 +1,16 @@
 use crate::model::{NeuronModel, FiringState};
 use crate::synapses::Synapses;
+use crate::record::{Record, RecordType, RecordDataType};
 
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{s, Array2};
 
 /// A population contains a number of neurons of a set model(M), 
 /// connected via a specific type of synapses(S)k
 pub trait Population<M: NeuronModel, S: Synapses> { 
     
-    fn run(&mut self, steps: usize, input: Array2<f32>) -> Vec<Array1<f32>> {
+    fn run(&mut self, steps: usize, input: Array2<f32>, record: &mut Record) {
         let n_neurons = self.model().potentials().shape()[0];
         assert!(input.shape() == [steps, n_neurons]);
-
-        let mut potentials = vec![];
 
         let mut firing_state = FiringState::new(n_neurons);
 
@@ -24,10 +23,9 @@ pub trait Population<M: NeuronModel, S: Synapses> {
 
             firing_state = self.model().step(step_input);
 
-            potentials.push(self.model().potentials());
+            record.log(RecordType::Potentials, RecordDataType::Potentials(self.model().potentials()));
+            record.log(RecordType::Spikes, RecordDataType::Spikes(firing_state.state.clone()));
         }
-
-        potentials
     }
 
     fn model(&mut self) -> &mut dyn NeuronModel;

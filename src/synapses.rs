@@ -30,7 +30,7 @@ impl MatrixSynapse {
 
         let mut rng = StdRng::seed_from_u64(0);
 
-        let mut weights: Array2<f32> = Array::random_using((n, n), StandardNormal, &mut rng);
+        let weights: Array2<f32> = Array::random_using((n, n), StandardNormal, &mut rng);
 
         //TODO: Assert I(W) = 0, ie. weights from a neuron to itself=0: 
         //      we don't want no self-feedback, yo.

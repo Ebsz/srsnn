@@ -1,4 +1,4 @@
-use ndarray::{s, Array1, Array2, Array};
+use ndarray::{s, Array1, Array2};
 
 use crate::model::{NeuronModel, FiringState};
 
@@ -50,8 +50,8 @@ impl NeuronModel for Izhikevich {
 
 
 impl Izhikevich {
-    pub fn new(N: usize, params: Array2<f32>) -> Izhikevich {
-        assert!(params.shape() == [N, 4]);
+    pub fn new(n: usize, params: Array2<f32>) -> Izhikevich {
+        assert!(params.shape() == [n, 4]);
 
         // Unpack parameter matrix for ease of use
         let a = params.slice(s![..,0]).to_owned();
@@ -59,8 +59,8 @@ impl Izhikevich {
         let c = params.slice(s![..,2]).to_owned();
         let d = params.slice(s![..,3]).to_owned();
 
-        let mut potential: Array1<f32> = c.to_owned();
-        let mut recovery: Array1<f32> = d.to_owned();
+        let potential: Array1<f32> = c.to_owned();
+        let recovery: Array1<f32> = d.to_owned();
 
         Izhikevich {
             v: potential,
