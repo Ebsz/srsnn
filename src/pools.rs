@@ -1,6 +1,6 @@
 use crate::model::NeuronModel;
 use crate::izhikevich::Izhikevich;
-use crate::synapses::{Synapses, MatrixSynapse};
+use crate::synapses::{Synapses, MatrixSynapses};
 
 use crate::population::Population;
 
@@ -21,13 +21,13 @@ impl<S: Synapses> Population<Izhikevich, S> for IzhikevichPool<S> {
     }
 }
 
-impl IzhikevichPool<MatrixSynapse> {
-    pub fn matrix_pool(n: usize) -> IzhikevichPool<MatrixSynapse> {
+impl IzhikevichPool<MatrixSynapses> {
+    pub fn matrix_pool(n: usize) -> IzhikevichPool<MatrixSynapses> {
         let izh_default: Vec<f32> = vec!(0.02, 0.2, -65.0, 2.0);
         let params: Array2<f32> = Array::from_shape_fn((n,4), |(_,j)| izh_default[j]);
 
         let izh = Izhikevich::new(n, params);
-        let synapses = MatrixSynapse::new(n);
+        let synapses = MatrixSynapses::new(n);
 
         IzhikevichPool {
             neurons: izh,

@@ -13,20 +13,20 @@ pub trait Synapses {
     fn step(&self, input: FiringState) -> Array1<f32>;
 }
 
-/// Synapse where connections between the N neurons are represented by an NxN matrix
+/// A type of synapse where connections between the N neurons are represented by an NxN matrix
 /// where entry W_jk is the weight from neuron k to neuron j
-pub struct MatrixSynapse {
+pub struct MatrixSynapses {
     weights: Array2<f32>
 }
 
-impl Synapses for MatrixSynapse {
+impl Synapses for MatrixSynapses {
     fn step(&self, input: FiringState) -> Array1<f32> {
         self.weights.dot(&input.state)
     }
 }
 
-impl MatrixSynapse {
-    pub fn new(n: usize) -> MatrixSynapse {
+impl MatrixSynapses {
+    pub fn new(n: usize) -> MatrixSynapses {
 
         let mut rng = StdRng::seed_from_u64(0);
 
@@ -36,7 +36,7 @@ impl MatrixSynapse {
         //      we don't want no self-feedback, yo.
         //      Can be done by W = (I(W) +1) % 2, or something.
 
-        MatrixSynapse {
+        MatrixSynapses {
             weights
         }
     }

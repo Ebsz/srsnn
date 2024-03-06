@@ -5,7 +5,7 @@ use crate::record::{Record, RecordType, RecordDataType};
 use ndarray::{s, Array2};
 
 /// A population contains a number of neurons of a set model(M), 
-/// connected via a specific type of synapses(S)k
+/// connected via a specific type of synapses(S)
 pub trait Population<M: NeuronModel, S: Synapses> { 
     
     fn run(&mut self, steps: usize, input: Array2<f32>, record: &mut Record) {
@@ -16,10 +16,9 @@ pub trait Population<M: NeuronModel, S: Synapses> {
 
         for i in 0..steps {
             let it = input.slice(s![i, ..]).to_owned(); // External input
-
             let si = self.synapses().step(firing_state); // Synaptic input
 
-            let step_input = si+&it;
+            let step_input = si+&it; // Total input
 
             firing_state = self.model().step(step_input);
 

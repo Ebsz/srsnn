@@ -48,6 +48,7 @@ impl Record {
     pub fn get_potentials(&self) -> Vec<Array1<f32>>{
         // TODO: won't want to implement this for each RecordType, so
         // this unpacking should probably be performed where it's used
+        // ...macros?
         let rec = self.get(RecordType::Potentials);
 
         let mut potentials = vec![];

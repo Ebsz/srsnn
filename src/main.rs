@@ -11,12 +11,12 @@ use ndarray::{Array, Array2};
 
 use pools::IzhikevichPool;
 use population::Population;
-use plots::plot_single_neuron_potential;
+use plots::generate_plots;
 
 use record::Record;
 
-const N: usize = 2;
-const T: usize = 100;
+const N: usize = 100;
+const T: usize = 300;
 
 
 fn main() {
@@ -33,11 +33,5 @@ fn main() {
 
     println!("Simulated {} neurons for {} steps in {}s", N, T, (start_time.elapsed().as_secs_f32()));
 
-    let single_pot = record.get_potentials().iter().map(|x| x[0]).collect();
-
-    let plot_ok = plot_single_neuron_potential(single_pot);
-    match plot_ok {
-        Ok(_) => (),
-        Err(e) => println!("Error creating plot: {:?}", e),
-    }
+    generate_plots(&record);
 }
