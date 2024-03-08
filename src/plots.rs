@@ -5,7 +5,7 @@ use crate::record::{Record, RecordType, RecordDataType};
 
 pub fn generate_plots(record: &Record) {
 
-    // P/t plot
+    // Potentials
     let single_pot = record.get_potentials().iter().map(|x| x[0]).collect();
 
     let plot_ok = plot_single_neuron_potential(single_pot);
@@ -14,7 +14,7 @@ pub fn generate_plots(record: &Record) {
         Err(e) => println!("Error creating plot: {:?}", e),
     }
 
-    // Spike plot
+    // Spikes
     let mut spikedata: Vec<Array1<f32>> = vec![];
 
     for i in record.get(RecordType::Spikes) {
@@ -24,7 +24,6 @@ pub fn generate_plots(record: &Record) {
             panic!("Error parsing spike records");
         }
     }
-
 
     let plot_ok = plot_spikes(spikedata);
     match plot_ok {
@@ -82,12 +81,9 @@ pub fn plot_spikes(spikedata: Vec<Array1<f32>>) -> Result<(), Box<dyn std::error
     let filename = "spikeplot.png";
 
     let max_x = spikedata.len() as i32;
-    let min_x = 0;
     let max_y = spikedata[0].shape()[0] as i32;
-    let min_y = 0;
 
     let points: Vec<(i32, i32)> = to_spike_points(&spikedata);
-
 
     let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
     root.fill(&WHITE)?;
@@ -97,7 +93,7 @@ pub fn plot_spikes(spikedata: Vec<Array1<f32>>) -> Result<(), Box<dyn std::error
         .margin(15)
         .x_label_area_size(20)
         .y_label_area_size(20)
-        .build_cartesian_2d(min_x..max_x, min_y..max_y)?;
+        .build_cartesian_2d(0..max_x, 0..max_y)?;
 
     chart.configure_mesh().draw()?;
 

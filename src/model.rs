@@ -10,6 +10,15 @@ impl FiringState {
             state: Array::zeros(n)
         }
     }
+
+    /// Get the indices of neurons that fire
+    pub fn firing(&self) -> Vec<usize> {
+        self.state.iter().enumerate().filter(|(_, n)| **n != 0.0).map(|(i,_)| i).collect()
+    }
+
+    pub fn len(&self) -> usize {
+        self.state.shape()[0]
+    }
 }
 
 

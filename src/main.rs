@@ -15,14 +15,15 @@ use plots::generate_plots;
 
 use record::Record;
 
-const N: usize = 100;
-const T: usize = 300;
+const N: usize = 100; // # of neuron
+const T: usize = 300; // # of steps to run for
+const P: f32 = 0.1;   // The probability that two arbitrary neurons are connected
 
 
 fn main() {
     let input: Array2<f32> = Array::ones((T, N)) * 17.3;
 
-    let mut pool = IzhikevichPool::matrix_pool(N);
+    let mut pool = IzhikevichPool::linear_pool(N, P);
 
     let mut record = Record::new();
 
