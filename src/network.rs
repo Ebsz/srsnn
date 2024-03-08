@@ -6,7 +6,7 @@ use ndarray::{s, Array2};
 
 /// A population contains a number of neurons of a set model(M), 
 /// connected via a specific type of synapses(S)
-pub trait Population<M: NeuronModel, S: Synapses> { 
+pub trait Network<M: NeuronModel, S: Synapses> {
     
     fn run(&mut self, steps: usize, input: Array2<f32>, record: &mut Record) {
         let n_neurons = self.model().potentials().shape()[0];

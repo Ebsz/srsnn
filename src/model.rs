@@ -1,3 +1,5 @@
+pub mod izhikevich;
+
 use ndarray::{Array, Array1};
 
 pub struct FiringState {

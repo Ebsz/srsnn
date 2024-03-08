@@ -1,19 +1,11 @@
-mod model;
-mod pools;
-mod plots;
-mod record;
-mod synapses;
-mod population;
-mod izhikevich;
+use luna::pools::IzhikevichPool;
+use luna::network::Network;
+use luna::plots::generate_plots;
+use luna::record::Record;
 
 use std::time::Instant;
 use ndarray::{Array, Array2};
 
-use pools::IzhikevichPool;
-use population::Population;
-use plots::generate_plots;
-
-use record::Record;
 
 const N: usize = 100; // # of neuron
 const T: usize = 300; // # of steps to run for

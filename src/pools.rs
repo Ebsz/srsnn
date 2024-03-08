@@ -1,17 +1,21 @@
+//! A pool is a group of randomly generated neurons shaped by certain parameters
+
 use crate::model::NeuronModel;
-use crate::izhikevich::Izhikevich;
+use crate::model::izhikevich::Izhikevich;
 use crate::synapses::{Synapses, MatrixSynapses, LinearSynapses};
 
-use crate::population::Population;
+use crate::network::Network;
 
 use ndarray::{Array2, Array};
 
+
+/// A pool consisting of Izhikevich neurons connected by a certain type of synapse
 pub struct IzhikevichPool<S: Synapses> {
     neurons: Izhikevich,
     synapses: S 
 }
 
-impl<S: Synapses> Population<Izhikevich, S> for IzhikevichPool<S> {
+impl<S: Synapses> Network<Izhikevich, S> for IzhikevichPool<S> {
     fn model(&mut self) -> &mut dyn NeuronModel {
         &mut self.neurons
     }
@@ -32,7 +36,6 @@ impl IzhikevichPool<MatrixSynapses> {
         IzhikevichPool {
             neurons: izh,
             synapses
-
         }
     }
 }

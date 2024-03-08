@@ -108,11 +108,13 @@ pub fn plot_spikes(spikedata: Vec<Array1<f32>>) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
+/// Convert the raw record data to points that can be plotted
 fn to_spike_points(spikedata: &Vec<Array1<f32>>) -> Vec<(i32, i32)> {
     let mut points: Vec<(i32, i32)> = vec![];
 
     for (t, s) in spikedata.iter().enumerate() {
         // Get indices i of neurons that fired at time t
+        // TODO: This is duplicated in FiringState; use
         let ixs: Vec<usize> = s.iter().enumerate().filter(|(_, n)| **n != 0.0).map(|(i,_)| i).collect();
 
         // Map from i to (t, i)
