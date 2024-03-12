@@ -1,15 +1,11 @@
 [package]
-name = "luna"
+name = "tasks"
 version = "0.1.0"
 edition = "2021"
+
 
 [dependencies]
 ndarray = "0.15.6"
 rand = "0.8.5"
 ndarray-rand = "0.14.0"
-plotters = "0.3.3"
-once_cell = "1.19.0"
-tasks = {path = "tasks"}
-
-[workspace]
-members = ["tasks"]
+macroquad = "0.4.5"
