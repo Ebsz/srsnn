@@ -2,13 +2,11 @@ use crate::model::FiringState;
 
 use std::collections::HashMap;
 
+use crate::utils::{random_matrix, random_range, random_sample};
+
 use ndarray::{Array1, Array2, Array};
 
 use ndarray_rand::rand_distr::StandardNormal;
-use ndarray_rand::rand::rngs::StdRng;
-use ndarray_rand::rand::{SeedableRng, Rng};
-use ndarray_rand::RandomExt;
-
 
 /// Model of a set of synapses
 pub trait Synapses { 
@@ -28,7 +26,6 @@ impl LinearSynapses {
     pub fn from_probability(n: usize, p: f32) -> LinearSynapses {
         assert!(p > 0.0 && p < 1.0);
 
-        let mut rng = StdRng::seed_from_u64(0);
         let mut connections: HashMap<usize, Vec<(usize, f32)>> = HashMap::new();
 
         for i in 0..n {
@@ -36,8 +33,9 @@ impl LinearSynapses {
                 if i == j {
                     continue;
                 }
-                if rng.gen_range(0.0..1.0) > (1.0 - p) {
-                    let w = rng.sample(StandardNormal);
+
+                if random_range((0.0, 1.0)) > (1.0 - p) {
+                    let w = random_sample(StandardNormal);
 
                     connections.entry(i).or_insert(Vec::new()).push((j, w));
                 }
@@ -81,10 +79,7 @@ impl Synapses for MatrixSynapses {
 
 impl MatrixSynapses {
     pub fn new(n: usize) -> MatrixSynapses {
-
-        let mut rng = StdRng::seed_from_u64(0);
-
-        let weights: Array2<f32> = Array::random_using((n, n), StandardNormal, &mut rng);
+        let weights: Array2<f32> = random_matrix((n,n));
 
         //TODO: Assert I(W) = 0, ie. weights from a neuron to itself=0: 
         //      we don't want no self-feedback, yo.
