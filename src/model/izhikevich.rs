@@ -1,6 +1,6 @@
 use ndarray::{s, Array, Array1, Array2};
 
-use crate::model::{NeuronModel, FiringState};
+use crate::model::{NeuronModel, Spikes};
 
 
 pub struct Izhikevich {
@@ -28,7 +28,7 @@ impl NeuronModel for Izhikevich {
      *      u = u + d
      */
 
-    fn step(&mut self, input: Array1<f32>) -> FiringState {
+    fn step(&mut self, input: Array1<f32>) -> Spikes {
         assert!(input.shape()[0] == self.v.shape()[0]);
 
         self.reset();
@@ -39,8 +39,8 @@ impl NeuronModel for Izhikevich {
 
         *&mut self.u = &self.a * (&self.b * &self.v - &self.u);
 
-        FiringState {
-            state: self.v.mapv(|i| if i >= 30.0 {1.0} else {0.0})
+        Spikes {
+            data: self.v.mapv(|i| if i >= 30.0 {1.0} else {0.0})
         }
     }
 

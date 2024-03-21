@@ -1,4 +1,4 @@
-use crate::model::FiringState;
+use crate::model::Spikes;
 
 use std::collections::HashMap;
 
@@ -10,8 +10,9 @@ use ndarray_rand::rand_distr::StandardNormal;
 
 /// Model of a set of synapses
 pub trait Synapses { 
-    fn step(&mut self, input: FiringState) -> Array1<f32>;
+    fn step(&mut self, input: &Spikes) -> Array1<f32>;
 }
+
 
 /// Synapses where connections are stored in a HashMap
 /// NOTE: connections are stored as from->to, where connections[i] contains a Vec
@@ -49,7 +50,7 @@ impl LinearSynapses {
 }
 
 impl Synapses for LinearSynapses {
-    fn step(&mut self, input: FiringState) -> Array1<f32> {
+    fn step(&mut self, input: &Spikes) -> Array1<f32> {
         let mut output: Array1<f32> = Array::zeros(input.len());
 
         for neuron in input.firing() {
@@ -72,8 +73,8 @@ pub struct MatrixSynapses {
 }
 
 impl Synapses for MatrixSynapses {
-    fn step(&mut self, input: FiringState) -> Array1<f32> {
-        self.weights.dot(&input.state)
+    fn step(&mut self, input: &Spikes) -> Array1<f32> {
+        self.weights.dot(&input.data)
     }
 }
 
