@@ -15,16 +15,20 @@ pub trait Network<M: NeuronModel, S: Synapses> {
         let mut firing_state = FiringState::new(n_neurons);
 
         for i in 0..steps {
-            let it = input.slice(s![i, ..]).to_owned(); // External input
-            let si = self.synapses().step(firing_state); // Synaptic input
+            let external_input = input.slice(s![i, ..]).to_owned();
 
-            let step_input = si+&it; // Total input
-
-            firing_state = self.model().step(step_input);
+            firing_state = self.step(external_input, firing_state);
 
             record.log(RecordType::Potentials, RecordDataType::Potentials(self.model().potentials()));
             record.log(RecordType::Spikes, RecordDataType::Spikes(firing_state.state.clone()));
         }
+    }
+
+    fn step(&mut self, input: Array1<f32>, state: FiringState) -> FiringState {
+        let synaptic_input = self.synapses().step(state);
+        let step_input = synaptic_input + &input;
+
+        self.model().step(step_input)
     }
 
     fn model(&mut self) -> &mut dyn NeuronModel;
