@@ -12,7 +12,7 @@ use luna::task_executor::execute;
 use luna::logger::init_logger;
 
 use tasks::cognitive_task::{CognitiveTask, TaskResult};
-use tasks::catching_task::CatchingTask;
+use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 
 use std::time::Instant;
 use ndarray::{Array, Array2};
@@ -42,14 +42,31 @@ fn run() {
 
 #[allow(dead_code)]
 fn evaluate(g: &Genome) -> f32 {
-    let phenotype = Phenotype::from_genome(g);
+    const trial_positions: [i32; 11] = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
-    let task = CatchingTask::new();
+    let mut phenotype = Phenotype::from_genome(g);
 
-    let result = execute(phenotype, task);
-    println!("result: {:?}", result);
+    let max_distance = tasks::catching_task::ARENA_SIZE.0 as f32;
 
-    0.0
+    let mut total_fitness = 0.0;
+    for i in 0..trial_positions.len() {
+        phenotype.reset();
+
+        let task_conf = CatchingTaskConfig {
+            target_pos: trial_positions[i]
+        };
+
+        let task = CatchingTask::new(task_conf);
+
+        let result = execute(&mut phenotype, task);
+        total_fitness += (1.0 - result.distance/max_distance) * 100.0 - (if result.success {0.0} else {30.0});
+    }
+
+    let fitness = total_fitness / trial_positions.len() as f32;
+
+    println!("fitness: {:?}", fitness);
+
+    fitness
 }
 
 #[allow(dead_code)]

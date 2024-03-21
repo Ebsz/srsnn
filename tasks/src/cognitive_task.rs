@@ -23,6 +23,10 @@ pub struct TaskContext {
 }
 
 pub trait CognitiveTask {
+    type TaskConfig;
+
+    fn new(config: Self::TaskConfig) -> Self;
+
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState;
 
     fn context() -> TaskContext;

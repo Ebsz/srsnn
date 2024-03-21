@@ -6,12 +6,10 @@
 use crate::cognitive_task::{CognitiveTask, TaskResult, TaskContext, TaskInput, TaskState};
 
 use ndarray::{array, Array, Array1};
-use ndarray_rand::rand::rngs::StdRng;
-use ndarray_rand::rand::{Rng, SeedableRng};
 
 use std::f32::consts::PI;
 
-const ARENA_SIZE: (i32, i32) = (800, 600);
+pub const ARENA_SIZE: (i32, i32) = (500, 600);
 const APPLE_RADIUS: i32 = 16;
 const AGENT_RADIUS: i32 = 32;
 
@@ -22,7 +20,7 @@ const AGENT_SPEED: i32 = 5;
 const AGENT_START_POS: (i32, i32) = (ARENA_SIZE.0 / 2, (ARENA_SIZE.1 - AGENT_RADIUS));
 
 const N_SENSORS: usize = 7;
-const SENSOR_SPREAD: f32 = PI / 2.0; // The angle between the first and last sensor
+const SENSOR_SPREAD: f32 = PI / 3.0; // The angle between the first and last sensor
 
 const N_AGENT_CONTROLS: usize = 2;
 
@@ -36,7 +34,28 @@ pub struct CatchingTask {
     ticks: usize,
 }
 
+pub struct CatchingTaskConfig {
+    pub target_pos: i32
+}
+
 impl CognitiveTask for CatchingTask {
+    type TaskConfig = CatchingTaskConfig;
+
+    fn new(config: CatchingTaskConfig) -> CatchingTask {
+
+        assert!(config.target_pos <= ARENA_SIZE.0 && config.target_pos >= 0);
+
+        let agent = Agent::new();
+        let apple = Apple::new(config.target_pos);
+
+        CatchingTask {
+            ticks: 0,
+            sensors: CatchingTask::init_sensors(),
+            agent,
+            apple
+        }
+    }
+
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState {
         self.parse_input(input);
 
@@ -71,17 +90,6 @@ impl CognitiveTask for CatchingTask {
 }
 
 impl CatchingTask {
-    pub fn new() -> CatchingTask {
-        let agent = Agent::new();
-        let apple = Apple::new();
-
-        CatchingTask {
-            ticks: 0,
-            sensors: CatchingTask::init_sensors(),
-            agent,
-            apple
-        }
-    }
 
     pub fn read_sensors(&self) -> Array1<f32> {
         let mut readout = Array::zeros(N_SENSORS);
@@ -171,16 +179,12 @@ impl Agent {
 }
 
 impl Apple {
-    fn new() -> Apple {
-        let mut rng = StdRng::seed_from_u64(0);
-
-        let x: i32 = rng.gen_range(0..ARENA_SIZE.0);
-        let y: i32 = 0;
+    fn new(x_pos: i32) -> Apple {
 
         Apple {
             r: APPLE_RADIUS,
-            x,
-            y,
+            x: x_pos,
+            y: 0,
         }
     }
 }

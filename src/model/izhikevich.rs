@@ -73,6 +73,12 @@ impl Izhikevich {
         }
     }
 
+    /// Reset all neurons to their initial state
+    pub fn initialize(&mut self) {
+        self.v = self.c.to_owned();
+        self.u = self.d.to_owned();
+    }
+
     pub fn default(n: usize) -> Izhikevich {
         let izh_default: Vec<f32> = vec!(0.02, 0.2, -65.0, 2.0);
         let params: Array2<f32> = Array::from_shape_fn((n,4), |(_,j)| izh_default[j]);

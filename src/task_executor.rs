@@ -11,7 +11,7 @@ use crate::model::{NeuronModel,Spikes};
 const SYNAPTIC_INPUT_SCALING: f32 = 15.0;
 
 
-pub fn execute<T: CognitiveTask> (mut phenotype: Phenotype, mut task: T) -> TaskResult {
+pub fn execute<T: CognitiveTask> (phenotype: &mut Phenotype, mut task: T) -> TaskResult {
     let synapse_size = phenotype.synapses.neuron_count();
     let network_size = phenotype.neurons.size();
 

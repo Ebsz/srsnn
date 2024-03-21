@@ -45,6 +45,10 @@ impl Phenotype {
             outputs: g.environment.outputs as i32
         }
     }
+
+    pub fn reset(&mut self) {
+        self.neurons.initialize();
+    }
 }
 
 
