@@ -1,6 +1,7 @@
-use ndarray::{s, Array1, Array2};
+use ndarray::{s, Array, Array1, Array2};
 
 use crate::model::{NeuronModel, FiringState};
+
 
 pub struct Izhikevich {
     a: Array1<f32>,
@@ -70,6 +71,13 @@ impl Izhikevich {
             c,
             d
         }
+    }
+
+    pub fn default(n: usize) -> Izhikevich {
+        let izh_default: Vec<f32> = vec!(0.02, 0.2, -65.0, 2.0);
+        let params: Array2<f32> = Array::from_shape_fn((n,4), |(_,j)| izh_default[j]);
+
+        Self::new(n, params)
     }
 
     fn reset(&mut self) {

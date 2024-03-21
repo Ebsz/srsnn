@@ -27,10 +27,7 @@ impl<S: Synapses> Network<Izhikevich, S> for IzhikevichPool<S> {
 
 impl IzhikevichPool<MatrixSynapses> {
     pub fn matrix_pool(n: usize) -> IzhikevichPool<MatrixSynapses> {
-        let izh_default: Vec<f32> = vec!(0.02, 0.2, -65.0, 2.0);
-        let params: Array2<f32> = Array::from_shape_fn((n,4), |(_,j)| izh_default[j]);
-
-        let izh = Izhikevich::new(n, params);
+        let izh = Izhikevich::default(n);
         let synapses = MatrixSynapses::new(n);
 
         IzhikevichPool {
@@ -42,10 +39,7 @@ impl IzhikevichPool<MatrixSynapses> {
 
 impl IzhikevichPool<LinearSynapses> {
     pub fn linear_pool(n: usize, p: f32) -> IzhikevichPool<LinearSynapses> {
-        let izh_default: Vec<f32> = vec!(0.02, 0.2, -65.0, 2.0);
-        let params: Array2<f32> = Array::from_shape_fn((n,4), |(_,j)| izh_default[j]);
-
-        let izh = Izhikevich::new(n, params);
+        let izh = Izhikevich::default(n);
         let synapses = LinearSynapses::from_probability(n, p);
 
         IzhikevichPool {
