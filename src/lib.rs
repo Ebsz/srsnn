@@ -6,3 +6,5 @@ pub mod logger;
 pub mod record;
 pub mod synapses;
 pub mod network;
+pub mod evolution;
+pub mod task_executor;

@@ -3,7 +3,7 @@
 //! how it's used in graphics libraries like macroquad.
 //! TODO: Change the coordinate system to correspond with human perception
 
-use crate::cognitive_task::{CognitiveTask, TaskResult, TaskContext};
+use crate::cognitive_task::{CognitiveTask, TaskResult, TaskContext, TaskInput, TaskState};
 
 use ndarray::{array, Array, Array1};
 use ndarray_rand::rand::rngs::StdRng;
@@ -37,34 +37,35 @@ pub struct CatchingTask {
 }
 
 impl CognitiveTask for CatchingTask {
-    fn tick(&mut self) -> Option<TaskResult> {
+    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState {
+        self.parse_input(input);
+
         self.apple.y += APPLE_SPEED;
 
+        let mut result: Option<TaskResult> = None;
+
         if self.intersects() || self.apple.y  > ARENA_SIZE.1 {
-            return Some(TaskResult {
+            result =  Some(TaskResult {
                 success: self.intersects(),
                 distance: self.distance()
             });
         }
 
-        let readout = self.read_sensors();
-
-        for i in 0..readout.shape()[0] {
-            if readout[i] != 0.0 {
-                println!("{:?}", readout[i]);
-
-            }
-        }
+        let sensor_data = self.read_sensors();
 
         self.ticks += 1;
 
-        None
+        TaskState {
+            result,
+            sensor_data,
+
+        }
     }
 
-    fn context(&self) -> TaskContext {
+    fn context() -> TaskContext {
         TaskContext {
-            agent_inputs: N_AGENT_CONTROLS,
-            agent_outputs: N_SENSORS,
+            agent_inputs: N_SENSORS,
+            agent_outputs: N_AGENT_CONTROLS,
         }
     }
 }
@@ -106,6 +107,18 @@ impl CatchingTask {
         }
 
         sensors
+    }
+
+    fn parse_input(&mut self, input: &Vec<TaskInput>) {
+        for i in input {
+            if i.input_id == 0 {
+                self.agent.move_right();
+            } else if i.input_id == 1 {
+                self.agent.move_left();
+            } else {
+                panic!("Got input id > 1")
+            }
+        }
     }
 
     /// Euclidean distance between agent and apple

@@ -82,12 +82,19 @@ impl MatrixSynapses {
     pub fn new(n: usize) -> MatrixSynapses {
         let weights: Array2<f32> = random_matrix((n,n));
 
-        //TODO: Assert I(W) = 0, ie. weights from a neuron to itself=0: 
-        //      we don't want no self-feedback, yo.
-        //      Can be done by W = (I(W) +1) % 2, or something.
-
         MatrixSynapses {
             weights
         }
+    }
+
+    pub fn from_matrix(m: Array2<f32>) -> MatrixSynapses {
+        MatrixSynapses {
+            weights: m
+        }
+    }
+
+    pub fn neuron_count(&self) -> usize {
+        self.weights.shape()[0]
+
     }
 }
