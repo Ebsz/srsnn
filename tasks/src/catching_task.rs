@@ -231,7 +231,9 @@ impl Sensor {
         let det = b * b - 4.0 * a * c;
 
         if det > 0.0 {
-            return ((pos.0 - target_pos.0).powf(2.0) + (pos.1 - target_pos.1).powf(2.0)).sqrt();
+            return 1.0;
+
+            //return ((pos.0 - target_pos.0).powf(2.0) + (pos.1 - target_pos.1).powf(2.0)).sqrt();
 
             //println!("{:?}", a);
             //let lambda = (-b + (b*b - 4.0 * a * c).sqrt())/ 2.0 * a;
