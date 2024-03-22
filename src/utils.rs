@@ -1,23 +1,23 @@
-use ndarray::{Array2, Array1, Array};
-
-use ndarray_rand::rand::rngs::StdRng;
-use ndarray_rand::rand::SeedableRng;
-use ndarray_rand::RandomExt;
-
-use ndarray_rand::rand_distr::{Distribution, StandardNormal};
-
-use ndarray_rand::rand_distr::uniform::SampleUniform;
 use std::cmp::PartialOrd;
-
-use ndarray_rand::rand::Rng;
-
-use std::ops::Range;
-
 use std::cell::RefCell;
 
+use ndarray::{Array2, Array};
 
+use ndarray_rand::RandomExt;
+use ndarray_rand::rand::{Rng, SeedableRng};
+use ndarray_rand::rand::rngs::StdRng;
+use ndarray_rand::rand_distr::{Distribution, StandardNormal};
+use ndarray_rand::rand_distr::uniform::SampleUniform;
+
+use rand::seq::SliceRandom;
+
+
+const SEED: u64 = 0;
+
+
+// TODO: This is not deterministic for some reason: investigate.
 thread_local! {
-    static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(09));
+    static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));
 
 }
 
@@ -41,6 +41,12 @@ pub fn random_sample<T, D: Distribution<T>> (dist: D) -> T {
     RNG.with(|rng| rng.borrow_mut().sample(dist))
 }
 
+/// Choose a random element from a Vec
+pub fn random_choice<T> (v: &Vec<T>) -> &T {
+    assert!(v.len() != 0);
+
+    RNG.with(|rng| v.choose(&mut (*rng.borrow_mut()))).unwrap()
+}
 
 // TODO: use this
 //pub fn indices<T: Iterator>(x: T, pred: fn()) -> Vec<usize> {
