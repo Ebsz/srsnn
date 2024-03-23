@@ -7,8 +7,8 @@ use ndarray_rand::rand_distr::StandardNormal;
 
 const MAX_NEURONS: usize = 13;
 
-const INITIAL_NEURON_COUNT_RANGE: (i32, i32) = (2, 5);
-const INITIAL_CONNECTION_COUNT_RANGE: (i32, i32) = (3, 4);
+const INITIAL_NEURON_COUNT_RANGE: (usize, usize) = (2, 5);
+const INITIAL_CONNECTION_COUNT_RANGE: (usize, usize) = (3, 4);
 
 /*
  * Probabilities for each type of mutation
@@ -46,7 +46,7 @@ impl Genome {
         // Add output neurons
         for i in 0..env.outputs {
             neurons.push(NeuronGene {
-                id: (i as i32),
+                id: (i as u32),
                 ntype: NeuronType::Output
             });
         }
@@ -54,7 +54,7 @@ impl Genome {
         // Add network neurons
         for i in 0..random_range(INITIAL_NEURON_COUNT_RANGE) {
             neurons.push(NeuronGene {
-                id: i + (env.outputs as i32),
+                id: (i + env.outputs) as u32,
                 ntype: NeuronType::Network
             });
         }
@@ -200,7 +200,7 @@ impl Genome {
 
 #[derive(Clone, Copy, Debug)]
 pub struct NeuronGene {
-    pub id: i32,
+    pub id: u32,
     pub ntype: NeuronType
 }
 
