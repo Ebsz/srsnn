@@ -64,7 +64,7 @@ fn evaluate(g: &Genome) -> f32 {
 
     let fitness = total_fitness / trial_positions.len() as f32;
 
-    println!("fitness: {:?}", fitness);
+    log::trace!("eval: {:?}", fitness);
 
     fitness
 }
