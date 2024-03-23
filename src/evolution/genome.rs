@@ -13,7 +13,7 @@ const INITIAL_CONNECTION_COUNT_RANGE: (usize, usize) = (3, 4);
 /*
  * Probabilities for each type of mutation
  */
-const MUTATE_CONNECTION_PROB: f32 = 0.10;
+const MUTATE_CONNECTION_PROB: f32 = 0.80;
 const MUTATE_ADD_CONNECTION_PROB: f32 = 0.03;
 const MUTATE_ADD_NEURON_PROB: f32 = 0.02;
 
@@ -106,6 +106,8 @@ impl Genome {
         self.neurons.len()
     }
 
+    ///
+    /// Perform one of a set of different mutations on the genome
     pub fn mutate(&mut self) {
         if random_range((0.0, 1.0)) <  MUTATE_CONNECTION_PROB {
             self.mutate_connection();
@@ -186,8 +188,17 @@ impl Genome {
         }
     }
 
+    /// Selects a random connection and makes a small change
     fn mutate_connection(&mut self) {
+        const MUTATION_STRENGTH: f32 = 0.5;
 
+        let enabled_connections = self.enabled_connections();
+        let c = random_choice(&enabled_connections);
+
+        let offset: f32 = random_sample(StandardNormal);
+        let new_weight = self.connections[[c.0, c.1]].1 + offset * MUTATION_STRENGTH;
+
+        self.connections[[c.0, c.1]] = (true, new_weight);
     }
 
     fn mutate_add_neuron(&mut self) {
@@ -197,6 +208,14 @@ impl Genome {
     fn mutate_add_connection(&mut self) {
 
     }
+
+    fn enabled_connections(&self) -> Vec<(usize, usize)> {
+        self.connections.indexed_iter()
+            .filter(|(i, x)| x.0)
+            .map(|(i, x)| (i.0, i.1))
+            .collect()
+    }
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct NeuronGene {

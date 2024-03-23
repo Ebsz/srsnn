@@ -72,7 +72,12 @@ impl Population {
             log::trace!("Breeding {} offspring from {} parents",
                 (POPULATION_SIZE - N_BEST_KEEP), parents.len());
 
-            let children = self.breed(parents, (POPULATION_SIZE - N_BEST_KEEP));
+            let mut children = self.breed(parents, (POPULATION_SIZE - N_BEST_KEEP));
+
+            // Mutate children
+            for mut c in &mut children {
+                c.mutate();
+            }
 
             // Remove all but the N best genomes from the population
             self.population.retain(|i, g| fitness[..N_BEST_KEEP].iter().any(|x| x.0 == *i));
