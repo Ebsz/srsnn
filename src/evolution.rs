@@ -9,6 +9,7 @@ pub mod genome;
 pub mod phenotype;
 
 use std::collections::HashMap;
+use std::time::Instant;
 use genome::Genome;
 use crate::utils;
 
@@ -58,12 +59,18 @@ impl Population {
     pub fn evolve(&mut self) {
         while self.generation < MAX_GENERATIONS {
             log::debug!("Evaluating population");
+            let start_time = Instant::now();
 
             // Evaluate the population and sort by fitness
             let mut fitness: Vec<(u32, f32)> = self.evaluate();
             fitness.sort_by(|x,y| y.1.partial_cmp(&x.1).unwrap());
 
-            log::info!("Generation {} - best: {}", self.generation, fitness[0].1);
+            let eval_time = start_time.elapsed().as_secs_f32();
+
+            log::trace!("Evaluated population in {}s ({}s per genome)", eval_time, eval_time / POPULATION_SIZE as f32 );
+            log::info!("Generation {} - best fit: {}", self.generation, fitness[0].1, );
+
+            log::debug!("Creating new generation");
 
             // Select the best fit to be parents
             let n_parents = ((POPULATION_SIZE as f32) * SURVIVAL_THRESHOLD) as usize;
