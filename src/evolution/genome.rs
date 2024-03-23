@@ -1,4 +1,4 @@
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{s, Array, Array2};
 
 use crate::evolution::EvolutionEnvironment;
 
@@ -31,7 +31,6 @@ const MUTATE_ADD_NEURON_PROB: f32 = 0.02;
 pub struct Genome {
     pub neurons: Vec<NeuronGene>,
     pub connections: Array2<(bool, f32)>,
-    pub environment: EvolutionEnvironment
 }
 
 impl Genome {
@@ -98,7 +97,6 @@ impl Genome {
         Genome {
             neurons,
             connections,
-            environment: env.clone(),
         }
     }
 
@@ -106,7 +104,6 @@ impl Genome {
         self.neurons.len()
     }
 
-    ///
     /// Perform one of a set of different mutations on the genome
     pub fn mutate(&mut self) {
         if random_range((0.0, 1.0)) <  MUTATE_CONNECTION_PROB {
@@ -184,7 +181,6 @@ impl Genome {
         Genome {
             neurons,
             connections: connection_matrix,
-            environment: self.environment.clone()
         }
     }
 

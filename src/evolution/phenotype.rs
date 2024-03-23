@@ -1,8 +1,7 @@
-use crate::network::Network;
 use crate::model::izhikevich::Izhikevich;
-use crate::model::NeuronModel;
 use crate::synapses::{MatrixSynapses};
 
+use crate::evolution::EvolutionEnvironment;
 use crate::evolution::genome::{Genome}; //, NeuronGene};
 
 use ndarray::{s, Array1, Array2, Array};
@@ -26,7 +25,7 @@ pub struct Phenotype {
 //}
 
 impl Phenotype {
-    pub fn from_genome(g: &Genome) -> Phenotype {
+    pub fn from_genome(g: &Genome, env: &EvolutionEnvironment) -> Phenotype {
         // Size of the connection matrix
         let msize = g.connections.shape()[0];
 
@@ -41,8 +40,8 @@ impl Phenotype {
         Phenotype {
             neurons: model,
             synapses,
-            inputs: g.environment.inputs as i32,
-            outputs: g.environment.outputs as i32
+            inputs: env.inputs as i32,
+            outputs: env.outputs as i32
         }
     }
 

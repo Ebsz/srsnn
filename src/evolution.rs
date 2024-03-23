@@ -26,7 +26,7 @@ pub struct EvolutionEnvironment {
     pub outputs: usize,
 }
 
-pub type Fitness = fn(&Genome) -> f32;
+pub type Fitness = fn(&Genome, &EvolutionEnvironment) -> f32;
 
 pub struct Population {
     population: HashMap<u32, Genome>,
@@ -103,7 +103,7 @@ impl Population {
     /// Evaluate the fitness of each genome
     fn evaluate(&mut self) -> Vec<(u32, f32)> {
         let mut fitness: Vec<(u32, f32)> = self.population.iter()
-            .map(|(id, g)| (*id, (self.fitness_fn)(g))).collect();
+            .map(|(id, g)| (*id, (self.fitness_fn)(g, &self.environment))).collect();
 
         fitness
     }

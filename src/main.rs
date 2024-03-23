@@ -41,10 +41,10 @@ fn run() {
 }
 
 #[allow(dead_code)]
-fn evaluate(g: &Genome) -> f32 {
+fn evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     const trial_positions: [i32; 11] = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
-    let mut phenotype = Phenotype::from_genome(g);
+    let mut phenotype = Phenotype::from_genome(g, env);
 
     let max_distance = tasks::catching_task::ARENA_SIZE.0 as f32;
 
