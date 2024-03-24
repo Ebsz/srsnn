@@ -207,8 +207,8 @@ impl Genome {
 
     fn enabled_connections(&self) -> Vec<(usize, usize)> {
         self.connections.indexed_iter()
-            .filter(|(i, x)| x.0)
-            .map(|(i, x)| (i.0, i.1))
+            .filter(|(_, x)| x.0)
+            .map(|(i, _)| (i.0, i.1))
             .collect()
     }
 }

@@ -4,8 +4,19 @@ use crate::synapses::{MatrixSynapses};
 use crate::evolution::EvolutionEnvironment;
 use crate::evolution::genome::{Genome}; //, NeuronGene};
 
-use ndarray::{s, Array1, Array2, Array};
-use std::collections::HashMap;
+use ndarray::Array2;
+
+// Idk?
+//trait Phenotype {
+//    fn from_genome(g: &Genome) -> Self;
+//
+//    fn inputs(&self) -> i32;
+//    fn outputs(&self) -> i32;
+//}
+
+
+// Network implements phenotype
+
 
 
 pub struct Phenotype {
@@ -26,13 +37,10 @@ pub struct Phenotype {
 
 impl Phenotype {
     pub fn from_genome(g: &Genome, env: &EvolutionEnvironment) -> Phenotype {
-        // Size of the connection matrix
-        let msize = g.connections.shape()[0];
-
         // Number of neurons in the network
         let network_size = g.network_size();
 
-        let synapse_matrix: Array2<f32> = g.connections.mapv(|(c, w)| w);
+        let synapse_matrix: Array2<f32> = g.connections.mapv(|(_, w)| w);
 
         let synapses = MatrixSynapses::from_matrix(synapse_matrix);
         let model = Izhikevich::default(network_size);

@@ -2,9 +2,8 @@ use crate::model::{NeuronModel, Spikes};
 use crate::synapses::Synapses;
 use crate::record::{Record, RecordType, RecordDataType};
 
-use ndarray::{s, Array2};
+use ndarray::{s, Array1, Array2};
 
-/// A population contains a number of neurons of a set model(M), 
 /// connected via a specific type of synapses(S)
 pub trait Network<M: NeuronModel, S: Synapses> {
     fn run(&mut self, steps: usize, input: Array2<f32>, record: &mut Record) {
