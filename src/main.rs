@@ -3,6 +3,8 @@ use luna::network::Network;
 use luna::plots::generate_plots;
 use luna::record::Record;
 
+use luna::utils::SEED;
+
 use luna::evolution::{Population, EvolutionEnvironment, Fitness};
 use luna::evolution::genome::Genome;
 use luna::evolution::phenotype::Phenotype;
@@ -30,12 +32,12 @@ fn run() {
     //let mut pool = IzhikevichPool::matrix_pool(N);
     let mut record = Record::new();
 
-    println!("Running..");
+    log::info!("Running network..");
 
     let start_time = Instant::now();
     pool.run(T, input, &mut record);
 
-    println!("Simulated {} neurons for {} steps in {}s", N, T, (start_time.elapsed().as_secs_f32()));
+    log::info!("Simulated {} neurons for {} steps in {}s", N, T, (start_time.elapsed().as_secs_f32()));
 
     generate_plots(&record);
 }
@@ -80,13 +82,15 @@ fn evolve() {
 
     let mut population = Population::new(env, evaluate);
 
-    log::info!("Evolving population..");
+    log::info!("Evolving..");
     population.evolve();
 }
 
 fn main() {
     init_logger();
 
-    run();
-    //evolve();
+    log::info!("seed is {}", SEED);
+
+    //run();
+    evolve();
 }

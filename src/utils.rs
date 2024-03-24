@@ -11,18 +11,15 @@ use ndarray_rand::rand_distr::uniform::SampleUniform;
 
 use rand::seq::SliceRandom;
 
+pub const SEED: u64 = 0;
 
-const SEED: u64 = 0;
 
-
-// TODO: This is not deterministic for some reason: investigate.
 thread_local! {
     static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));
 
 }
 
 /// Generate a random matrix
-// TODO: Rewrite with generic parameter to support matrices of any type
 pub fn random_matrix(shape: (usize, usize) ) -> Array2<f32>{
     RNG.with(|rng| {
         Array::random_using(shape, StandardNormal, &mut (*rng.borrow_mut()))

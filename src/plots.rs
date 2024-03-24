@@ -72,7 +72,7 @@ pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn 
 
     root.present()?;
 
-    println!("Plot saved to {}", filename);
+    log::info!("Plot saved to {}", filename);
 
     Ok(())
 }
@@ -103,7 +103,7 @@ pub fn plot_spikes(spikedata: Vec<Array1<f32>>) -> Result<(), Box<dyn std::error
 
     root.present()?;
 
-    println!("Plot saved to {}", filename);
+    log::info!("Plot saved to {}", filename);
 
     Ok(())
 }
