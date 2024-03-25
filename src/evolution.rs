@@ -66,9 +66,12 @@ impl Population {
             fitness.sort_by(|x,y| y.1.partial_cmp(&x.1).unwrap());
 
             let eval_time = start_time.elapsed().as_secs_f32();
+            let mean_fitness: f32 = fitness.iter().map(|(_, f)| f).sum::<f32>() / fitness.len() as f32;
 
-            log::trace!("Evaluated population in {}s ({}s per genome)", eval_time, eval_time / POPULATION_SIZE as f32 );
-            log::info!("Generation {} - best fit: {}", self.generation, fitness[0].1, );
+            log::trace!("Evaluated population in {}s ({}s per genome)",
+                eval_time, eval_time / POPULATION_SIZE as f32 );
+            log::info!("Generation {} - best fit: {}, mean: {}",
+                self.generation, fitness[0].1, mean_fitness);
 
             log::debug!("Creating new generation");
 
