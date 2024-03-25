@@ -5,7 +5,7 @@ use luna::record::Record;
 
 use luna::utils::SEED;
 
-use luna::evolution::{Population, EvolutionEnvironment, Fitness};
+use luna::evolution::{Population, EvolutionEnvironment};
 use luna::evolution::genome::Genome;
 use luna::evolution::phenotype::Phenotype;
 
@@ -13,7 +13,7 @@ use luna::task_executor::execute;
 
 use luna::logger::init_logger;
 
-use tasks::cognitive_task::{CognitiveTask, TaskResult};
+use tasks::cognitive_task::CognitiveTask;
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 
 use std::time::Instant;
@@ -44,13 +44,15 @@ fn run() {
 
 #[allow(dead_code)]
 fn evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
-    const trial_positions: [i32; 11] = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+    let trial_positions: [i32; 11] = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
     let mut phenotype = Phenotype::from_genome(g, env);
 
     let max_distance = tasks::catching_task::ARENA_SIZE.0 as f32;
 
     let mut total_fitness = 0.0;
+    let mut correct: u32 = 0;
+
     for i in 0..trial_positions.len() {
         phenotype.reset();
 
@@ -60,15 +62,34 @@ fn evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
 
         let task = CatchingTask::new(task_conf);
 
-        let result = execute(&mut phenotype, task);
+        let result = execute(&mut phenotype, task, None);
         total_fitness += (1.0 - result.distance/max_distance) * 100.0 - (if result.success {0.0} else {30.0});
+        if result.success {
+            correct += 1;
+        }
     }
 
     let fitness = total_fitness / trial_positions.len() as f32;
 
-    log::trace!("eval: {:?}", fitness);
+    log::trace!("eval: {:?} correct: {}/11", fitness, correct);
 
     fitness
+}
+
+/// Analyzes a genome resulting from an evolutionary process
+#[allow(dead_code)]
+fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
+    log::info!("Analyzing genome");
+    let mut phenotype = Phenotype::from_genome(g, env);
+
+    let task = CatchingTask::new( CatchingTaskConfig {
+        target_pos: 450
+    });
+
+    let mut record: Record = Record::new();
+
+    execute(&mut phenotype, task, Some(&mut record));
+    generate_plots(&record);
 }
 
 #[allow(dead_code)]
@@ -80,10 +101,12 @@ fn evolve() {
         outputs: task_context.agent_outputs
     };
 
-    let mut population = Population::new(env, evaluate);
+    let mut population = Population::new(env.clone(), evaluate);
 
     log::info!("Evolving..");
-    population.evolve();
+    let evolved_genome: Genome = population.evolve();
+
+    analyze_genome(&evolved_genome, &env);
 }
 
 fn main() {

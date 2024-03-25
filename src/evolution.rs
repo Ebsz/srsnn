@@ -19,6 +19,8 @@ const MAX_GENERATIONS: u32 = 50;
 const N_BEST_KEEP: usize = 0; // N best genomes to keep without mutation in the new population
 const SURVIVAL_THRESHOLD: f32 = 0.3;
 
+/// Stop evolution when a genome has a fitness above this threshold
+const FITNESS_GOAL: f32 = 84.0;
 
 #[derive(Debug, Clone)]
 pub struct EvolutionEnvironment {
@@ -56,13 +58,15 @@ impl Population {
         }
     }
 
-    pub fn evolve(&mut self) {
+    pub fn evolve(&mut self) -> Genome {
+        let mut fitness: Vec<(u32, f32)> = Vec::new();
+
         while self.generation < MAX_GENERATIONS {
             log::debug!("Evaluating population");
             let start_time = Instant::now();
 
             // Evaluate the population and sort by fitness
-            let mut fitness: Vec<(u32, f32)> = self.evaluate();
+            fitness = self.evaluate();
             fitness.sort_by(|x,y| y.1.partial_cmp(&x.1).unwrap());
 
             let eval_time = start_time.elapsed().as_secs_f32();
@@ -72,6 +76,11 @@ impl Population {
                 eval_time, eval_time / POPULATION_SIZE as f32 );
             log::info!("Generation {} - best fit: {}, mean: {}",
                 self.generation, fitness[0].1, mean_fitness);
+
+            if fitness[0].1 > FITNESS_GOAL {
+                log::info!("Fitness goal reached, stopping evolution");
+                break;
+            }
 
             log::debug!("Creating new generation");
 
@@ -101,6 +110,9 @@ impl Population {
 
             self.generation += 1;
         }
+
+        // Return the best fit genome of the population
+        self.population.get(&fitness[0].0).unwrap().clone()
     }
 
     /// Evaluate the fitness of each genome
@@ -110,7 +122,6 @@ impl Population {
 
         fitness
     }
-
 
     /// Create n offspring from a set of parent genomes
     fn breed(&mut self, parent_ids: Vec<u32>, n: usize) -> Vec<Genome> {
@@ -140,5 +151,4 @@ impl Population {
 
         self.genome_num +=1;
     }
-
 }

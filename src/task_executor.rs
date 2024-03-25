@@ -7,11 +7,13 @@ use crate::evolution::phenotype::Phenotype;
 use crate::synapses::Synapses;
 use crate::model::{NeuronModel,Spikes};
 
+use crate::record::{Record, RecordType, RecordDataType};
 
 const SYNAPTIC_INPUT_SCALING: f32 = 15.0;
 
 
-pub fn execute<T: CognitiveTask> (phenotype: &mut Phenotype, mut task: T) -> TaskResult {
+
+pub fn execute<T: CognitiveTask> (phenotype: &mut Phenotype, mut task: T, mut record: Option<&mut Record>) -> TaskResult {
     let synapse_size = phenotype.synapses.neuron_count();
     let network_size = phenotype.neurons.size();
 
@@ -39,6 +41,11 @@ pub fn execute<T: CognitiveTask> (phenotype: &mut Phenotype, mut task: T) -> Tas
         let network_input = synaptic_input.slice(s![0..network_size]).to_owned();
 
         network_state = phenotype.neurons.step(network_input);
+
+        if let Some(ref mut r) = record {
+            r.log(RecordType::Potentials, RecordDataType::Potentials(phenotype.neurons.potentials()));
+            r.log(RecordType::Spikes, RecordDataType::Spikes(network_state.data.clone()));
+        }
 
         // Parse the firing state of output neurons to commands
         for i in 0..phenotype.outputs {

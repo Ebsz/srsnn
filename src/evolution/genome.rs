@@ -27,7 +27,7 @@ const MUTATE_ADD_NEURON_PROB: f32 = 0.02;
 ///
 /// Network neurons have id's [0..MAX_NEURONS]; inputs have ID's [MAX_NEURONS..size].
 ///
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Genome {
     pub neurons: Vec<NeuronGene>,
     pub connections: Array2<(bool, f32)>,

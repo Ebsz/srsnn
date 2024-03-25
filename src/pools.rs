@@ -6,7 +6,6 @@ use crate::synapses::{Synapses, MatrixSynapses, LinearSynapses};
 
 use crate::network::Network;
 
-use ndarray::{Array2, Array};
 
 
 /// A pool consisting of Izhikevich neurons connected by a certain type of synapse
