@@ -9,14 +9,12 @@ use crate::model::{NeuronModel,Spikes};
 
 use crate::record::{Record, RecordType, RecordDataType};
 
-const SYNAPTIC_INPUT_SCALING: f32 = 15.0;
 
-
+const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 
 pub fn execute<T: CognitiveTask> (phenotype: &mut Phenotype, mut task: T, mut record: Option<&mut Record>) -> TaskResult {
     let synapse_size = phenotype.synapses.neuron_count();
     let network_size = phenotype.neurons.size();
-
 
     let mut synapse_spikes = Spikes::new(synapse_size);
     let mut network_state = Spikes::new(network_size);

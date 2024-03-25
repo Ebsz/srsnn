@@ -14,6 +14,7 @@ const INITIAL_CONNECTION_COUNT_RANGE: (usize, usize) = (3, 4);
  * Probabilities for each type of mutation
  */
 const MUTATE_CONNECTION_PROB: f32 = 0.80;
+const MUTATE_TOGGLE_CONNECTION_PROB: f32 = 0.30;
 const MUTATE_ADD_CONNECTION_PROB: f32 = 0.03;
 const MUTATE_ADD_NEURON_PROB: f32 = 0.02;
 
@@ -110,8 +111,16 @@ impl Genome {
             self.mutate_connection();
         }
 
+        if random_range((0.0, 1.0)) <  MUTATE_TOGGLE_CONNECTION_PROB {
+            self.mutate_toggle_connection();
+        }
+
         if random_range((0.0, 1.0)) <  MUTATE_ADD_CONNECTION_PROB {
             self.mutate_add_connection();
+        }
+
+        if random_range((0.0, 1.0)) < MUTATE_ADD_NEURON_PROB {
+            self.mutate_add_neuron();
         }
     }
 
@@ -188,28 +197,93 @@ impl Genome {
     fn mutate_connection(&mut self) {
         const MUTATION_STRENGTH: f32 = 0.5;
 
-        let enabled_connections = self.enabled_connections();
-        let c = random_choice(&enabled_connections);
+        let connection = self.get_random_connection();
 
-        let offset: f32 = random_sample(StandardNormal);
-        let new_weight = self.connections[[c.0, c.1]].1 + offset * MUTATION_STRENGTH;
-
-        self.connections[[c.0, c.1]] = (true, new_weight);
+        if let Some(c) = connection {
+            let offset: f32 = random_sample(StandardNormal);
+            let new_weight = self.connections[[c.0, c.1]].1 + offset * MUTATION_STRENGTH;
+            self.connections[[c.0, c.1]] = (true, new_weight);
+        }
     }
 
+    /// Selects a random existing connection and flips its enable flag
+    fn mutate_toggle_connection(&mut self) {
+        let connection = self.get_random_connection();
+
+        if let Some(c) = connection {
+            self.connections[[c.0, c.1]].0 = !self.connections[[c.0, c.1]].0;
+        }
+    }
+
+    /// Mutate the genome by adding a new neuron
     fn mutate_add_neuron(&mut self) {
+        //NOTE: This only adds connections within the network,
+        //      ie. not from input. Should this be allowed?
+        let id = self.neurons.len() as u32;
 
+        self.neurons.push( NeuronGene {
+            id,
+            ntype: NeuronType::Output
+        });
+
+        let mut from: usize;
+        let mut to: usize;
+
+        let ns = self.network_size();
+
+        loop {
+            from = random_range((0, ns));
+            to = random_range((0, ns));
+
+            if from != id as usize && to != id as usize {
+                break
+            }
+        }
+
+        // Add a random incoming connection
+        self.connections[[id as usize, from]] = (true, random_sample(StandardNormal));
+
+        // Add a random outgoing connection
+        self.connections[[to, id as usize]] = (true, random_sample(StandardNormal));
     }
 
+    /// Mutate the genome by adding a new non-existing connection
+    /// between two neurons
     fn mutate_add_connection(&mut self) {
+        //NOTE: This only adds connections within the network,
+        //      ie. not from input. Should this be allowed?
 
+        let to: usize = random_range((0, self.network_size()));
+        let mut from: usize;
+
+        loop {
+            from = random_range((0, self.network_size()));
+
+            if from != to {
+                break;
+            }
+        }
+
+        self.connections[[to, from]] = (true, random_sample(StandardNormal));
     }
 
+    /// Return the set of enabled connections (n1, n2)
     fn enabled_connections(&self) -> Vec<(usize, usize)> {
         self.connections.indexed_iter()
             .filter(|(_, x)| x.0)
             .map(|(i, _)| (i.0, i.1))
             .collect()
+    }
+
+    fn get_random_connection(&self) -> Option<(usize, usize)> {
+        let enabled_connections = self.enabled_connections();
+
+        if enabled_connections.len() == 0 {
+            log::warn!("get_random_connection on genome with no enabled connections");
+            return None;
+        }
+
+        Some(*random_choice(&enabled_connections))
     }
 }
 
