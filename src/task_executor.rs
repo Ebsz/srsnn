@@ -1,56 +1,93 @@
-use ndarray::{s};
-
+use ndarray::s;
 
 use tasks::cognitive_task::{CognitiveTask, TaskResult, TaskInput};
 
 use crate::evolution::phenotype::Phenotype;
 use crate::synapses::Synapses;
-use crate::model::{NeuronModel,Spikes};
+use crate::model::{NeuronModel, Spikes};
 
 use crate::record::{Record, RecordType, RecordDataType};
 
 
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 
-pub fn execute<T: CognitiveTask> (phenotype: &mut Phenotype, mut task: T, mut record: Option<&mut Record>) -> TaskResult {
-    let synapse_size = phenotype.synapses.neuron_count();
-    let network_size = phenotype.neurons.size();
 
-    let mut synapse_spikes = Spikes::new(synapse_size);
-    let mut network_state = Spikes::new(network_size);
+/// Executes a network on task
+pub struct TaskExecutor<'a, T: CognitiveTask> {
+    pub record: Record,
+    pub task: T,
+    pub phenotype: &'a mut Phenotype,
 
-    let mut task_inputs: Vec<TaskInput> = vec![];
+    task_inputs: Vec<TaskInput>,
+    synapse_size: usize,
+    network_size: usize,
+    synapse_spikes: Spikes,
+    network_state: Spikes
+}
 
-    loop {
-        let task_state = task.tick(&task_inputs);
-        task_inputs.clear();
+impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
+    pub fn new(task: T, phenotype: &mut Phenotype) -> TaskExecutor<T> {
+        let synapse_size = phenotype.synapses.neuron_count();
+        let network_size = phenotype.neurons.size();
 
+        let mut record: Record = Record::new();
+
+        TaskExecutor {
+            task,
+            phenotype,
+            record,
+            network_size,
+            synapse_size,
+            task_inputs: Vec::new(),
+            synapse_spikes: Spikes::new(synapse_size),
+            network_state: Spikes::new(network_size)
+        }
+    }
+
+    pub fn execute(&mut self, should_record: bool) -> TaskResult{
+        loop {
+            let result = self.step(should_record);
+            if let Some(r) = result {
+                return r
+            }
+        }
+    }
+
+    pub fn step(&mut self, should_record: bool) -> Option<TaskResult>{
+        // Task step
+        let task_state = self.task.tick(&self.task_inputs);
+        self.task_inputs.clear();
+
+        // If we have a result, return it
         if let Some(r) = task_state.result {
-            return r;
+            return Some(r);
         }
 
         // Assign sensor input and previous state to the the spike input for synapses
-        synapse_spikes.data.slice_mut(s![(-phenotype.inputs)..]).assign(&task_state.sensor_data);
-        synapse_spikes.data.slice_mut(s![0..network_size]).assign(&network_state.data);
+        self.synapse_spikes.data.slice_mut(s![(-self.phenotype.inputs)..]).assign(&task_state.sensor_data);
+        self.synapse_spikes.data.slice_mut(s![0..self.network_size]).assign(&self.network_state.data);
 
-        let synaptic_input = phenotype.synapses.step(&synapse_spikes) * SYNAPTIC_INPUT_SCALING;
+        // Synapse step
+        let synaptic_input = self.phenotype.synapses.step(&self.synapse_spikes) * SYNAPTIC_INPUT_SCALING;
 
-        // Get input for network neurons only
-        let network_input = synaptic_input.slice(s![0..network_size]).to_owned();
+        // Get input only for network neurons
+        let network_input = synaptic_input.slice(s![0..self.network_size]).to_owned();
+        self.network_state = self.phenotype.neurons.step(network_input);
 
-        network_state = phenotype.neurons.step(network_input);
-
-        if let Some(ref mut r) = record {
-            r.log(RecordType::Potentials, RecordDataType::Potentials(phenotype.neurons.potentials()));
-            r.log(RecordType::Spikes, RecordDataType::Spikes(network_state.data.clone()));
+        if should_record {
+            self.record.log(RecordType::Potentials, RecordDataType::Potentials(self.phenotype.neurons.potentials()));
+            self.record.log(RecordType::Spikes, RecordDataType::Spikes(self.network_state.data.clone()));
         }
 
         // Parse the firing state of output neurons to commands
-        for i in 0..phenotype.outputs {
+        for i in 0..self.phenotype.outputs {
             // TODO: unnecessary cast; make phenotype.outputs be usize
-            if network_state.data[i as usize] == 1.0 {
-                task_inputs.push(TaskInput { input_id: i });
+            // If the neurons assigned to be output fire, add the corresponding input
+            if self.network_state.data[i as usize] == 1.0 {
+                self.task_inputs.push(TaskInput { input_id: i });
             }
         }
+
+        None
     }
 }

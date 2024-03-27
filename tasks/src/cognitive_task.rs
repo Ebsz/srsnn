@@ -1,10 +1,10 @@
 use ndarray::Array1;
+use sdl2::render::WindowCanvas;
 
 #[derive(Debug)]
 pub struct TaskState {
     pub result: Option<TaskResult>,
     pub sensor_data: Array1<f32>
-
 }
 
 #[derive(Debug)]
@@ -17,7 +17,7 @@ pub struct TaskInput {
     pub input_id: i32
 }
 
-pub struct TaskContext {
+pub struct TaskEnvironment {
     pub agent_inputs: usize,
     pub agent_outputs: usize,
 }
@@ -29,5 +29,10 @@ pub trait CognitiveTask {
 
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState;
 
-    fn context() -> TaskContext;
+    fn environment() -> TaskEnvironment;
+}
+
+/// A TaskRenderer is responsible for rendering the visuals of a task
+pub trait TaskRenderer {
+    fn render(&self, canvas: &mut WindowCanvas);
 }

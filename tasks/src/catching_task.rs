@@ -3,7 +3,11 @@
 //! how it's used in graphics libraries like macroquad.
 //! TODO: Change the coordinate system to correspond with human perception
 
-use crate::cognitive_task::{CognitiveTask, TaskResult, TaskContext, TaskInput, TaskState};
+use crate::cognitive_task::{CognitiveTask, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
+
+use sdl2::render::WindowCanvas;
+use sdl2::gfx::primitives::DrawRenderer;
+use sdl2::pixels::Color;
 
 use ndarray::{array, Array, Array1};
 
@@ -81,8 +85,8 @@ impl CognitiveTask for CatchingTask {
         }
     }
 
-    fn context() -> TaskContext {
-        TaskContext {
+    fn environment() -> TaskEnvironment {
+        TaskEnvironment {
             agent_inputs: N_SENSORS,
             agent_outputs: N_AGENT_CONTROLS,
         }
@@ -90,7 +94,6 @@ impl CognitiveTask for CatchingTask {
 }
 
 impl CatchingTask {
-
     pub fn read_sensors(&self) -> Array1<f32> {
         let mut readout = Array::zeros(N_SENSORS);
 
@@ -194,6 +197,13 @@ pub struct Sensor {
     pub angle: f32,
 }
 
+impl TaskRenderer for CatchingTask {
+    fn render(&self, canvas: &mut WindowCanvas) {
+        let _ = canvas.filled_circle(self.apple.x as i16, self.apple.y as i16, APPLE_RADIUS as i16, Color::RED);
+        let _ = canvas.filled_circle(self.agent.x as i16, self.agent.y as i16, AGENT_RADIUS as i16, Color::BLACK);
+    }
+}
+
 
 impl Sensor {
     pub fn new(angle: f32) -> Sensor {
@@ -209,8 +219,8 @@ impl Sensor {
         (x, y)
     }
 
+    // TODO: Currently does not respect sensor length.
     pub fn read(&self, pos: (f32, f32), target_pos: (f32, f32)) -> f32 {
-        // TODO: Currently does not respect sensor length.
         // Subtract the target pos to center the target at (0,0), which simplifies the calculation
         let p = array![pos.0 - target_pos.0, pos.1 - target_pos.1];
 

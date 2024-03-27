@@ -9,15 +9,18 @@ use luna::evolution::{Population, EvolutionEnvironment};
 use luna::evolution::genome::Genome;
 use luna::evolution::phenotype::Phenotype;
 
-use luna::task_executor::execute;
+use luna::task_executor::TaskExecutor;
 
 use luna::logger::init_logger;
+use luna::visual::window::TaskWindow;
+
 
 use tasks::cognitive_task::CognitiveTask;
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 
 use std::time::Instant;
 use ndarray::{Array, Array2};
+
 
 
 #[allow(dead_code)]
@@ -62,7 +65,9 @@ fn evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
 
         let task = CatchingTask::new(task_conf);
 
-        let result = execute(&mut phenotype, task, None);
+        let mut executor = TaskExecutor::new(task, &mut phenotype);
+        let result = executor.execute(false);
+
         total_fitness += (1.0 - result.distance/max_distance) * 100.0 - (if result.success {0.0} else {30.0});
         if result.success {
             correct += 1;
@@ -86,19 +91,37 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
         target_pos: 450
     });
 
-    let mut record: Record = Record::new();
+    let mut executor = TaskExecutor::new(task, &mut phenotype);
 
-    execute(&mut phenotype, task, Some(&mut record));
-    generate_plots(&record);
+    executor.execute(true);
+    generate_plots(&executor.record);
+}
+
+
+fn visualize_genome_on_task(g: &Genome, env: &EvolutionEnvironment) {
+    log::info!("Visualizing genome behavior on task");
+
+     let task = CatchingTask::new( CatchingTaskConfig {
+        target_pos: 450
+    });
+
+    let mut phenotype = Phenotype::from_genome(g, env);
+    let mut executor = TaskExecutor::new(task, &mut phenotype);
+
+
+    let mut window = TaskWindow::new(executor, (500,600)); //TODO: remove size param, infer from
+                                                       // executor.
+
+    window.run();
 }
 
 #[allow(dead_code)]
 fn evolve() {
-    let task_context = CatchingTask::context();
+    let task_environment = CatchingTask::environment();
 
     let env = EvolutionEnvironment {
-        inputs: task_context.agent_inputs,
-        outputs: task_context.agent_outputs
+        inputs: task_environment.agent_inputs,
+        outputs: task_environment.agent_outputs
     };
 
     let mut population = Population::new(env.clone(), evaluate);
@@ -106,12 +129,13 @@ fn evolve() {
     log::info!("Evolving..");
     let evolved_genome: Genome = population.evolve();
 
-    analyze_genome(&evolved_genome, &env);
+    visualize_genome_on_task(&evolved_genome, &env);
+
+    //analyze_genome(&evolved_genome, &env);
 }
 
 fn main() {
     init_logger();
-
     log::info!("seed is {}", SEED);
 
     //run();

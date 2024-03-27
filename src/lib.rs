@@ -8,3 +8,4 @@ pub mod synapses;
 pub mod network;
 pub mod evolution;
 pub mod task_executor;
+pub mod visual;

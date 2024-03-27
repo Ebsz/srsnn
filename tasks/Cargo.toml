@@ -9,3 +9,8 @@ ndarray = "0.15.6"
 rand = "0.8.5"
 ndarray-rand = "0.14.0"
 macroquad = "0.4.5"
+
+[dependencies.sdl2]
+version = "0.36"
+default-features = false
+features = ["gfx"]
