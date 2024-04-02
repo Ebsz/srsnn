@@ -1,4 +1,5 @@
 pub mod model;
+pub mod spikes;
 pub mod utils;
 pub mod pools;
 pub mod plots;

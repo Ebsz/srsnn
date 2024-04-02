@@ -1,6 +1,7 @@
 use ndarray::{s, Array, Array1, Array2};
 
-use crate::model::{NeuronModel, Spikes};
+use crate::model::NeuronModel;
+use crate::spikes::Spikes;
 
 
 pub struct Izhikevich {
@@ -13,7 +14,7 @@ pub struct Izhikevich {
 }
 
 impl NeuronModel for Izhikevich {
-    /**
+    /*
      * The Izhikevich model captures the dynamics of neurons in a computationally feasible way,
      * and is described by the equations
      *

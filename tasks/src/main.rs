@@ -1,3 +1,5 @@
+//! tasks/src/main.rs
+
 use tasks::cognitive_task::{CognitiveTask, TaskInput, TaskRenderer};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig, ARENA_SIZE};
 

@@ -1,3 +1,5 @@
+//! luna/src/main.rs
+
 use luna::pools::IzhikevichPool;
 use luna::network::Network;
 use luna::plots::generate_plots;

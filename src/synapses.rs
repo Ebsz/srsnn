@@ -1,4 +1,4 @@
-use crate::model::Spikes;
+use crate::spikes::Spikes;
 
 use std::collections::HashMap;
 
@@ -12,7 +12,6 @@ use ndarray_rand::rand_distr::StandardNormal;
 pub trait Synapses { 
     fn step(&mut self, input: &Spikes) -> Array1<f32>;
 }
-
 
 /// Synapses where connections are stored in a HashMap
 /// NOTE: connections are stored as from->to, where connections[i] contains a Vec

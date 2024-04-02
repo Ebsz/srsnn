@@ -1,4 +1,5 @@
-use crate::model::{NeuronModel, Spikes};
+use crate::model::NeuronModel;
+use crate::spikes::Spikes;
 use crate::synapses::Synapses;
 use crate::record::{Record, RecordType, RecordDataType};
 

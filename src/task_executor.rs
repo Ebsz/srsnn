@@ -4,7 +4,8 @@ use tasks::cognitive_task::{CognitiveTask, TaskResult, TaskInput};
 
 use crate::evolution::phenotype::Phenotype;
 use crate::synapses::Synapses;
-use crate::model::{NeuronModel, Spikes};
+use crate::model::NeuronModel;
+use crate::spikes::Spikes;
 
 use crate::record::{Record, RecordType, RecordDataType};
 
