@@ -35,6 +35,7 @@ pub struct CatchingTask {
     pub agent: Agent,
     pub apple: Apple,
     pub sensors: Vec<Sensor>,
+    pub config: CatchingTaskConfig,
     ticks: usize,
 }
 
@@ -46,7 +47,6 @@ impl CognitiveTask for CatchingTask {
     type TaskConfig = CatchingTaskConfig;
 
     fn new(config: CatchingTaskConfig) -> CatchingTask {
-
         assert!(config.target_pos <= ARENA_SIZE.0 && config.target_pos >= 0);
 
         let agent = Agent::new();
@@ -56,6 +56,7 @@ impl CognitiveTask for CatchingTask {
             ticks: 0,
             sensors: CatchingTask::init_sensors(),
             agent,
+            config,
             apple
         }
     }
@@ -90,6 +91,12 @@ impl CognitiveTask for CatchingTask {
             agent_inputs: N_SENSORS,
             agent_outputs: N_AGENT_CONTROLS,
         }
+    }
+
+    fn reset(&mut self) {
+        self.agent = Agent::new();
+        self.apple = Apple::new(self.config.target_pos);
+        self.ticks = 0;
     }
 }
 

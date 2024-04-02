@@ -30,9 +30,12 @@ pub trait CognitiveTask {
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState;
 
     fn environment() -> TaskEnvironment;
+
+    fn reset(&mut self);
 }
 
-/// A TaskRenderer is responsible for rendering the visuals of a task
+/// The TaskRenderer trait is implemented by a CognitiveTask in order
+/// to define its visual representation.
 pub trait TaskRenderer {
     fn render(&self, canvas: &mut WindowCanvas);
 }

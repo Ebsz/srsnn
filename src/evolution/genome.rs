@@ -39,8 +39,6 @@ impl Genome {
         let mut neurons: Vec<NeuronGene> = vec![];
 
         let size: usize = MAX_NEURONS + env.inputs;
-
-        // TODO: Change to be of size (MAX_NEURONS, MAX_NEURONS + inputs)
         let mut connections: Array2<(bool, f32)> = Array::zeros((size, size)).mapv(|_: i32| (false, 0.0));
 
         // Add output neurons

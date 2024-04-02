@@ -22,7 +22,6 @@ use std::time::Instant;
 use ndarray::{Array, Array2};
 
 
-
 #[allow(dead_code)]
 fn run() {
     const N: usize = 100; // # of neuron
@@ -97,7 +96,6 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
     generate_plots(&executor.record);
 }
 
-
 fn visualize_genome_on_task(g: &Genome, env: &EvolutionEnvironment) {
     log::info!("Visualizing genome behavior on task");
 
@@ -108,10 +106,8 @@ fn visualize_genome_on_task(g: &Genome, env: &EvolutionEnvironment) {
     let mut phenotype = Phenotype::from_genome(g, env);
     let mut executor = TaskExecutor::new(task, &mut phenotype);
 
-
     let mut window = TaskWindow::new(executor, (500,600)); //TODO: remove size param, infer from
                                                        // executor.
-
     window.run();
 }
 

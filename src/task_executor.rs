@@ -8,15 +8,21 @@ use crate::model::{NeuronModel, Spikes};
 
 use crate::record::{Record, RecordType, RecordDataType};
 
-
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 
+#[derive(PartialEq)]
+pub enum ExecutionState {
+    INITIALIZED,
+    RUNNING,
+    FINISHED,
+}
 
 /// Executes a network on task
 pub struct TaskExecutor<'a, T: CognitiveTask> {
     pub record: Record,
     pub task: T,
     pub phenotype: &'a mut Phenotype,
+    pub state: ExecutionState,
 
     task_inputs: Vec<TaskInput>,
     synapse_size: usize,
@@ -36,6 +42,7 @@ impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
             task,
             phenotype,
             record,
+            state: ExecutionState::INITIALIZED,
             network_size,
             synapse_size,
             task_inputs: Vec::new(),
@@ -44,6 +51,7 @@ impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
         }
     }
 
+    /// Executes the task by repeatedly stepping until the task is finished
     pub fn execute(&mut self, should_record: bool) -> TaskResult{
         loop {
             let result = self.step(should_record);
@@ -54,12 +62,15 @@ impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
     }
 
     pub fn step(&mut self, should_record: bool) -> Option<TaskResult>{
+        self.state = ExecutionState::RUNNING;
+
         // Task step
         let task_state = self.task.tick(&self.task_inputs);
         self.task_inputs.clear();
 
         // If we have a result, return it
         if let Some(r) = task_state.result {
+            self.state = ExecutionState::FINISHED;
             return Some(r);
         }
 
@@ -87,7 +98,13 @@ impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
                 self.task_inputs.push(TaskInput { input_id: i });
             }
         }
-
         None
+    }
+
+    /// Reset the execution to its initial state
+    pub fn reset(&mut self) {
+        self.state = ExecutionState::INITIALIZED;
+        self.phenotype.reset();
+        self.task.reset();
     }
 }

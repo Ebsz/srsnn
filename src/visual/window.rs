@@ -10,7 +10,7 @@ use sdl2::gfx::primitives::DrawRenderer;
 
 use std::time::Instant;
 
-use crate::task_executor::TaskExecutor;
+use crate::task_executor::{TaskExecutor, ExecutionState};
 use tasks::cognitive_task::{CognitiveTask, TaskRenderer};
 
 
@@ -33,8 +33,6 @@ impl<'a, T: CognitiveTask + TaskRenderer> TaskWindow<'a, T> {
             .unwrap();
 
         let canvas = window.into_canvas().build().unwrap();
-
-        //let task_renderer = &executor.task;
 
         TaskWindow {
             context: sdl_context,
@@ -85,6 +83,10 @@ impl<'a, T: CognitiveTask + TaskRenderer> TaskWindow<'a, T> {
                     Event::Quit {..} |
                     Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                         running = false;
+                    },
+                    Event::KeyDown {keycode: Some(Keycode::R), ..} => {
+                        self.executor.reset()
+
                     }
                     _ => {}
                 }
@@ -96,8 +98,9 @@ impl<'a, T: CognitiveTask + TaskRenderer> TaskWindow<'a, T> {
     }
 
     fn update(&mut self) {
-        self.executor.step(false);
-
+        if self.executor.state != ExecutionState::FINISHED {
+            self.executor.step(false);
+        }
     }
 
     fn render(&mut self) {
