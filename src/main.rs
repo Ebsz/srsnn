@@ -96,6 +96,7 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
     generate_plots(&executor.record);
 }
 
+#[allow(dead_code)]
 fn visualize_genome_on_task(g: &Genome, env: &EvolutionEnvironment) {
     log::info!("Visualizing genome behavior on task");
 
@@ -104,7 +105,7 @@ fn visualize_genome_on_task(g: &Genome, env: &EvolutionEnvironment) {
     });
 
     let mut phenotype = Phenotype::from_genome(g, env);
-    let mut executor = TaskExecutor::new(task, &mut phenotype);
+    let executor = TaskExecutor::new(task, &mut phenotype);
 
     let mut window = TaskWindow::new(executor);
     window.run();
@@ -125,7 +126,6 @@ fn evolve() {
     let evolved_genome: Genome = population.evolve();
 
     visualize_genome_on_task(&evolved_genome, &env);
-
     //analyze_genome(&evolved_genome, &env);
 }
 

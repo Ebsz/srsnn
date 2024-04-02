@@ -36,7 +36,7 @@ impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
         let synapse_size = phenotype.synapses.neuron_count();
         let network_size = phenotype.neurons.size();
 
-        let mut record: Record = Record::new();
+        let record: Record = Record::new();
 
         TaskExecutor {
             task,
