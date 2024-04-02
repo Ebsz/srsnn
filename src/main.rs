@@ -106,8 +106,7 @@ fn visualize_genome_on_task(g: &Genome, env: &EvolutionEnvironment) {
     let mut phenotype = Phenotype::from_genome(g, env);
     let mut executor = TaskExecutor::new(task, &mut phenotype);
 
-    let mut window = TaskWindow::new(executor, (500,600)); //TODO: remove size param, infer from
-                                                       // executor.
+    let mut window = TaskWindow::new(executor);
     window.run();
 }
 

@@ -23,11 +23,13 @@ pub struct TaskWindow<'a, T: CognitiveTask + TaskRenderer> {
 }
 
 impl<'a, T: CognitiveTask + TaskRenderer> TaskWindow<'a, T> {
-    pub fn new(executor: TaskExecutor<T>, size: (u32, u32)) -> TaskWindow<T> {
+    pub fn new(executor: TaskExecutor<T>) -> TaskWindow<T> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
-        let window = video_subsystem.window("window", size.0,size.1)
+        let size = T::render_size();
+
+        let window = video_subsystem.window("window", size.0 as u32, size.1 as u32)
             .position_centered()
             .build()
             .unwrap();

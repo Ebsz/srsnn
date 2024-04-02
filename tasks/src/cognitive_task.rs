@@ -26,11 +26,8 @@ pub trait CognitiveTask {
     type TaskConfig;
 
     fn new(config: Self::TaskConfig) -> Self;
-
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState;
-
     fn environment() -> TaskEnvironment;
-
     fn reset(&mut self);
 }
 
@@ -38,4 +35,7 @@ pub trait CognitiveTask {
 /// to define its visual representation.
 pub trait TaskRenderer {
     fn render(&self, canvas: &mut WindowCanvas);
+
+    /// Returns the size of the 'arena' that the task operates in
+    fn render_size() -> (i32, i32);
 }

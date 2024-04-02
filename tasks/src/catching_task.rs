@@ -209,6 +209,10 @@ impl TaskRenderer for CatchingTask {
         let _ = canvas.filled_circle(self.apple.x as i16, self.apple.y as i16, APPLE_RADIUS as i16, Color::RED);
         let _ = canvas.filled_circle(self.agent.x as i16, self.agent.y as i16, AGENT_RADIUS as i16, Color::BLACK);
     }
+
+    fn render_size() -> (i32, i32) {
+        return ARENA_SIZE;
+    }
 }
 
 
