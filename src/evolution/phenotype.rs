@@ -14,9 +14,7 @@ use ndarray::Array2;
 //    fn outputs(&self) -> i32;
 //}
 
-
 // Network implements phenotype
-
 
 
 pub struct Phenotype {

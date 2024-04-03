@@ -5,8 +5,12 @@ use crate::record::{Record, RecordType, RecordDataType};
 
 use ndarray::{s, Array1, Array2};
 
-/// connected via a specific type of synapses(S)
+
+/// A network contains a neurons of a specific model M that are
+/// connected via a specific type of synapses S
 pub trait Network<M: NeuronModel, S: Synapses> {
+
+    /// Run the network on pre-defined input
     fn run(&mut self, steps: usize, input: Array2<f32>, record: &mut Record) {
         let n_neurons = self.model().potentials().shape()[0];
         assert!(input.shape() == [steps, n_neurons]);

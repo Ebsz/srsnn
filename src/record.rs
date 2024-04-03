@@ -62,3 +62,9 @@ impl Record {
         potentials
     }
 }
+
+//impl SpikeRecord {
+//    pub fn to_firing_rate(&self) -> {
+//        const TIME_WINDOW: u32 = 10;
+//    }
+//}

@@ -97,3 +97,25 @@ impl MatrixSynapses {
 
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::synapses::{MatrixSynapses, Synapses};
+    use crate::spikes::Spikes;
+    use ndarray::array;
+
+    #[test]
+    fn test_matrix_synapses_output_correct() {
+        let w = array![[0.0,0.5],[1.0,0.0]];
+
+        let mut s = MatrixSynapses::from_matrix(w);
+
+        let input = Spikes {
+            data: array![1.0, 1.0]
+        };
+
+        let output = s.step(&input);
+
+        assert_eq!(output, array![0.5, 1.0]);
+    }
+}

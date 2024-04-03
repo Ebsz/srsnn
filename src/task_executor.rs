@@ -9,6 +9,7 @@ use crate::spikes::Spikes;
 
 use crate::record::{Record, RecordType, RecordDataType};
 
+// TODO: This belongs somewhere else
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 
 #[derive(PartialEq)]

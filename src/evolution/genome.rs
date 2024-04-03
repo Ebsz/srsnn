@@ -296,3 +296,30 @@ pub enum NeuronType {
     Network,
     Output,
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::evolution::genome::Genome;
+    use crate::evolution::EvolutionEnvironment;
+
+    #[test]
+    fn test_crossover_correct_size() {
+        let env = EvolutionEnvironment {
+            inputs: 5,
+            outputs: 2
+        };
+
+        let mut g1 = Genome::new(&env);
+        let mut g2 = Genome::new(&env);
+        let mut gc = g1.crossover(&g2);
+
+        if g1.network_size() > g2.network_size() {
+            assert_eq!(gc.network_size(), g1.network_size());
+        } else {
+            assert_eq!(gc.network_size(), g2.network_size());
+        }
+
+        assert_eq!(gc.connections.shape(), g1.connections.shape());
+    }
+}

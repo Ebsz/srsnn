@@ -102,7 +102,7 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
 fn visualize_genome_on_task(g: &Genome, env: &EvolutionEnvironment) {
     log::info!("Visualizing genome behavior on task");
 
-     let task = CatchingTask::new( CatchingTaskConfig {
+    let task = CatchingTask::new( CatchingTaskConfig {
         target_pos: 450
     });
 
