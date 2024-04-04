@@ -40,8 +40,13 @@ impl NeuronModel for Izhikevich {
 
         *&mut self.u = &self.a * (&self.b * &self.v - &self.u);
 
+        // Ensure potentials do not exceed the threshold value.
+        // This has no effect on the model, but is necessary when using
+        // the potentials in other contexts
+        *&mut self.v = self.v.iter().map(|p| if *p > Self::THRESHOLD {Self::THRESHOLD} else {*p} ).collect();
+
         Spikes {
-            data: self.v.mapv(|i| if i >= 30.0 {1.0} else {0.0})
+            data: self.v.mapv(|i| if i >= Self::THRESHOLD {1.0} else {0.0})
         }
     }
 
@@ -52,6 +57,8 @@ impl NeuronModel for Izhikevich {
 
 
 impl Izhikevich {
+    const THRESHOLD: f32 = 30.0;
+
     pub fn new(n: usize, params: Array2<f32>) -> Izhikevich {
         assert!(params.shape() == [n, 4]);
 
@@ -62,7 +69,7 @@ impl Izhikevich {
         let d = params.slice(s![..,3]).to_owned();
 
         let potential: Array1<f32> = c.to_owned();
-        let recovery: Array1<f32> = d.to_owned();
+        let recovery: Array1<f32> = (&b * &potential).to_owned();
 
         Izhikevich {
             v: potential,
@@ -94,7 +101,7 @@ impl Izhikevich {
 
         // TODO: This can be parallelized w/ rayon
         for i in 0..self.v.shape()[0] {
-            if self.v[i] >= 30.0 {
+            if self.v[i] >= Self::THRESHOLD {
                 *&mut self.v[i] = self.c[i];
                 *&mut self.u[i] = self.u[i] + self.d[i];
             }
