@@ -34,12 +34,11 @@ fn run() {
 
     let mut pool = IzhikevichPool::linear_pool(N, P);
     //let mut pool = IzhikevichPool::matrix_pool(N);
-    let mut record = Record::new();
 
     log::info!("Running network..");
 
     let start_time = Instant::now();
-    pool.run(T, input, &mut record);
+    let mut record = pool.run(T, input);
 
     log::info!("Simulated {} neurons for {} steps in {}s", N, T, (start_time.elapsed().as_secs_f32()));
 

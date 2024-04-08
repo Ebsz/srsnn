@@ -11,11 +11,13 @@ use ndarray::{s, Array1, Array2};
 pub trait Network<M: NeuronModel, S: Synapses> {
 
     /// Run the network on pre-defined input
-    fn run(&mut self, steps: usize, input: Array2<f32>, record: &mut Record) {
+    fn run(&mut self, steps: usize, input: Array2<f32>) -> Record {
         let n_neurons = self.model().potentials().shape()[0];
         assert!(input.shape() == [steps, n_neurons]);
 
         let mut firing_state = Spikes::new(n_neurons);
+
+        let mut record = Record::new();
 
         for i in 0..steps {
             let external_input = input.slice(s![i, ..]).to_owned();
@@ -25,6 +27,8 @@ pub trait Network<M: NeuronModel, S: Synapses> {
             record.log(RecordType::Potentials, RecordDataType::Potentials(self.model().potentials()));
             record.log(RecordType::Spikes, RecordDataType::Spikes(firing_state.data.clone()));
         }
+
+        record
     }
 
     fn step(&mut self, input: Array1<f32>, state: Spikes) -> Spikes {
