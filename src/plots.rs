@@ -32,36 +32,42 @@ pub fn generate_plots(record: &Record) {
     }
 }
 
+pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {
+    plot_single_variable(energy, "Energy", "Energy", "energy.png",&RED)
+}
+
 pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {
-    let max_x: f32 = potentials.len() as f32;
+    plot_single_variable(potentials, "Potential", "Potentials", "pots.png", &BLACK)
+}
+
+fn plot_single_variable(data: Vec<f32>, description: &str, caption: &str, filename: &str, color: &RGBColor) -> Result<(), Box<dyn std::error::Error>> {
+    let max_x: f32 = data.len() as f32;
     let min_x: f32 = 0.0;
 
-    let max_y: f32 = 3.0;
-    let min_y: f32 = -100.0;
-
-    let filename = "pots.png";
+    let max_y: f32 = data.iter().fold(0.0f32, |acc, &x| if x > acc {x} else {acc});
+    let min_y: f32 = data.iter().fold(0.0f32, |acc, &x| if x < acc {x} else {acc});
 
     let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
     root.fill(&WHITE)?;
 
     let mut chart = ChartBuilder::on(&root)
-        .caption("Potentials", ("sans-serif", 50).into_font())
-        .margin(5)
+        .caption(caption, ("sans-serif", 50).into_font())
+        .margin(15)
         .x_label_area_size(30)
         .y_label_area_size(30)
         .build_cartesian_2d(min_x..max_x, min_y..max_y)?;
 
     chart.configure_mesh().draw()?;
 
-    let pots_series = LineSeries::new(
-        potentials.iter().enumerate().map(|(i, x)| (i as f32, *x)),
-        &BLACK,
+    let series = LineSeries::new(
+        data.iter().enumerate().map(|(i, x)| (i as f32, *x)),
+        color,
     );
 
     chart
-        .draw_series(pots_series)?
-        .label("Potential")
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+        .draw_series(series)?
+        .label(description)
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], color));
 
 
     chart
