@@ -1,49 +1,57 @@
-//! A pool is a group of randomly generated neurons shaped by certain parameters
-
-use crate::model::NeuronModel;
-use crate::model::izhikevich::Izhikevich;
-use crate::synapses::{Synapses, MatrixSynapses, LinearSynapses};
+//! A pool is a randomly generated network shaped by certain parameters
 
 use crate::network::Network;
+use crate::model::neuron::NeuronModel;
+use crate::model::neuron::izhikevich::Izhikevich;
+use crate::model::synapse::Synapse;
+use crate::model::synapse::matrix_synapse::MatrixSynapse;
+use crate::model::synapse::linear_synapse::LinearSynapse;
+
+use ndarray::{s, Array, Array1};
 
 
-
-/// A pool consisting of Izhikevich neurons connected by a certain type of synapse
-pub struct IzhikevichPool<S: Synapses> {
+pub struct Pool<S: Synapse> {
     neurons: Izhikevich,
-    synapses: S 
+    synapse: S
 }
 
-impl<S: Synapses> Network<Izhikevich, S> for IzhikevichPool<S> {
+impl<S: Synapse> Network<Izhikevich, S> for Pool<S> {
     fn model(&mut self) -> &mut dyn NeuronModel {
         &mut self.neurons
     }
 
-    fn synapses(&mut self) -> &mut dyn Synapses {
-        &mut self.synapses
+    fn synapse(&mut self) -> &mut dyn Synapse {
+        &mut self.synapse
     }
 }
 
-impl IzhikevichPool<MatrixSynapses> {
-    pub fn matrix_pool(n: usize) -> IzhikevichPool<MatrixSynapses> {
-        let izh = Izhikevich::default(n);
-        let synapses = MatrixSynapses::new(n);
+impl Pool<MatrixSynapse> {
+    pub fn new(n: usize, p: f32, inhibitory_fraction: f32) -> Pool<MatrixSynapse> {
+        let model = Izhikevich::default(n);
 
-        IzhikevichPool {
-            neurons: izh,
-            synapses
+        let k = (n as f32 * inhibitory_fraction ) as usize;
+
+        let mut inhibitory: Array1<bool> = Array::zeros(n).mapv(|_: f32| false);
+        inhibitory.slice_mut(s![..k]).fill(true);
+
+
+        let synapse = MatrixSynapse::from_probability(n, p, inhibitory);
+
+        Pool {
+            neurons: model,
+            synapse
         }
     }
 }
 
-impl IzhikevichPool<LinearSynapses> {
-    pub fn linear_pool(n: usize, p: f32) -> IzhikevichPool<LinearSynapses> {
+impl Pool<LinearSynapse> {
+    pub fn linear_pool(n: usize, p: f32) -> Pool<LinearSynapse> {
         let izh = Izhikevich::default(n);
-        let synapses = LinearSynapses::from_probability(n, p);
+        let synapse = LinearSynapse::from_probability(n, p);
 
-        IzhikevichPool {
+        Pool {
             neurons: izh,
-            synapses
+            synapse
         }
     }
 }

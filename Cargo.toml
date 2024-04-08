@@ -2,6 +2,7 @@
 name = "luna"
 version = "0.1.0"
 edition = "2021"
+default-run = "luna"
 
 [dependencies]
 ndarray = "0.15.6"

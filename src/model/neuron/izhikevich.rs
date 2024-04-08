@@ -1,7 +1,7 @@
 use ndarray::{s, Array, Array1, Array2};
 
-use crate::model::NeuronModel;
-use crate::spikes::Spikes;
+use crate::model::neuron::NeuronModel;
+use crate::model::spikes::Spikes;
 
 
 pub struct Izhikevich {
@@ -34,9 +34,12 @@ impl NeuronModel for Izhikevich {
 
         self.reset();
 
+        const INTEGRATION_STEPS: usize = 2;
+
         // Numerically integrate the model
-        *&mut self.v = &self.v + 0.5 * (0.04 * (&self.v * &self.v) + 5.0 * &self.v + 140.0 - &self.u + &input);
-        *&mut self.v = &self.v + 0.5 * (0.04 * (&self.v * &self.v) + 5.0 * &self.v + 140.0 - &self.u + &input);
+        for _ in 0..INTEGRATION_STEPS {
+            *&mut self.v = &self.v + 1.0/(INTEGRATION_STEPS as f32) * (0.04 * (&self.v * &self.v) + 5.0 * &self.v + 140.0 - &self.u + &input);
+        }
 
         *&mut self.u = &self.a * (&self.b * &self.v - &self.u);
 

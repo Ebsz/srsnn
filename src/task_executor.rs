@@ -3,9 +3,9 @@ use ndarray::s;
 use tasks::cognitive_task::{CognitiveTask, TaskResult, TaskInput};
 
 use crate::evolution::phenotype::Phenotype;
-use crate::synapses::Synapses;
-use crate::model::NeuronModel;
-use crate::spikes::Spikes;
+use crate::model::synapse::Synapse;
+use crate::model::neuron::NeuronModel;
+use crate::model::spikes::Spikes;
 
 use crate::record::{Record, RecordType, RecordDataType};
 
@@ -35,7 +35,7 @@ pub struct TaskExecutor<'a, T: CognitiveTask> {
 
 impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
     pub fn new(task: T, phenotype: &mut Phenotype) -> TaskExecutor<T> {
-        let synapse_size = phenotype.synapses.neuron_count();
+        let synapse_size = phenotype.synapse.neuron_count();
         let network_size = phenotype.neurons.size();
 
         let record: Record = Record::new();
@@ -81,7 +81,7 @@ impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
         self.synapse_spikes.data.slice_mut(s![0..self.network_size]).assign(&self.network_state.data);
 
         // Synapse step
-        let synaptic_input = self.phenotype.synapses.step(&self.synapse_spikes) * SYNAPTIC_INPUT_SCALING;
+        let synaptic_input = self.phenotype.synapse.step(&self.synapse_spikes) * SYNAPTIC_INPUT_SCALING;
 
         // Get input only for network neurons
         let network_input = synaptic_input.slice(s![0..self.network_size]).to_owned();

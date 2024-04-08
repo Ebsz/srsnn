@@ -1,10 +1,10 @@
-use crate::model::izhikevich::Izhikevich;
-use crate::synapses::{MatrixSynapses};
+use crate::model::neuron::izhikevich::Izhikevich;
+use crate::model::synapse::matrix_synapse::MatrixSynapse;
 
 use crate::evolution::EvolutionEnvironment;
 use crate::evolution::genome::{Genome}; //, NeuronGene};
 
-use ndarray::Array2;
+use ndarray::{Array, Array1, Array2};
 
 // Idk?
 //trait Phenotype {
@@ -19,16 +19,16 @@ use ndarray::Array2;
 
 pub struct Phenotype {
     pub neurons: Izhikevich,
-    pub synapses: MatrixSynapses,
+    pub synapse: MatrixSynapse,
     pub inputs: i32, //TODO: instead add env to phenotype?
     pub outputs: i32,
 }
 
-//impl Network<Izhikevich, MatrixSynapses> for Phenotype {
+//impl Network<Izhikevich, MatrixSynapse> for Phenotype {
 //    fn model(&mut self) -> Izhikevich {
 //        self.neurons
 //    }
-//    fn synapses(&mut self) -> MatrixSynapses {
+//    fn synapses(&mut self) -> MatrixSynapse {
 //        self.synapses
 //    }
 //}
@@ -40,12 +40,13 @@ impl Phenotype {
 
         let synapse_matrix: Array2<f32> = g.connections.mapv(|(_, w)| w);
 
-        let synapses = MatrixSynapses::from_matrix(synapse_matrix);
+        let neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
+        let synapse = MatrixSynapse::from_matrix(synapse_matrix, neuron_types);
         let model = Izhikevich::default(network_size);
 
         Phenotype {
             neurons: model,
-            synapses,
+            synapse,
             inputs: env.inputs as i32,
             outputs: env.outputs as i32
         }
@@ -65,7 +66,7 @@ impl Phenotype {
 //}
 
 //pub fn from_graph_genome(g: &Genome) {
-//    //TODO: this is very similiar to LinearSynapses - use?
+//    //TODO: this is very similiar to LinearSynapse - use?
 //    let mut input_weights: HashMap<i32, Vec<(i32, f32)>> = HashMap::new(); 
 //    let mut output_weights: HashMap<i32, Vec<(i32, f32)>> = HashMap::new(); 
 //

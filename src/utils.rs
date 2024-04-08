@@ -6,7 +6,7 @@ use ndarray::{Array2, Array};
 use ndarray_rand::RandomExt;
 use ndarray_rand::rand::{Rng, SeedableRng};
 use ndarray_rand::rand::rngs::StdRng;
-use ndarray_rand::rand_distr::{Distribution, StandardNormal};
+use ndarray_rand::rand_distr::Distribution;
 use ndarray_rand::rand_distr::uniform::SampleUniform;
 
 use rand::seq::SliceRandom;
@@ -20,9 +20,9 @@ thread_local! {
 }
 
 /// Generate a random matrix
-pub fn random_matrix(shape: (usize, usize) ) -> Array2<f32>{
+pub fn random_matrix<D: Distribution<f32>>(shape: (usize, usize), dist: D) -> Array2<f32>{
     RNG.with(|rng| {
-        Array::random_using(shape, StandardNormal, &mut (*rng.borrow_mut()))
+        Array::random_using(shape, dist, &mut (*rng.borrow_mut()))
     })
 }
 

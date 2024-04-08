@@ -4,7 +4,6 @@ use ndarray::Array1;
 use crate::record::{Record, RecordType, RecordDataType};
 
 pub fn generate_plots(record: &Record) {
-
     // Potentials
     let single_pot = record.get_potentials().iter().map(|x| x[0]).collect();
 

@@ -49,6 +49,8 @@ impl Population {
         let mut genome_num: u32 = 0;
 
         // Build initial population
+        log::debug!("Creating initial population");
+
         for _ in 0..POPULATION_SIZE {
             population.insert(genome_num, Genome::new(&env));
             genome_num += 1;
