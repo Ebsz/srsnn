@@ -41,7 +41,7 @@ impl Phenotype {
         let synapse_matrix: Array2<f32> = g.connections.mapv(|(_, w)| w);
 
         let neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
-        let synapse = MatrixSynapse::from_matrix(synapse_matrix, neuron_types);
+        let synapse = MatrixSynapse::new(synapse_matrix, neuron_types);
         let model = Izhikevich::default(network_size);
 
         Phenotype {

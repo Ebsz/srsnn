@@ -7,6 +7,8 @@ use crate::model::synapse::Synapse;
 use crate::model::synapse::matrix_synapse::MatrixSynapse;
 use crate::model::synapse::linear_synapse::LinearSynapse;
 
+use crate::gen::synapse_gen;
+
 use ndarray::{s, Array, Array1};
 
 
@@ -34,8 +36,7 @@ impl Pool<MatrixSynapse> {
         let mut inhibitory: Array1<bool> = Array::zeros(n).mapv(|_: f32| false);
         inhibitory.slice_mut(s![..k]).fill(true);
 
-
-        let synapse = MatrixSynapse::from_probability(n, p, inhibitory);
+        let synapse = synapse_gen::from_probability(n, p, inhibitory);
 
         Pool {
             neurons: model,
