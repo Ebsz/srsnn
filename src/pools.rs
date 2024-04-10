@@ -1,11 +1,11 @@
 //! A pool is a randomly generated network shaped by certain parameters
 
 use crate::network::Network;
-use crate::model::neuron::NeuronModel;
-use crate::model::neuron::izhikevich::Izhikevich;
-use crate::model::synapse::Synapse;
-use crate::model::synapse::matrix_synapse::MatrixSynapse;
-use crate::model::synapse::linear_synapse::LinearSynapse;
+use model::neuron::NeuronModel;
+use model::neuron::izhikevich::Izhikevich;
+use model::synapse::Synapse;
+use model::synapse::matrix_synapse::MatrixSynapse;
+use model::synapse::linear_synapse::LinearSynapse;
 
 use crate::gen::synapse_gen;
 
@@ -48,7 +48,7 @@ impl Pool<MatrixSynapse> {
 impl Pool<LinearSynapse> {
     pub fn linear_pool(n: usize, p: f32) -> Pool<LinearSynapse> {
         let izh = Izhikevich::default(n);
-        let synapse = LinearSynapse::from_probability(n, p);
+        let synapse = synapse_gen::linear_from_probability(n, p);
 
         Pool {
             neurons: izh,

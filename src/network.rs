@@ -1,6 +1,6 @@
-use crate::model::neuron::NeuronModel;
-use crate::model::spikes::Spikes;
-use crate::model::synapse::Synapse;
+use model::neuron::NeuronModel;
+use model::spikes::Spikes;
+use model::synapse::Synapse;
 use crate::record::{Record, RecordType, RecordDataType};
 
 use ndarray::{s, Array1, Array2};

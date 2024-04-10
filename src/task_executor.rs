@@ -3,9 +3,9 @@ use ndarray::s;
 use tasks::cognitive_task::{CognitiveTask, TaskResult, TaskInput};
 
 use crate::evolution::phenotype::Phenotype;
-use crate::model::synapse::Synapse;
-use crate::model::neuron::NeuronModel;
-use crate::model::spikes::Spikes;
+use model::synapse::Synapse;
+use model::neuron::NeuronModel;
+use model::spikes::Spikes;
 
 use crate::record::{Record, RecordType, RecordDataType};
 

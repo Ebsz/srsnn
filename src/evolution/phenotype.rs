@@ -1,5 +1,5 @@
-use crate::model::neuron::izhikevich::Izhikevich;
-use crate::model::synapse::matrix_synapse::MatrixSynapse;
+use model::neuron::izhikevich::Izhikevich;
+use model::synapse::matrix_synapse::MatrixSynapse;
 
 use crate::evolution::EvolutionEnvironment;
 use crate::evolution::genome::{Genome}; //, NeuronGene};

@@ -8,7 +8,6 @@ use luna::logger::init_logger;
 
 use ndarray::{s, Array, Array1, Array2};
 
-
 use std::collections::HashMap;
 
 const N: usize = 100; // # of neurons

@@ -2,7 +2,7 @@ pub mod izhikevich;
 
 use ndarray::Array1;
 
-use crate::model::spikes::Spikes;
+use crate::spikes::Spikes;
 
 
 /// Defines a model of a neuron

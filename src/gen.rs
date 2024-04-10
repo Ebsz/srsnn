@@ -4,11 +4,15 @@
 
 
 pub mod synapse_gen {
-    use crate::model::synapse::matrix_synapse::MatrixSynapse;
-    use crate::utils::random_matrix;
+    use model::synapse::matrix_synapse::MatrixSynapse;
+    use model::synapse::linear_synapse::LinearSynapse;
+
+    use crate::utils::{random_range, random_sample, random_matrix};
 
     use ndarray_rand::rand_distr::{StandardNormal, Uniform};
     use ndarray::{Array1, Array2, Array};
+
+    use std::collections::HashMap;
 
     // Returns MatrixSynapse of size n connected with probability p, with a set number of
     // inhibitory neurons
@@ -30,5 +34,27 @@ pub mod synapse_gen {
             let synapses = MatrixSynapse::new(weights, neuron_type);
             log::trace!("Generated {}", synapses);
             synapses
+    }
+
+    pub fn linear_from_probability(n: usize, p: f32) -> LinearSynapse {
+        assert!(p > 0.0 && p < 1.0);
+
+        let mut connections: HashMap<usize, Vec<(usize, f32)>> = HashMap::new();
+
+        for i in 0..n {
+            for j in 0..n {
+                if i == j {
+                    continue;
+                }
+
+                if random_range((0.0, 1.0)) > (1.0 - p) {
+                    let w = random_sample(StandardNormal);
+
+                    connections.entry(i).or_insert(Vec::new()).push((j, w));
+                }
+            }
+        }
+
+        LinearSynapse::new(connections)
     }
 }

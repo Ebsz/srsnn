@@ -1,7 +1,7 @@
 use ndarray::{s, Array, Array1, Array2};
 
-use crate::model::neuron::NeuronModel;
-use crate::model::spikes::Spikes;
+use crate::neuron::NeuronModel;
+use crate::spikes::Spikes;
 
 
 pub struct Izhikevich {

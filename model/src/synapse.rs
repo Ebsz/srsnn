@@ -1,7 +1,7 @@
 pub mod linear_synapse;
 pub mod matrix_synapse;
 
-use crate::model::spikes::Spikes;
+use crate::spikes::Spikes;
 
 use ndarray::{Array1};
 

@@ -1,9 +1,8 @@
 //! Synapses where connections are stored in a HashMap
 //!
 
-use crate::model::synapse::Synapse;
-use crate::model::spikes::Spikes;
-use crate::utils::{random_range, random_sample};
+use crate::synapse::Synapse;
+use crate::spikes::Spikes;
 use ndarray::{Array1, Array};
 
 use std::collections::HashMap;
@@ -36,27 +35,7 @@ impl Synapse for LinearSynapse {
 }
 
 impl LinearSynapse {
-    /// Generate connections using the Erdős-Rényi model for random graphs,
-    /// where each edge has an equal probability p of being included, independent of other edges
-    pub fn from_probability(n: usize, p: f32) -> LinearSynapse {
-        assert!(p > 0.0 && p < 1.0);
-
-        let mut connections: HashMap<usize, Vec<(usize, f32)>> = HashMap::new();
-
-        for i in 0..n {
-            for j in 0..n {
-                if i == j {
-                    continue;
-                }
-
-                if random_range((0.0, 1.0)) > (1.0 - p) {
-                    let w = random_sample(StandardNormal);
-
-                    connections.entry(i).or_insert(Vec::new()).push((j, w));
-                }
-            }
-        }
-
+    pub fn new(connections: HashMap<usize, Vec<(usize, f32)>>) -> LinearSynapse{
         LinearSynapse {
             connections
         }

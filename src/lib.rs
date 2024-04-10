@@ -1,5 +1,4 @@
 pub mod evolution;
-pub mod model;
 pub mod utils;
 pub mod pools;
 pub mod plots;

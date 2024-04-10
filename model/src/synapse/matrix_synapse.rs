@@ -5,8 +5,8 @@
 /// neuron i is inhibitory, or 1 if it is excitatory.
 ///
 
-use crate::model::synapse::Synapse;
-use crate::model::spikes::Spikes;
+use crate::synapse::Synapse;
+use crate::spikes::Spikes;
 
 use ndarray::{Array1, Array2, Array};
 
@@ -59,9 +59,9 @@ impl fmt::Display for MatrixSynapse {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::synapse::matrix_synapse::MatrixSynapse;
-    use crate::model::synapse::Synapse;
-    use crate::model::spikes::Spikes;
+    use model::synapse::matrix_synapse::MatrixSynapse;
+    use model::synapse::Synapse;
+    use model::spikes::Spikes;
     use ndarray::{array, Array1, Array2};
 
     #[test]
