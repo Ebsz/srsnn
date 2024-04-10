@@ -2,18 +2,18 @@
 
 use tasks::cognitive_task::{CognitiveTask, TaskInput, TaskRenderer};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig, ARENA_SIZE};
+use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
 use ndarray_rand::rand::rngs::StdRng;
 use ndarray_rand::rand::{Rng, SeedableRng};
 
-use sdl2::render::WindowCanvas;
-use sdl2::pixels::Color;
-
 use sdl2::Sdl;
 use sdl2::event::Event;
-
+use sdl2::pixels::Color;
+use sdl2::render::WindowCanvas;
 use sdl2::keyboard::Keycode;
 
+use std::collections::HashMap;
 use std::time::Instant;
 
 
@@ -21,10 +21,15 @@ fn main () {
     let mut rng = StdRng::seed_from_u64(0);
     let x: i32 = rng.gen_range(0..ARENA_SIZE.0);
 
-    let task = CatchingTask::new(CatchingTaskConfig {
-        target_pos: x});
+    let mut input_map: HashMap<Keycode, i32> = HashMap::new();
+    input_map.insert(Keycode::D, 0);
+    input_map.insert(Keycode::A, 1);
+    input_map.insert(Keycode::W, 2);
+    input_map.insert(Keycode::S, 3);
 
-    let mut t = TaskTester::new(task);
+    let task = MovementTask::new(MovementTaskConfig {});
+
+    let mut t = TaskTester::new(task, input_map);
 
     t.run();
 }
@@ -35,13 +40,14 @@ pub struct TaskTester<T: CognitiveTask + TaskRenderer> {
     canvas: WindowCanvas,
     context: Sdl,
     task: T,
+    input_map: HashMap<Keycode, i32>,
     finished: bool
 }
 
 impl<T: CognitiveTask + TaskRenderer> TaskTester<T> {
     const TARGET_FPS: u128 = 60;
 
-    pub fn new(task: T) -> TaskTester<T> {
+    pub fn new(task: T, input_map: HashMap<Keycode, i32>) -> TaskTester<T> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
@@ -58,7 +64,8 @@ impl<T: CognitiveTask + TaskRenderer> TaskTester<T> {
             context: sdl_context,
             canvas,
             task,
-            finished: false
+            input_map,
+            finished: false,
         }
     }
 
@@ -109,12 +116,11 @@ impl<T: CognitiveTask + TaskRenderer> TaskTester<T> {
                     Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                         running = false;
                     },
-                    Event::KeyDown {keycode: Some(Keycode::A), ..} => {
-                        task_input.push(TaskInput {input_id: 1});
-
-                    },
-                    Event::KeyDown {keycode: Some(Keycode::D), ..} => {
-                        task_input.push(TaskInput {input_id: 0});
+                    Event::KeyDown {keycode, ..} => {
+                        match self.input_map.get(&keycode.unwrap()) {
+                            Some(id) => { task_input.push(TaskInput {input_id: *id}); },
+                            None => {println!("Input: {:?}", keycode); }
+                        }
                     }
                     _ => {}
                 }
@@ -143,4 +149,3 @@ impl<T: CognitiveTask + TaskRenderer> TaskTester<T> {
         self.task.render(&mut self.canvas);
     }
 }
-
