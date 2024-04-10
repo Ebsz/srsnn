@@ -8,14 +8,38 @@ use luna::logger::init_logger;
 
 use ndarray::{s, Array, Array1, Array2};
 
+
+use std::collections::HashMap;
+
 const N: usize = 100; // # of neurons
-const T: usize = 300; // # of steps to run for
+const T: usize = 1000; // # of steps to run for
 const P: f32 = 0.1;   // The probability that two arbitrary neurons are connected
 
 const INHIBITORY_RATIO: f32 = 0.2;
 
-const N_INPUTS: usize  = 100; // How long we provide input for
-const INPUT_SIZE: f32  = 17.5;
+const INPUT_T: usize  = 100; // How long we provide input for
+
+const DEFAULT_INPUT_SIZE: f32  = 17.5;
+
+//struct RunConfig {
+//    runs: usize,
+//    N: usize,
+//}
+//
+//
+//struct Setup {
+//    N: usize,
+//    P: Array1<f32>,
+//}
+//
+//fn make_setup(conf: RunConfig) -> Setup {
+//
+//    Setup {
+//        N: Array::ones(T);
+//
+//    }
+//
+//}
 
 
 fn last_spiketime(record: &mut Record) -> usize {
@@ -40,29 +64,66 @@ fn last_spiketime(record: &mut Record) -> usize {
     last_spiketime
 }
 
-fn generate_input() -> Array2<f32> {
-    let mut input: Array2<f32> = Array::zeros((T, N));
-    input.slice_mut(s![..N_INPUTS, ..]).fill(INPUT_SIZE);
+fn generate_network_input(n: usize, input_size: f32) -> Array2<f32> {
+    let mut input: Array2<f32> = Array::zeros((T, n));
+    input.slice_mut(s![..INPUT_T, ..]).fill(input_size);
 
     input
 }
 
-//TODO: A network that can sustain activity for longer after it receives input
-fn run() {
-    let input = generate_input();
-    let mut network = Pool::new(N, P, INHIBITORY_RATIO);
-
-    let mut record = network.run(T, input);
-
-    log::info!("Last spike: t={:?}", last_spiketime(&mut record));
-
+fn plot(record: &Record) {
     let energy: Vec<f32> = record.get_potentials().iter().map(|x| (x + 65.0).sum()).collect();
     plot_network_energy(energy);
 
-    generate_plots(&record);
+    generate_plots(record);
+
+}
+
+/// Iterates a network over a set of network parameters
+/// In a sense, we compute a function from parameter space to state space * time
+fn iterate() {
+    log::info!("Iterating");
+
+    //let inputs: Array1<f32> = Array::range(15.,20.0,0.1);
+
+    let network_sizes: Array1<f32> = Array::range(100., 160., 2.);
+
+    let mut spiketimes: Vec<usize> = Vec::new();
+
+    let mut records: HashMap<usize, Record> = HashMap::new();
+
+    for n in network_sizes.iter() {
+        let network_input = generate_network_input(*n as usize, 17.5);
+
+        let mut network = Pool::new(*n as usize, P, INHIBITORY_RATIO);
+        let mut record = network.run(T, &network_input);
+
+        let spiketime = last_spiketime(&mut record);
+        log::info!("n: {n}, spiketime: {}", spiketime);
+        spiketimes.push(spiketime);
+        records.insert(*n as usize, record);
+    }
+
+    if let Some(r) = records.get(&142) {
+        plot(&r);
+    }
+
+}
+
+fn run() {
+    let input = generate_network_input(N, DEFAULT_INPUT_SIZE);
+    let mut network = Pool::new(N, P, INHIBITORY_RATIO);
+
+    let mut record = network.run(T, &input);
+
+    log::info!("Last spike: t={:?}", last_spiketime(&mut record));
+
+
+    let _ = generate_plots(&record);
 }
 
 fn main() {
     init_logger();
-    run();
+    iterate();
+    //run();
 }
