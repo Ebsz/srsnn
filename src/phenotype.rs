@@ -1,8 +1,8 @@
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::matrix_synapse::MatrixSynapse;
 
-use crate::evolution::EvolutionEnvironment;
-use crate::evolution::genome::{Genome}; //, NeuronGene};
+use evolution::EvolutionEnvironment;
+use evolution::genome::Genome;
 
 use ndarray::{Array, Array1, Array2};
 
@@ -38,7 +38,7 @@ impl Phenotype {
         // Number of neurons in the network
         let network_size = g.network_size();
 
-        let synapse_matrix: Array2<f32> = g.connections.mapv(|(_, w)| w);
+        let synapse_matrix: Array2<f32> = g.connections.mapv(|(e, w)| if e {w} else {0.0});
 
         let neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
         let synapse = MatrixSynapse::new(synapse_matrix, neuron_types);

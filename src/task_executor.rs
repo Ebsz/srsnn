@@ -1,8 +1,8 @@
 use ndarray::s;
 
-use tasks::cognitive_task::{CognitiveTask, TaskResult, TaskInput};
+use tasks::{Task, TaskResult, TaskInput};
 
-use crate::evolution::phenotype::Phenotype;
+use crate::phenotype::Phenotype;
 use model::synapse::Synapse;
 use model::neuron::NeuronModel;
 use model::spikes::Spikes;
@@ -20,7 +20,7 @@ pub enum ExecutionState {
 }
 
 /// Executes a network on task
-pub struct TaskExecutor<'a, T: CognitiveTask> {
+pub struct TaskExecutor<'a, T: Task> {
     pub record: Record,
     pub task: T,
     pub phenotype: &'a mut Phenotype,
@@ -33,7 +33,7 @@ pub struct TaskExecutor<'a, T: CognitiveTask> {
     network_state: Spikes
 }
 
-impl<'a, T: CognitiveTask> TaskExecutor<'a, T> {
+impl<'a, T: Task> TaskExecutor<'a, T> {
     pub fn new(task: T, phenotype: &mut Phenotype) -> TaskExecutor<T> {
         let synapse_size = phenotype.synapse.neuron_count();
         let network_size = phenotype.neurons.size();

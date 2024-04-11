@@ -2,9 +2,9 @@
 
 use luna::pools::Pool;
 use luna::network::Network;
-use luna::plots::{generate_plots, plot_network_energy};
+use luna::visual::plots::{generate_plots, plot_network_energy};
 use luna::record::{Record, RecordType, RecordDataType};
-use luna::logger::init_logger;
+use utils::logger::init_logger;
 
 use ndarray::{s, Array, Array1, Array2};
 

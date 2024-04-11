@@ -1,18 +1,18 @@
 //! luna/src/main.rs
 
-use luna::logger::init_logger;
-
-use luna::evolution::genome::Genome;
-use luna::evolution::phenotype::Phenotype;
-use luna::evolution::{Population, EvolutionEnvironment};
-
+use luna::phenotype::Phenotype;
 use luna::task_executor::TaskExecutor;
 use luna::visual::window::TaskWindow;
-use luna::plots::generate_plots;
-use luna::utils::SEED;
+use luna::visual::plots::generate_plots;
 
-use tasks::cognitive_task::CognitiveTask;
+use evolution::genome::Genome;
+use evolution::{Population, EvolutionEnvironment};
+
+use tasks::Task;
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
+
+use utils::logger::init_logger;
+use utils::random::SEED;
 
 
 fn evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {

@@ -7,7 +7,7 @@ pub mod synapse_gen {
     use model::synapse::matrix_synapse::MatrixSynapse;
     use model::synapse::linear_synapse::LinearSynapse;
 
-    use crate::utils::{random_range, random_sample, random_matrix};
+    use utils::random::{random_range, random_sample, random_matrix};
 
     use ndarray_rand::rand_distr::{StandardNormal, Uniform};
     use ndarray::{Array1, Array2, Array};

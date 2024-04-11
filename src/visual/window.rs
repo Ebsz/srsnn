@@ -8,18 +8,18 @@ use sdl2::keyboard::Keycode;
 use std::time::Instant;
 
 use crate::task_executor::{TaskExecutor, ExecutionState};
-use tasks::cognitive_task::{CognitiveTask, TaskRenderer};
+use tasks::{Task, TaskRenderer};
 
 
 const TARGET_FPS: u128 = 60;
 
-pub struct TaskWindow<'a, T: CognitiveTask + TaskRenderer> {
+pub struct TaskWindow<'a, T: Task + TaskRenderer> {
     executor: TaskExecutor<'a, T>,
     canvas: WindowCanvas,
     context: Sdl
 }
 
-impl<'a, T: CognitiveTask + TaskRenderer> TaskWindow<'a, T> {
+impl<'a, T: Task + TaskRenderer> TaskWindow<'a, T> {
     pub fn new(executor: TaskExecutor<T>) -> TaskWindow<T> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();

@@ -1,4 +1,4 @@
-const LOG_LEVEL: &'static str = "info";
+const LOG_LEVEL: &'static str = "trace";
 
 
 pub fn init_logger() {

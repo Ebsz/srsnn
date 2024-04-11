@@ -1,4 +1,4 @@
-use crate::cognitive_task::{CognitiveTask, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
+use crate::{Task, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
 
 use ndarray::Array;
 
@@ -27,7 +27,7 @@ pub struct MovementTask {
 pub struct MovementTaskConfig { }
 
 
-impl CognitiveTask for MovementTask {
+impl Task for MovementTask {
     type TaskConfig = MovementTaskConfig;
 
     fn new(config: MovementTaskConfig) -> MovementTask {

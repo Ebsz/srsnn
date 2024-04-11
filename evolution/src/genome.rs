@@ -1,8 +1,8 @@
 use ndarray::{s, Array, Array2};
 
-use crate::evolution::EvolutionEnvironment;
+use crate::EvolutionEnvironment;
 
-use crate::utils::{random_range, random_sample, random_choice};
+use utils::random::{random_range, random_sample, random_choice};
 use ndarray_rand::rand_distr::StandardNormal;
 
 const MAX_NEURONS: usize = 13;
@@ -73,7 +73,7 @@ impl Genome {
         // NOTE: this doesn't check for existing connections
         //
         // This is not as easy as checking connections[i,j].0, also have to
-        // verify that c < (n^2-n), or we're not gonna have enough connections:)))u
+        // verify that c < (n^2-n), or we're not gonna have enough connections:)))
         let mut count = 0;
         loop {
             let i: usize = random_range((0, network_size)) as usize;

@@ -1,6 +1,5 @@
 use luna::pools::Pool;
 use luna::network::Network;
-use luna::plots::generate_plots;
 use luna::record::Record;
 
 use ndarray::{Array, Array2};

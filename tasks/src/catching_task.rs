@@ -3,7 +3,7 @@
 //! how it's used in graphics libraries like macroquad.
 //! TODO: Change the coordinate system to correspond with human perception
 
-use crate::cognitive_task::{CognitiveTask, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
+use crate::{Task, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
 
 use sdl2::render::WindowCanvas;
 use sdl2::gfx::primitives::DrawRenderer;
@@ -43,7 +43,7 @@ pub struct CatchingTaskConfig {
     pub target_pos: i32
 }
 
-impl CognitiveTask for CatchingTask {
+impl Task for CatchingTask {
     type TaskConfig = CatchingTaskConfig;
 
     fn new(config: CatchingTaskConfig) -> CatchingTask {

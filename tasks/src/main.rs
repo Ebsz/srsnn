@@ -1,6 +1,6 @@
 //! tasks/src/main.rs
 
-use tasks::cognitive_task::{CognitiveTask, TaskInput, TaskRenderer};
+use tasks::{Task, TaskInput, TaskRenderer};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig, ARENA_SIZE};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
@@ -36,7 +36,7 @@ fn main () {
 
 /// Enables running a task with human input, which is
 /// very useful for testing tasks.
-pub struct TaskTester<T: CognitiveTask + TaskRenderer> {
+pub struct TaskTester<T: Task + TaskRenderer> {
     canvas: WindowCanvas,
     context: Sdl,
     task: T,
@@ -44,7 +44,7 @@ pub struct TaskTester<T: CognitiveTask + TaskRenderer> {
     finished: bool
 }
 
-impl<T: CognitiveTask + TaskRenderer> TaskTester<T> {
+impl<T: Task + TaskRenderer> TaskTester<T> {
     const TARGET_FPS: u128 = 60;
 
     pub fn new(task: T, input_map: HashMap<Keycode, i32>) -> TaskTester<T> {
@@ -119,7 +119,7 @@ impl<T: CognitiveTask + TaskRenderer> TaskTester<T> {
                     Event::KeyDown {keycode, ..} => {
                         match self.input_map.get(&keycode.unwrap()) {
                             Some(id) => { task_input.push(TaskInput {input_id: *id}); },
-                            None => {println!("Input: {:?}", keycode); }
+                            None => {}
                         }
                     }
                     _ => {}

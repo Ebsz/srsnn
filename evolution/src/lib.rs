@@ -11,12 +11,11 @@
 //!
 
 pub mod genome;
-pub mod phenotype;
 
 use std::collections::HashMap;
 use std::time::Instant;
 use genome::Genome;
-use crate::utils;
+use utils::random;
 
 
 const POPULATION_SIZE: usize = 50;
@@ -33,7 +32,22 @@ pub struct EvolutionEnvironment {
     pub outputs: usize,
 }
 
+//pub type FitnessFn = fn(&Genome, &EvolutionEnvironment) -> f32;
 pub type Fitness = fn(&Genome, &EvolutionEnvironment) -> f32;
+
+//trait Genome {
+//    fn new() -> Self;
+//    fn crossover(&Genome ) -> Genome;
+//
+//}
+//
+//
+//trait Individual {
+//    fn fitness(genome: &Genome) -> f32;
+//    fn crossover(genome: &Genome) ->
+//
+//}
+
 
 pub struct Population {
     population: HashMap<u32, Genome>,
@@ -135,8 +149,8 @@ impl Population {
         let mut offspring: Vec<Genome> = Vec::new();
 
         while offspring.len() < n {
-            let id_1 = utils::random_choice(&parent_ids);
-            let id_2 = utils::random_choice(&parent_ids);
+            let id_1 = random::random_choice(&parent_ids);
+            let id_2 = random::random_choice(&parent_ids);
 
             if id_1 == id_2 {
                 continue;
