@@ -8,7 +8,7 @@
 use crate::synapse::Synapse;
 use crate::spikes::Spikes;
 
-use ndarray::{Array1, Array2, Array};
+use ndarray::{Array1, Array2};
 
 use std::fmt;
 

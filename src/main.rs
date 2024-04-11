@@ -2,20 +2,42 @@
 
 use luna::phenotype::Phenotype;
 use luna::task_executor::TaskExecutor;
-use luna::visual::window::TaskWindow;
 use luna::visual::plots::generate_plots;
+use luna::visual::visualize_genome_on_task;
+use luna::config::{Config, RunConfig};
 
 use evolution::genome::Genome;
 use evolution::{Population, EvolutionEnvironment};
 
-use tasks::Task;
+use tasks::{Task, TaskName};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
+use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
 use utils::logger::init_logger;
 use utils::random::SEED;
 
 
-fn evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
+static DEFAULT_CONF: RunConfig = RunConfig {
+    fitness_fn: movement_evaluate,
+    taskname: TaskName::MovementTask,
+};
+
+
+fn movement_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
+    let mut phenotype = Phenotype::from_genome(g, env);
+
+    let task = MovementTask::new(MovementTaskConfig {});
+
+    let mut executor = TaskExecutor::new(task, &mut phenotype);
+    let result = executor.execute(false);
+
+    let eval = (result.distance as f32 / 600.0) * 100.0;
+    log::trace!("eval: {:?}", eval);
+
+    eval
+}
+
+fn catching_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     let trial_positions: [i32; 11] = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
     let mut phenotype = Phenotype::from_genome(g, env);
@@ -50,6 +72,7 @@ fn evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     fitness
 }
 
+
 /// Analyzes a genome resulting from an evolutionary process
 #[allow(dead_code)]
 fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
@@ -66,41 +89,32 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
     generate_plots(&executor.record);
 }
 
-#[allow(dead_code)]
-fn visualize_genome_on_task(g: &Genome, env: &EvolutionEnvironment) {
-    log::info!("Visualizing genome behavior on task");
+fn run(conf: &RunConfig) {
+    log::info!("Parsing config");
+    log::info!("Task: {:?}", conf.taskname);
 
-    let task = CatchingTask::new( CatchingTaskConfig {
-        target_pos: 450
-    });
-
-    let mut phenotype = Phenotype::from_genome(g, env);
-    let executor = TaskExecutor::new(task, &mut phenotype);
-
-    let mut window = TaskWindow::new(executor);
-    window.run();
-}
-
-fn evolve() {
-    let task_environment = CatchingTask::environment();
+    let task_environment = tasks::get_environment(conf.taskname);
 
     let env = EvolutionEnvironment {
         inputs: task_environment.agent_inputs,
         outputs: task_environment.agent_outputs
     };
 
-    let mut population = Population::new(env.clone(), evaluate);
+    let mut population = Population::new(env.clone(), conf.fitness_fn);
 
-    log::info!("Evolving..");
     let evolved_genome: Genome = population.evolve();
 
-    visualize_genome_on_task(&evolved_genome, &env);
-    //analyze_genome(&evolved_genome, &env);
+    //let task = CatchingTask::new( CatchingTaskConfig {
+    //    target_pos: 450
+    //});
+    //
+    let task = MovementTask::new(MovementTaskConfig {});
+    visualize_genome_on_task(task, &evolved_genome, &env);
 }
 
 fn main() {
     init_logger();
     log::info!("seed is {}", SEED);
 
-    evolve();
+    run(&DEFAULT_CONF);
 }

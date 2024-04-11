@@ -4,6 +4,23 @@ pub mod movement_task;
 use ndarray::Array1;
 use sdl2::render::WindowCanvas;
 
+use catching_task::CatchingTask;
+use movement_task::MovementTask;
+
+#[derive(Clone, Copy, Debug)]
+pub enum TaskName {
+    CatchingTask,
+    MovementTask,
+}
+
+pub fn get_environment(task: TaskName) -> TaskEnvironment {
+    match task {
+        TaskName::CatchingTask => CatchingTask::environment(),
+        TaskName::MovementTask => MovementTask::environment()
+    }
+}
+
+
 #[derive(Debug)]
 pub struct TaskState {
     pub result: Option<TaskResult>,
@@ -26,12 +43,12 @@ pub struct TaskEnvironment {
 }
 
 pub trait Task {
-    type TaskConfig;
+    type TaskConfig; // TODO: rename to TaskSetup to differentiate from configs
 
     fn new(config: Self::TaskConfig) -> Self;
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState;
-    fn environment() -> TaskEnvironment;
     fn reset(&mut self);
+    fn environment() -> TaskEnvironment;
 }
 
 /// The TaskRenderer trait is implemented by a Task in order

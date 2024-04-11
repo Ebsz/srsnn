@@ -7,8 +7,6 @@ use ndarray::{Array1, Array};
 
 use std::collections::HashMap;
 
-use ndarray_rand::rand_distr::StandardNormal;
-
 
 /// NOTE: connections are stored as from->to, that is,
 /// connections[i] contains weights of the neurons

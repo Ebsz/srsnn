@@ -1,6 +1,9 @@
 use crate::{Task, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
 
-use ndarray::Array;
+use utils::random;
+
+use ndarray::{Array, Array1};
+use ndarray_rand::rand_distr::Uniform;
 
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::render::WindowCanvas;
@@ -19,9 +22,12 @@ const N_SENSORS: usize = 9;
 const N_CONTROLS: usize = 4; // up/down + rotate left/right
 
 
+const MAX_T: u32 = 300;
+
 pub struct MovementTask {
     agent: Agent,
     target: Target,
+    ticks: u32
 }
 
 pub struct MovementTaskConfig { }
@@ -33,18 +39,26 @@ impl Task for MovementTask {
     fn new(config: MovementTaskConfig) -> MovementTask {
         MovementTask {
             agent: Agent::new(),
-            target: Target::new(100.0,100.0)
+            target: Target::new(100.0,100.0),
+            ticks: 0
         }
     }
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState {
+        if self.ticks >= MAX_T {
+            return self.end_state();
+        }
 
         self.parse_input(input);
 
+        // TODO: Change random_matrix to accept shapes of any dim
+        let sensor_data: Array1<f32> = random::random_matrix((N_SENSORS, 1), Uniform::new(0.0, 0.5)).into_shape(N_SENSORS).unwrap() * 1.0;
+
+        self.ticks += 1;
+
         TaskState {
             result: None,
-            sensor_data: Array::zeros(N_SENSORS)
+            sensor_data
         }
-
     }
     fn environment() -> TaskEnvironment {
         TaskEnvironment {
@@ -68,6 +82,19 @@ impl MovementTask {
                 3 => {self.agent.move_faced_direction(-AGENT_MOVEMENT_SPEED); },
                 _ => {panic!("invalid input id"); }
             }
+        }
+    }
+
+    fn end_state(&self) -> TaskState {
+        let distance = ((self.agent.x as f32 - AGENT_START_POS.0 as f32).powf(2.0)
+            + (self.agent.y as f32 - AGENT_START_POS.1 as f32).powf(2.0)).sqrt();
+
+        TaskState {
+            result: Some(TaskResult {
+                success: false,
+                distance
+            }),
+            sensor_data: Array::zeros(N_SENSORS)
         }
     }
 }

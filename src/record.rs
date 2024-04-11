@@ -17,6 +17,13 @@ pub struct Record {
     records: HashMap<RecordType, Vec<RecordDataType>>
 }
 
+pub trait Recording {
+    type Data;
+
+    fn get(&self) -> Self::Data;
+}
+
+
 impl Record {
     pub fn new() -> Record {
         let mut records = HashMap::new();
@@ -43,6 +50,10 @@ impl Record {
             panic!("Could not get record of type {:?}", record_type);
         }
     }
+
+    //pub fn get_value<T: Recording>(&self, record_type: RecordType) -> T {
+    //    self.records.get(&record_type).clone()
+    //}
 
     pub fn get_potentials(&self) -> Vec<Array1<f32>>{
         // TODO: won't want to implement this for each RecordType, so

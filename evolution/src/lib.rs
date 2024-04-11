@@ -24,7 +24,7 @@ const N_BEST_KEEP: usize = 0; // N best genomes to keep without mutation in the 
 const SURVIVAL_THRESHOLD: f32 = 0.3;
 
 /// Stop evolution when a genome has a fitness above this threshold
-const FITNESS_GOAL: f32 = 90.0;
+const FITNESS_GOAL: f32 = 99.0;
 
 #[derive(Debug, Clone)]
 pub struct EvolutionEnvironment {
