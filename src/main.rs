@@ -4,7 +4,7 @@ use luna::phenotype::Phenotype;
 use luna::task_executor::TaskExecutor;
 use luna::visual::plots::generate_plots;
 use luna::visual::visualize_genome_on_task;
-use luna::config::{Config, RunConfig};
+use luna::config::RunConfig;
 
 use evolution::genome::Genome;
 use evolution::{Population, EvolutionEnvironment};
@@ -23,6 +23,7 @@ static DEFAULT_CONF: RunConfig = RunConfig {
 };
 
 
+#[allow(dead_code)]
 fn movement_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     let mut phenotype = Phenotype::from_genome(g, env);
 
@@ -37,6 +38,7 @@ fn movement_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     eval
 }
 
+#[allow(dead_code)]
 fn catching_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     let trial_positions: [i32; 11] = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
 
@@ -71,7 +73,6 @@ fn catching_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
 
     fitness
 }
-
 
 /// Analyzes a genome resulting from an evolutionary process
 #[allow(dead_code)]

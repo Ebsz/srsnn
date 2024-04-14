@@ -27,7 +27,6 @@ pub struct TaskExecutor<'a, T: Task> {
     pub state: ExecutionState,
 
     task_inputs: Vec<TaskInput>,
-    synapse_size: usize,
     network_size: usize,
     synapse_spikes: Spikes,
     network_state: Spikes
@@ -46,7 +45,6 @@ impl<'a, T: Task> TaskExecutor<'a, T> {
             record,
             state: ExecutionState::INITIALIZED,
             network_size,
-            synapse_size,
             task_inputs: Vec::new(),
             synapse_spikes: Spikes::new(synapse_size),
             network_state: Spikes::new(network_size)

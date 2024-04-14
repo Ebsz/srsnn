@@ -11,7 +11,7 @@ use sdl2::render::WindowCanvas;
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::pixels::Color;
 
-use ndarray::{array, Array, Array1};
+use ndarray::{Array, Array1};
 
 use std::f32::consts::PI;
 

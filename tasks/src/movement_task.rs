@@ -1,10 +1,7 @@
 use crate::{Task, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
 use crate::sensor::Sensor;
 
-use utils::random;
-
 use ndarray::{Array, Array1};
-use ndarray_rand::rand_distr::Uniform;
 
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::render::WindowCanvas;
@@ -114,8 +111,13 @@ impl MovementTask {
         }
     }
 
-    fn read_sensors(&self) -> f32 {
-        self.sensor.read((self.agent.x, self.agent.y), (self.target.x, self.target.y), TARGET_RADIUS)
+    fn read_sensors(&self) -> Array1<f32> {
+        let mut sensor_data: Array1<f32> = Array::zeros(N_SENSORS);
+
+        let d = self.sensor.read((self.agent.x, self.agent.y), (self.target.x, self.target.y), TARGET_RADIUS);
+        sensor_data[0] = d;
+
+        sensor_data
     }
 }
 

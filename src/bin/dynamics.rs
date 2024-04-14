@@ -72,7 +72,7 @@ fn generate_network_input(n: usize, input_size: f32) -> Array2<f32> {
 
 fn plot(record: &Record) {
     let energy: Vec<f32> = record.get_potentials().iter().map(|x| (x + 65.0).sum()).collect();
-    plot_network_energy(energy);
+    let _ = plot_network_energy(energy);
 
     generate_plots(record);
 
@@ -109,6 +109,7 @@ fn iterate() {
 
 }
 
+#[allow(dead_code)]
 fn run() {
     let input = generate_network_input(N, DEFAULT_INPUT_SIZE);
     let mut network = Pool::new(N, P, INHIBITORY_RATIO);

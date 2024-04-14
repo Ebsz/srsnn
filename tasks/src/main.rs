@@ -1,7 +1,7 @@
 //! tasks/src/main.rs
 
 use tasks::{Task, TaskName, TaskInput, TaskRenderer};
-use tasks::catching_task::{CatchingTask, CatchingTaskConfig, ARENA_SIZE};
+use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
 use ndarray_rand::rand::rngs::StdRng;
@@ -39,7 +39,8 @@ fn main () {
             input_map.insert(Keycode::A, 1);
 
             let mut rng = StdRng::seed_from_u64(0);
-            let x: i32 = rng.gen_range(0..ARENA_SIZE.0);
+            let size = CatchingTask::render_size().0;
+            let x: i32 = rng.gen_range(0..size);
 
             let task = CatchingTask::new(CatchingTaskConfig {
                 target_pos: x
@@ -49,11 +50,10 @@ fn main () {
             t.run();
         }
     }
-
 }
 
 /// Enables running a task with human input, which is
-/// very useful for testing tasks.
+/// very useful when developing and testing tasks.
 pub struct TaskTester<T: Task + TaskRenderer> {
     canvas: WindowCanvas,
     context: Sdl,
