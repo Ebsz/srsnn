@@ -1,5 +1,6 @@
 pub mod catching_task;
 pub mod movement_task;
+pub mod sensor;
 
 use ndarray::Array1;
 use sdl2::render::WindowCanvas;
@@ -19,7 +20,6 @@ pub fn get_environment(task: TaskName) -> TaskEnvironment {
         TaskName::MovementTask => MovementTask::environment()
     }
 }
-
 
 #[derive(Debug)]
 pub struct TaskState {

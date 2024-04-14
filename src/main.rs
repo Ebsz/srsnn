@@ -9,7 +9,7 @@ use luna::config::{Config, RunConfig};
 use evolution::genome::Genome;
 use evolution::{Population, EvolutionEnvironment};
 
-use tasks::{Task, TaskName};
+use tasks::{Task, TaskName, TaskRenderer};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
@@ -42,7 +42,7 @@ fn catching_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
 
     let mut phenotype = Phenotype::from_genome(g, env);
 
-    let max_distance = tasks::catching_task::ARENA_SIZE.0 as f32;
+    let max_distance = tasks::catching_task::CatchingTask::render_size().0 as f32;
 
     let mut total_fitness = 0.0;
     let mut correct: u32 = 0;

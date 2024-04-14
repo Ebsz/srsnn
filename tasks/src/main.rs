@@ -1,6 +1,6 @@
 //! tasks/src/main.rs
 
-use tasks::{Task, TaskInput, TaskRenderer};
+use tasks::{Task, TaskName, TaskInput, TaskRenderer};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig, ARENA_SIZE};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
@@ -18,20 +18,38 @@ use std::time::Instant;
 
 
 fn main () {
-    let mut rng = StdRng::seed_from_u64(0);
-    let x: i32 = rng.gen_range(0..ARENA_SIZE.0);
-
+    const taskname: TaskName = TaskName::CatchingTask;
     let mut input_map: HashMap<Keycode, i32> = HashMap::new();
-    input_map.insert(Keycode::D, 0);
-    input_map.insert(Keycode::A, 1);
-    input_map.insert(Keycode::W, 2);
-    input_map.insert(Keycode::S, 3);
 
-    let task = MovementTask::new(MovementTaskConfig {});
+    match taskname {
+        TaskName::MovementTask => {
+            input_map.insert(Keycode::D, 0);
+            input_map.insert(Keycode::A, 1);
+            input_map.insert(Keycode::W, 2);
+            input_map.insert(Keycode::S, 3);
 
-    let mut t = TaskTester::new(task, input_map);
+            let task = MovementTask::new(MovementTaskConfig {});
 
-    t.run();
+            let mut t = TaskTester::new(task, input_map);
+            t.run();
+
+        },
+        TaskName::CatchingTask => {
+            input_map.insert(Keycode::D, 0);
+            input_map.insert(Keycode::A, 1);
+
+            let mut rng = StdRng::seed_from_u64(0);
+            let x: i32 = rng.gen_range(0..ARENA_SIZE.0);
+
+            let task = CatchingTask::new(CatchingTaskConfig {
+                target_pos: x
+            });
+
+            let mut t = TaskTester::new(task, input_map);
+            t.run();
+        }
+    }
+
 }
 
 /// Enables running a task with human input, which is
