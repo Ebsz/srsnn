@@ -2,6 +2,13 @@ use evolution::Fitness;
 
 use tasks::TaskName;
 
+use crate::evaluate::avoidance_evaluate;
+
+pub static DEFAULT_CONFIG: RunConfig = RunConfig {
+    fitness_fn: avoidance_evaluate, //movement_evaluate,
+    taskname: TaskName::AvoidanceTask //TaskName::MovementTask,
+};
+
 //trait Config: Default {}
 pub trait Config {}
 

@@ -32,22 +32,7 @@ pub struct EvolutionEnvironment {
     pub outputs: usize,
 }
 
-//pub type FitnessFn = fn(&Genome, &EvolutionEnvironment) -> f32;
 pub type Fitness = fn(&Genome, &EvolutionEnvironment) -> f32;
-
-//trait Genome {
-//    fn new() -> Self;
-//    fn crossover(&Genome ) -> Genome;
-//
-//}
-//
-//
-//trait Individual {
-//    fn fitness(genome: &Genome) -> f32;
-//    fn crossover(genome: &Genome) ->
-//
-//}
-
 
 pub struct Population {
     population: HashMap<u32, Genome>,
