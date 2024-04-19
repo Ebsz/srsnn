@@ -27,10 +27,10 @@ const AGENT_SPEED: i32 = 5;
 
 
 const N_SENSORS: usize = 7;
-const SENSOR_SPREAD: f32 = PI / 5.0; // The angle between the first and last sensor
+const SENSOR_SPREAD: f32 = PI / 3.0; // The angle between the first and last sensor
 
 
-const SENSOR_LEN: f32 = 600.0;
+const SENSOR_LEN: f32 = 800.0;
 
 pub struct CatchingTask {
     pub agent: Agent,
