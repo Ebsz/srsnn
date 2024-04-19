@@ -1,10 +1,11 @@
 //! luna/src/main.rs
 
+use luna::evaluate;
 use luna::phenotype::Phenotype;
 use luna::task_executor::TaskExecutor;
 use luna::visual::plots::generate_plots;
 use luna::visual::visualize_genome_on_task;
-use luna::config::{RunConfig, DEFAULT_CONFIG};
+use luna::config::RunConfig;
 
 use evolution::genome::Genome;
 use evolution::{Population, EvolutionEnvironment};
@@ -34,17 +35,18 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
 }
 
 fn run(conf: &RunConfig) {
-    log::info!("Parsing config");
-    log::info!("Task: {:?}", conf.taskname);
+    log::info!("Task: {:?}", conf.task);
 
-    let task_environment = tasks::get_environment(conf.taskname);
+    let task_environment = tasks::get_environment(conf.task);
 
     let env = EvolutionEnvironment {
         inputs: task_environment.agent_inputs,
         outputs: task_environment.agent_outputs
     };
 
-    let mut population = Population::new(env.clone(), conf.fitness_fn);
+    let fitness_function = evaluate::get_fitness_function(conf.task);
+
+    let mut population = Population::new(env.clone(), fitness_function, conf.evolution_config);
 
     let evolved_genome: Genome = population.evolve();
 
@@ -59,5 +61,5 @@ fn main() {
     init_logger();
     log::info!("seed is {}", SEED);
 
-    run(&DEFAULT_CONFIG);
+    run(&RunConfig::default());
 }

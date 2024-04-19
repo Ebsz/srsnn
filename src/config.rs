@@ -1,35 +1,24 @@
 use evolution::Fitness;
+use evolution::config::EvolutionConfig;
 
 use tasks::TaskName;
 
-use crate::evaluate::avoidance_evaluate;
+use crate::evaluate::catching_evaluate;
 
-pub static DEFAULT_CONFIG: RunConfig = RunConfig {
-    fitness_fn: avoidance_evaluate, //movement_evaluate,
-    taskname: TaskName::AvoidanceTask //TaskName::MovementTask,
-};
-
-//trait Config: Default {}
-pub trait Config {}
 
 pub struct RunConfig {
-    //pub taskname: TaskName,
-    pub fitness_fn: Fitness,
-    pub taskname: TaskName
+    pub task: TaskName,
+    pub evolution_config: EvolutionConfig
 }
 
-impl Config for RunConfig {}
-
-//impl Default for RunConfig {
-//    fn default() -> Self {
-//        RunConfig {
-//            //taskname: TaskName::CATCHING_TASK
-//            fitness_fn
-//        }
-//    }
-//}
-
-
+impl Default for RunConfig {
+    fn default() -> Self {
+        RunConfig {
+            task: TaskName::CatchingTask,
+            evolution_config: EvolutionConfig::default()
+        }
+    }
+}
 
 //    fn (&mut self) -> dyn Task {
 //        let task tasks::conf::get_task(self.taskname)

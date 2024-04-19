@@ -6,11 +6,18 @@ use crate::task_executor::TaskExecutor;
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
-use tasks::{Task, TaskRenderer};
+use tasks::{Task, TaskName, TaskRenderer};
 
-use evolution::EvolutionEnvironment;
+use evolution::{EvolutionEnvironment, Fitness};
 use evolution::genome::Genome;
 
+
+pub fn get_fitness_function(name: TaskName) -> Fitness {
+    match name {
+        TaskName::CatchingTask => catching_evaluate,
+        TaskName::MovementTask => movement_evaluate,
+    }
+}
 
 pub fn movement_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     let mut phenotype = Phenotype::from_genome(g, env);

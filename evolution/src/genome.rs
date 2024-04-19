@@ -1,25 +1,12 @@
 use ndarray::{s, Array, Array2};
 
 use crate::EvolutionEnvironment;
+use crate::config::GenomeConfig;
 
 use utils::random::{random_range, random_sample, random_choice};
 use ndarray_rand::rand_distr::StandardNormal;
 
-const MAX_NEURONS: usize = 13;
 
-const INITIAL_NEURON_COUNT_RANGE: (usize, usize) = (2, 5);
-const INITIAL_CONNECTION_COUNT_RANGE: (usize, usize) = (3, 4);
-
-/*
- * Probabilities for each type of mutation
- */
-const MUTATE_CONNECTION_PROB: f32 = 0.80;
-const MUTATE_TOGGLE_CONNECTION_PROB: f32 = 0.30;
-const MUTATE_ADD_CONNECTION_PROB: f32 = 0.03;
-const MUTATE_ADD_NEURON_PROB: f32 = 0.02;
-
-
-///
 /// An evolvable genome.
 ///
 /// The connections matrix is stored as [to, from], and
@@ -35,10 +22,10 @@ pub struct Genome {
 }
 
 impl Genome {
-    pub fn new(env: &EvolutionEnvironment) -> Genome {
+    pub fn new(env: &EvolutionEnvironment, config: &GenomeConfig) -> Genome {
         let mut neurons: Vec<NeuronGene> = vec![];
 
-        let size: usize = MAX_NEURONS + env.inputs;
+        let size: usize = config.max_neurons + env.inputs;
         let mut connections: Array2<(bool, f32)> = Array::zeros((size, size)).mapv(|_: i32| (false, 0.0));
 
         // Add output neurons
@@ -50,7 +37,7 @@ impl Genome {
         }
 
         // Add network neurons
-        for i in 0..random_range(INITIAL_NEURON_COUNT_RANGE) {
+        for i in 0..random_range(config.initial_neuron_count_range) {
             neurons.push(NeuronGene {
                 id: (i + env.outputs) as u32,
                 ntype: NeuronType::Network
@@ -60,13 +47,13 @@ impl Genome {
         let network_size = neurons.len();
 
         // Connections from input neurons are randomly distributed among the network neurons
-        for i in MAX_NEURONS..(MAX_NEURONS + env.inputs) {
+        for i in config.max_neurons..(config.max_neurons + env.inputs) {
             let j: usize = random_range((0, network_size)) as usize;
 
             connections[[j, i]] = (true, random_sample(StandardNormal));
         }
 
-        let c = random_range(INITIAL_CONNECTION_COUNT_RANGE);
+        let c = random_range(config.initial_connection_count_range);
 
         // Add a number of random connections between neurons
         //
@@ -91,7 +78,7 @@ impl Genome {
             }
         }
 
-        assert!(connections.shape() == [(MAX_NEURONS + env.inputs), (MAX_NEURONS + env.inputs)]);
+        assert!(connections.shape() == [(config.max_neurons + env.inputs), (config.max_neurons + env.inputs)]);
 
         Genome {
             neurons,
@@ -104,20 +91,20 @@ impl Genome {
     }
 
     /// Perform one of a set of different mutations on the genome
-    pub fn mutate(&mut self) {
-        if random_range((0.0, 1.0)) <  MUTATE_CONNECTION_PROB {
+    pub fn mutate(&mut self, config: &GenomeConfig) {
+        if random_range((0.0, 1.0)) <  config.mutate_connection_probability {
             self.mutate_connection();
         }
 
-        if random_range((0.0, 1.0)) <  MUTATE_TOGGLE_CONNECTION_PROB {
+        if random_range((0.0, 1.0)) <  config.mutate_toggle_connection_probability {
             self.mutate_toggle_connection();
         }
 
-        if random_range((0.0, 1.0)) <  MUTATE_ADD_CONNECTION_PROB {
+        if random_range((0.0, 1.0)) <  config.mutate_add_connection_probability {
             self.mutate_add_connection();
         }
 
-        if random_range((0.0, 1.0)) < MUTATE_ADD_NEURON_PROB {
+        if random_range((0.0, 1.0)) < config.mutate_add_neuron_probability {
             self.mutate_add_neuron();
         }
     }

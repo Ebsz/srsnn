@@ -11,20 +11,16 @@
 //!
 
 pub mod genome;
+pub mod config;
+
+use genome::Genome;
+use config::EvolutionConfig;
+
+use utils::random;
 
 use std::collections::HashMap;
 use std::time::Instant;
-use genome::Genome;
-use utils::random;
 
-
-const POPULATION_SIZE: usize = 50;
-const MAX_GENERATIONS: u32 = 50;
-const N_BEST_KEEP: usize = 0; // N best genomes to keep without mutation in the new population
-const SURVIVAL_THRESHOLD: f32 = 0.3;
-
-/// Stop evolution when a genome has a fitness above this threshold
-const FITNESS_GOAL: f32 = 99.0;
 
 #[derive(Debug, Clone)]
 pub struct EvolutionEnvironment {
@@ -38,20 +34,19 @@ pub struct Population {
     population: HashMap<u32, Genome>,
     fitness_fn: Fitness,
     environment: EvolutionEnvironment,
+    config: EvolutionConfig,
     generation: u32,
     genome_num: u32, // TODO: Find new name for this yo
 }
 
 impl Population {
-    pub fn new(env: EvolutionEnvironment, f: Fitness) -> Population {
+    pub fn new(env: EvolutionEnvironment, f: Fitness, config: EvolutionConfig) -> Population {
         let mut population = HashMap::new();
         let mut genome_num: u32 = 0;
 
-        // Build initial population
         log::debug!("Creating initial population");
-
-        for _ in 0..POPULATION_SIZE {
-            population.insert(genome_num, Genome::new(&env));
+        for _ in 0..config.population_size {
+            population.insert(genome_num, Genome::new(&env, &config.genome_config));
             genome_num += 1;
         }
 
@@ -59,6 +54,7 @@ impl Population {
             population,
             genome_num,
             environment: env,
+            config,
             fitness_fn: f,
             generation: 0,
         }
@@ -67,7 +63,7 @@ impl Population {
     pub fn evolve(&mut self) -> Genome {
         let mut fitness: Vec<(u32, f32)> = Vec::new();
 
-        while self.generation < MAX_GENERATIONS {
+        while self.generation < self.config.max_generations {
             log::debug!("Evaluating population");
             let start_time = Instant::now();
 
@@ -79,11 +75,11 @@ impl Population {
             let mean_fitness: f32 = fitness.iter().map(|(_, f)| f).sum::<f32>() / fitness.len() as f32;
 
             log::trace!("Evaluated population in {}s ({}s per genome)",
-                eval_time, eval_time / POPULATION_SIZE as f32 );
+                eval_time, eval_time / self.config.population_size as f32 );
             log::info!("Generation {} - best fit: {}, mean: {}",
                 self.generation, fitness[0].1, mean_fitness);
 
-            if fitness[0].1 > FITNESS_GOAL {
+            if fitness[0].1 > self.config.fitness_goal {
                 log::info!("Fitness goal reached, stopping evolution");
                 break;
             }
@@ -91,28 +87,28 @@ impl Population {
             log::debug!("Creating new generation");
 
             // Select the best fit to be parents
-            let n_parents = ((POPULATION_SIZE as f32) * SURVIVAL_THRESHOLD) as usize;
+            let n_parents = ((self.config.population_size as f32) * self.config.survival_threshold) as usize;
             let parents: Vec<u32> = fitness[0..n_parents].iter().map(|(i, _)| *i).collect();
 
             log::trace!("Breeding {} offspring from {} parents",
-                (POPULATION_SIZE - N_BEST_KEEP), parents.len());
+                (self.config.population_size - self.config.n_best_keep), parents.len());
 
-            let mut children = self.breed(parents, POPULATION_SIZE - N_BEST_KEEP);
+            let mut children = self.breed(parents, self.config.population_size - self.config.n_best_keep);
 
             // Mutate children
             for c in &mut children {
-                c.mutate();
+                c.mutate(&self.config.genome_config);
             }
 
             // Remove all but the N best genomes from the population
-            self.population.retain(|i, _| fitness[..N_BEST_KEEP].iter().any(|x| x.0 == *i));
+            self.population.retain(|i, _| fitness[..self.config.n_best_keep].iter().any(|x| x.0 == *i));
 
             // Add new genomes to the population
             for g in children {
                 self.add_genome(g);
             }
 
-            assert!(self.population.len() == POPULATION_SIZE);
+            assert!(self.population.len() == self.config.population_size);
 
             self.generation += 1;
         }
