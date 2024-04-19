@@ -1,7 +1,7 @@
 #[derive(Clone, Copy)]
 pub struct EvolutionConfig {
     pub population_size: usize,
-    pub survival_threshold: f32,
+    pub parent_fraction: f32,
     pub n_best_keep: usize,
 
     // Stop conditions
@@ -15,7 +15,7 @@ impl Default for EvolutionConfig {
     fn default() -> Self {
         EvolutionConfig {
             population_size: 50,
-            survival_threshold: 0.3,
+            parent_fraction: 0.3,
             n_best_keep: 0,
             fitness_goal: 90.0,
             max_generations: 50,
