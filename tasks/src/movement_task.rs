@@ -20,8 +20,6 @@ const AGENT_MOVEMENT_SPEED: f32 = 8.0;
 const N_SENSORS: usize = 1;
 const N_CONTROLS: usize = 4; // up/down + rotate left/right
 
-const WALL_SIZE: usize = 50;
-
 const SENSOR_LEN: f32 = 300.0;
 
 const MAX_T: u32 = 300;
@@ -33,7 +31,6 @@ pub struct MovementTask {
     target: Target,
     sensor: Sensor,
     ticks: u32,
-    walls: Vec<Wall>
 }
 
 pub struct MovementTaskConfig { }
@@ -61,10 +58,7 @@ impl Task for MovementTask {
 
         // TODO: Change random_matrix to accept shapes of any dim
         //let sensor_data: Array1<f32> = random::random_matrix((N_SENSORS, 1), Uniform::new(0.0, 0.5)).into_shape(N_SENSORS).unwrap() * 1.0;
-        let sensor_data: Array1<f32> = Array::zeros(N_SENSORS);
-
-        let sensor_read = self.read_sensors();
-
+        let sensor_data: Array1<f32> = self.read_sensors();
 
         self.ticks += 1;
 

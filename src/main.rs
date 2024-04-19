@@ -50,11 +50,11 @@ fn run(conf: &RunConfig) {
 
     let evolved_genome: Genome = population.evolve();
 
-    let task = CatchingTask::new(CatchingTaskConfig {
-        target_pos: 450
-    });
+    //let task = CatchingTask::new(CatchingTaskConfig {
+    //    target_pos: 450
+    //});
 
-    visualize_genome_on_task(task, &evolved_genome, &env);
+    //visualize_genome_on_task(task, &evolved_genome, &env);
 }
 
 fn main() {
