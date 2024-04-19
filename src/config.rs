@@ -8,7 +8,7 @@ use crate::evaluate::catching_evaluate;
 
 pub struct RunConfig {
     pub task: TaskName,
-    pub evolution_config: EvolutionConfig
+    pub evolution_config: EvolutionConfig,
 }
 
 impl Default for RunConfig {

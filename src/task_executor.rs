@@ -1,13 +1,19 @@
-use ndarray::s;
+
+use crate::phenotype::Phenotype;
+use crate::record::{Record, RecordType, RecordDataType};
 
 use tasks::{Task, TaskResult, TaskInput};
 
-use crate::phenotype::Phenotype;
 use model::synapse::Synapse;
 use model::neuron::NeuronModel;
 use model::spikes::Spikes;
 
-use crate::record::{Record, RecordType, RecordDataType};
+use utils::random;
+
+use ndarray::s;
+
+use rand::distributions::Uniform;
+
 
 // TODO: This belongs somewhere else
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
@@ -25,6 +31,7 @@ pub struct TaskExecutor<'a, T: Task> {
     pub task: T,
     pub phenotype: &'a mut Phenotype,
     pub state: ExecutionState,
+    pub noise_input: Option<(f32, f32)>, // Optionally add random noise to model
 
     task_inputs: Vec<TaskInput>,
     network_size: usize,
@@ -39,12 +46,15 @@ impl<'a, T: Task> TaskExecutor<'a, T> {
 
         let record: Record = Record::new();
 
+        let noise_input = None;
+
         TaskExecutor {
             task,
             phenotype,
             record,
             state: ExecutionState::INITIALIZED,
             network_size,
+            noise_input,
             task_inputs: Vec::new(),
             synapse_spikes: Spikes::new(synapse_size),
             network_state: Spikes::new(network_size)
@@ -82,7 +92,13 @@ impl<'a, T: Task> TaskExecutor<'a, T> {
         let synaptic_input = self.phenotype.synapse.step(&self.synapse_spikes) * SYNAPTIC_INPUT_SCALING;
 
         // Get input only for network neurons
-        let network_input = synaptic_input.slice(s![0..self.network_size]).to_owned();
+        let mut network_input = synaptic_input.slice(s![0..self.network_size]).to_owned();
+
+        if let Some(n) = self.noise_input {
+            network_input += &(random::random_vector(self.network_size, Uniform::new(n.0, n.1)));
+
+        }
+
         self.network_state = self.phenotype.neurons.step(network_input);
 
         if should_record {

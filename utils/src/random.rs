@@ -1,7 +1,7 @@
 use std::cmp::PartialOrd;
 use std::cell::RefCell;
 
-use ndarray::{Array2, Array};
+use ndarray::{Array1, Array2, Array};
 
 use ndarray_rand::RandomExt;
 use ndarray_rand::rand::{Rng, SeedableRng};
@@ -11,13 +11,20 @@ use ndarray_rand::rand_distr::uniform::SampleUniform;
 
 use rand::seq::SliceRandom;
 
-pub const SEED: u64 = 0;
 
+pub const SEED: u64 = 0;
 
 thread_local! {
     static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));
 
 }
+
+pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> {
+    RNG.with(|rng| {
+        Array::random_using(size, dist, &mut (*rng.borrow_mut()))
+    })
+}
+
 
 /// Generate a random matrix
 pub fn random_matrix<D: Distribution<f32>>(shape: (usize, usize), dist: D) -> Array2<f32>{

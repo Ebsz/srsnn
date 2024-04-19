@@ -11,6 +11,7 @@ use tasks::{Task, TaskName, TaskRenderer};
 use evolution::{EvolutionEnvironment, Fitness};
 use evolution::genome::Genome;
 
+use utils::random;
 
 pub fn get_fitness_function(name: TaskName) -> Fitness {
     match name {
