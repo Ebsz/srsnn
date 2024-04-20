@@ -1,6 +1,6 @@
 use crate::genome::Genome;
 
-use crate::{Fitness, EvolutionEnvironment};
+use crate::EvolutionEnvironment;
 use crate::config::EvolutionConfig;
 
 use utils::random;
@@ -41,7 +41,7 @@ impl Population {
     }
 
     pub fn evolve(&mut self) -> Genome {
-        let mut fitness: Vec<(u32, f32)> = Vec::new();
+        let mut fitness: Vec<(u32, f32)>;
 
         loop {
             log::debug!("Evaluating population");

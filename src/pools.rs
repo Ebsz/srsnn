@@ -11,12 +11,6 @@ use crate::gen::synapse_gen;
 
 use ndarray::{s, Array, Array1};
 
-pub struct PoolConfig {
-    neurons: usize,
-    connection_probablity: f32,
-    inhibitory_fraction: f32,
-}
-
 
 pub struct Pool<S: Synapse> {
     neurons: Izhikevich,

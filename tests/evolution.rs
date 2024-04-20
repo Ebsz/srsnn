@@ -1,10 +1,8 @@
-use evolution::{EvolutionEnvironment, Fitness};
+use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
 use evolution::population::Population;
 
 use luna::config::RunConfig;
-
-use utils::random;
 
 
 #[test]
@@ -25,12 +23,12 @@ fn evolve_genome(n: usize, g: u32) {
     let env = EvolutionEnvironment {
         inputs: 1,
         outputs: 1,
-        fitness: |g: &Genome, e: &EvolutionEnvironment| -> f32 { 0.0 }
+        fitness: |_: &Genome, _: &EvolutionEnvironment| -> f32 { 0.0 }
     };
 
     let mut population = Population::new(env, config.evolution_config);
 
-    let genome = population.evolve();
+    let _genome = population.evolve();
 
     assert!((population.generation)  == g);
 }

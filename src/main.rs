@@ -4,16 +4,14 @@ use luna::evaluate;
 use luna::phenotype::Phenotype;
 use luna::task_executor::TaskExecutor;
 use luna::visual::plots::generate_plots;
-use luna::visual::visualize_genome_on_task;
 use luna::config::RunConfig;
 
 use evolution::EvolutionEnvironment;
 use evolution::population::Population;
 use evolution::genome::Genome;
 
-use tasks::{Task, TaskName, TaskRenderer};
+use tasks::Task;
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
-use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
 use utils::logger::init_logger;
 use utils::random::SEED;
@@ -49,13 +47,7 @@ fn run(conf: &RunConfig) {
 
     let mut population = Population::new(env.clone(), conf.evolution_config);
 
-    let evolved_genome: Genome = population.evolve();
-
-    //let task = CatchingTask::new(CatchingTaskConfig {
-    //    target_pos: 450
-    //});
-
-    //visualize_genome_on_task(task, &evolved_genome, &env);
+    let _evolved_genome: Genome = population.evolve();
 }
 
 fn main() {

@@ -39,7 +39,7 @@ pub struct MovementTaskConfig { }
 impl Task for MovementTask {
     type TaskConfig = MovementTaskConfig;
 
-    fn new(config: MovementTaskConfig) -> MovementTask {
+    fn new(_config: MovementTaskConfig) -> MovementTask {
 
         MovementTask {
             agent: Agent::new(),
@@ -152,13 +152,6 @@ impl Agent {
         self.x += dx;
         self.y -= dy;
     }
-}
-
-
-enum TargetType {
-    CIRCLE,
-    SQUARE,
-    TRIANGLE,
 }
 
 struct Target {

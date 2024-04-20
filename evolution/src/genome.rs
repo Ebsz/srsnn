@@ -179,7 +179,7 @@ impl Genome {
     }
 
     /// Selects a random connection and makes a small change
-    fn mutate_connection(&mut self, config: &GenomeConfig) {
+    fn mutate_connection(&mut self, _config: &GenomeConfig) {
         const MUTATION_STRENGTH: f32 = 0.5;
 
         let connection = self.get_random_connection();
@@ -192,7 +192,7 @@ impl Genome {
     }
 
     /// Selects a random existing connection and flips its enable flag
-    fn mutate_toggle_connection(&mut self, config: &GenomeConfig) {
+    fn mutate_toggle_connection(&mut self, _config: &GenomeConfig) {
         let connection = self.get_random_connection();
 
         if let Some(c) = connection {
@@ -240,7 +240,7 @@ impl Genome {
 
     /// Mutate the genome by adding a new non-existing connection
     /// between two neurons
-    fn mutate_add_connection(&mut self, config: &GenomeConfig) {
+    fn mutate_add_connection(&mut self, _config: &GenomeConfig) {
         //NOTE: This only adds connections within the network,
         //      ie. not from input. Should this be allowed?
 

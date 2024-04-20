@@ -1,9 +1,6 @@
-use evolution::Fitness;
 use evolution::config::EvolutionConfig;
 
 use tasks::TaskName;
-
-use crate::evaluate::catching_evaluate;
 
 
 pub struct RunConfig {
