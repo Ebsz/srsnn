@@ -1,6 +1,5 @@
 use luna::pools::Pool;
-use luna::network::Network;
-
+use model::network::Network;
 use ndarray::{Array, Array2};
 
 

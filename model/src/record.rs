@@ -1,6 +1,7 @@
 use ndarray::Array1;
 use std::collections::HashMap;
 
+
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub enum RecordType {
     Spikes,

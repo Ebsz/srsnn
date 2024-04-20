@@ -1,13 +1,14 @@
 //! luna/src/dynamics.rs
 
 use luna::pools::Pool;
-use luna::network::Network;
 use luna::visual::plots::{generate_plots, plot_network_energy};
-use luna::record::{Record, RecordType, RecordDataType};
+
+use model::network::Network;
+use model::record::{Record, RecordType, RecordDataType};
+
 use utils::logger::init_logger;
 
 use ndarray::{s, Array, Array1, Array2};
-
 use std::collections::HashMap;
 
 const N: usize = 100; // # of neurons
@@ -19,26 +20,6 @@ const INHIBITORY_RATIO: f32 = 0.2;
 const INPUT_T: usize  = 100; // How long we provide input for
 
 const DEFAULT_INPUT_SIZE: f32  = 17.5;
-
-//struct RunConfig {
-//    runs: usize,
-//    N: usize,
-//}
-//
-//
-//struct Setup {
-//    N: usize,
-//    P: Array1<f32>,
-//}
-//
-//fn make_setup(conf: RunConfig) -> Setup {
-//
-//    Setup {
-//        N: Array::ones(T);
-//
-//    }
-//
-//}
 
 
 fn last_spiketime(record: &mut Record) -> usize {

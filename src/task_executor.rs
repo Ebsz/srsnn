@@ -1,12 +1,11 @@
-
 use crate::phenotype::Phenotype;
-use crate::record::{Record, RecordType, RecordDataType};
 
 use tasks::{Task, TaskResult, TaskInput};
 
 use model::synapse::Synapse;
 use model::neuron::NeuronModel;
 use model::spikes::Spikes;
+use model::record::{Record, RecordType, RecordDataType};
 
 use utils::random;
 

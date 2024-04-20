@@ -1,11 +1,11 @@
 //! A pool is a randomly generated network shaped by certain parameters
 
-use crate::network::Network;
 use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::Synapse;
 use model::synapse::matrix_synapse::MatrixSynapse;
 use model::synapse::linear_synapse::LinearSynapse;
+use model::network::Network;
 
 use crate::gen::synapse_gen;
 

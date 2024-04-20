@@ -1,7 +1,7 @@
 use plotters::prelude::*;
 
 use ndarray::Array1;
-use crate::record::{Record, RecordType, RecordDataType};
+use model::record::{Record, RecordType, RecordDataType};
 
 pub fn generate_plots(record: &Record) {
     // Potentials
