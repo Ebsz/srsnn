@@ -10,10 +10,10 @@ use std::time::Instant;
 use std::cmp::max;
 
 pub struct Population {
+    pub generation: u32,
     population: HashMap<u32, Genome>,
     environment: EvolutionEnvironment,
     config: EvolutionConfig,
-    generation: u32,
     genome_num: u32, // TODO: Find new name for this yo
 }
 

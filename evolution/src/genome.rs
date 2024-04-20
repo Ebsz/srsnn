@@ -93,19 +93,19 @@ impl Genome {
     /// Perform one of a set of different mutations on the genome
     pub fn mutate(&mut self, config: &GenomeConfig) {
         if random_range((0.0, 1.0)) <  config.mutate_connection_probability {
-            self.mutate_connection();
+            self.mutate_connection(&config);
         }
 
         if random_range((0.0, 1.0)) <  config.mutate_toggle_connection_probability {
-            self.mutate_toggle_connection();
+            self.mutate_toggle_connection(&config);
         }
 
         if random_range((0.0, 1.0)) <  config.mutate_add_connection_probability {
-            self.mutate_add_connection();
+            self.mutate_add_connection(&config);
         }
 
         if random_range((0.0, 1.0)) < config.mutate_add_neuron_probability {
-            self.mutate_add_neuron();
+            self.mutate_add_neuron(&config);
         }
     }
 
@@ -179,7 +179,7 @@ impl Genome {
     }
 
     /// Selects a random connection and makes a small change
-    fn mutate_connection(&mut self) {
+    fn mutate_connection(&mut self, config: &GenomeConfig) {
         const MUTATION_STRENGTH: f32 = 0.5;
 
         let connection = self.get_random_connection();
@@ -192,7 +192,7 @@ impl Genome {
     }
 
     /// Selects a random existing connection and flips its enable flag
-    fn mutate_toggle_connection(&mut self) {
+    fn mutate_toggle_connection(&mut self, config: &GenomeConfig) {
         let connection = self.get_random_connection();
 
         if let Some(c) = connection {
@@ -200,41 +200,47 @@ impl Genome {
         }
     }
 
-    /// Mutate the genome by adding a new neuron
-    fn mutate_add_neuron(&mut self) {
+    /// Add new neuron to the genome
+    fn mutate_add_neuron(&mut self, config: &GenomeConfig) {
         //NOTE: This only adds connections within the network,
         //      ie. not from input. Should this be allowed?
-        let id = self.neurons.len() as u32;
+
+        if self.network_size() >= config.max_neurons {
+            log::warn!("mutate_add_neuron on genome with max neurons");
+            return;
+        }
+
+        let id = self.network_size() as u32;
 
         self.neurons.push( NeuronGene {
             id,
             ntype: NeuronType::Output
         });
 
-        let mut from: usize;
-        let mut to: usize;
 
-        let ns = self.network_size();
+        let mut from: u32;
+        let mut to: u32;
 
+        let last_id = id - 1;
         loop {
-            from = random_range((0, ns));
-            to = random_range((0, ns));
+            from = random_range((0, last_id as u32));
+            to = random_range((0, last_id as u32));
 
-            if from != id as usize && to != id as usize {
+            if from != id && to != id {
                 break
             }
         }
 
         // Add a random incoming connection
-        self.connections[[id as usize, from]] = (true, random_sample(StandardNormal));
+        self.connections[[id as usize, from as usize]] = (true, random_sample(StandardNormal));
 
         // Add a random outgoing connection
-        self.connections[[to, id as usize]] = (true, random_sample(StandardNormal));
+        self.connections[[to as usize, id as usize]] = (true, random_sample(StandardNormal));
     }
 
     /// Mutate the genome by adding a new non-existing connection
     /// between two neurons
-    fn mutate_add_connection(&mut self) {
+    fn mutate_add_connection(&mut self, config: &GenomeConfig) {
         //NOTE: This only adds connections within the network,
         //      ie. not from input. Should this be allowed?
 
