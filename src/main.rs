@@ -2,7 +2,7 @@
 
 use luna::evaluate;
 use luna::phenotype::Phenotype;
-use luna::task_executor::TaskExecutor;
+use luna::task_runner::TaskRunner;
 use luna::visual::plots::generate_plots;
 use luna::config::RunConfig;
 
@@ -27,10 +27,10 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
         target_pos: 450
     });
 
-    let mut executor = TaskExecutor::new(task, &mut phenotype);
+    let mut runner = TaskRunner::new(task, &mut phenotype);
 
-    executor.execute(true);
-    generate_plots(&executor.record);
+    runner.run(true);
+    generate_plots(&runner.record);
 }
 
 fn run(conf: &RunConfig) {

@@ -7,20 +7,26 @@ use sdl2::keyboard::Keycode;
 
 use std::time::Instant;
 
-use crate::task_executor::{TaskExecutor, ExecutionState};
-use tasks::{Task, TaskRenderer};
+use crate::task_runner::{TaskRunner, ExecutionState};
+use tasks::{Task, TaskRenderer, TaskResult};
 
 
 const TARGET_FPS: u128 = 60;
 
-pub struct TaskWindow<'a, T: Task + TaskRenderer> {
-    executor: TaskExecutor<'a, T>,
+pub struct TaskWindow<'a, T, R: TaskResult>
+where
+    T: Task<R> + TaskRenderer
+{
+    runner: TaskRunner<'a, T, R>,
     canvas: WindowCanvas,
     context: Sdl
 }
 
-impl<'a, T: Task + TaskRenderer> TaskWindow<'a, T> {
-    pub fn new(executor: TaskExecutor<T>) -> TaskWindow<T> {
+impl<'a, T, R: TaskResult> TaskWindow<'a, T, R>
+where
+    T: Task<R> + TaskRenderer
+{
+    pub fn new(runner: TaskRunner<T, R>) -> TaskWindow<T, R> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
@@ -36,7 +42,7 @@ impl<'a, T: Task + TaskRenderer> TaskWindow<'a, T> {
         TaskWindow {
             context: sdl_context,
             canvas,
-            executor,
+            runner,
         }
     }
 
@@ -84,7 +90,7 @@ impl<'a, T: Task + TaskRenderer> TaskWindow<'a, T> {
                         running = false;
                     },
                     Event::KeyDown {keycode: Some(Keycode::R), ..} => {
-                        self.executor.reset()
+                        self.runner.reset()
 
                     }
                     _ => {}
@@ -97,8 +103,8 @@ impl<'a, T: Task + TaskRenderer> TaskWindow<'a, T> {
     }
 
     fn update(&mut self) {
-        if self.executor.state != ExecutionState::FINISHED {
-            self.executor.step(false);
+        if self.runner.state != ExecutionState::FINISHED {
+            self.runner.step(false);
         }
     }
 
@@ -106,6 +112,6 @@ impl<'a, T: Task + TaskRenderer> TaskWindow<'a, T> {
         self.canvas.set_draw_color(Color::RGB(255, 255, 255));
         self.canvas.clear();
 
-        self.executor.task.render(&mut self.canvas);
+        self.runner.task.render(&mut self.canvas);
     }
 }

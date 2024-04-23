@@ -35,8 +35,14 @@ pub struct MovementTask {
 
 pub struct MovementTaskConfig { }
 
+pub struct MovementTaskResult {
+    pub distance: f32,
+}
 
-impl Task for MovementTask {
+impl TaskResult for MovementTaskResult {}
+
+
+impl Task<MovementTaskResult> for MovementTask {
     type TaskConfig = MovementTaskConfig;
 
     fn new(_config: MovementTaskConfig) -> MovementTask {
@@ -49,7 +55,7 @@ impl Task for MovementTask {
 
         }
     }
-    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState {
+    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<MovementTaskResult> {
         if self.ticks >= MAX_T {
             return self.end_state();
         }
@@ -92,13 +98,12 @@ impl MovementTask {
         }
     }
 
-    fn end_state(&self) -> TaskState {
+    fn end_state(&self) -> TaskState<MovementTaskResult> {
         let distance = ((self.agent.x as f32 - AGENT_START_POS.0 as f32).powf(2.0)
             + (self.agent.y as f32 - AGENT_START_POS.1 as f32).powf(2.0)).sqrt();
 
         TaskState {
-            result: Some(TaskResult {
-                success: false,
+            result: Some(MovementTaskResult {
                 distance
             }),
             sensor_data: Array::zeros(N_SENSORS)

@@ -25,12 +25,11 @@ const N_AGENT_CONTROLS: usize = 2;
 const APPLE_RADIUS: i32 = 16;
 const AGENT_SPEED: i32 = 5;
 
-
 const N_SENSORS: usize = 7;
 const SENSOR_SPREAD: f32 = PI / 3.0; // The angle between the first and last sensor
 
-
 const SENSOR_LEN: f32 = 800.0;
+
 
 pub struct CatchingTask {
     pub agent: Agent,
@@ -44,7 +43,14 @@ pub struct CatchingTaskConfig {
     pub target_pos: i32
 }
 
-impl Task for CatchingTask {
+pub struct CatchingTaskResult {
+    pub success: bool,
+    pub distance: f32,
+}
+
+impl TaskResult for CatchingTaskResult {}
+
+impl Task<CatchingTaskResult> for CatchingTask {
     type TaskConfig = CatchingTaskConfig;
 
     fn new(config: CatchingTaskConfig) -> CatchingTask {
@@ -62,15 +68,15 @@ impl Task for CatchingTask {
         }
     }
 
-    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState {
+    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<CatchingTaskResult> {
         self.parse_input(input);
 
         self.apple.y += APPLE_SPEED;
 
-        let mut result: Option<TaskResult> = None;
+        let mut result: Option<CatchingTaskResult> = None;
 
         if self.intersects() || self.apple.y  > ARENA_SIZE.1 {
-            result =  Some(TaskResult {
+            result =  Some(CatchingTaskResult {
                 success: self.intersects(),
                 distance: self.distance()
             });

@@ -24,10 +24,15 @@ pub enum ExecutionState {
     FINISHED,
 }
 
-/// Executes a network on task
-pub struct TaskExecutor<'a, T: Task> {
-    pub record: Record,
+/// Runs a network on task
+pub struct TaskRunner<'a, T, R>
+where
+    T: Task<R>,
+    R: TaskResult
+{
     pub task: T,
+    pub record: Record,
+    pub result: Option<R>, // TODO: This is never set, only here because we're required to use R
     pub phenotype: &'a mut Phenotype,
     pub state: ExecutionState,
     pub noise_input: Option<(f32, f32)>, // Optionally add random noise to model
@@ -38,8 +43,11 @@ pub struct TaskExecutor<'a, T: Task> {
     network_state: Spikes
 }
 
-impl<'a, T: Task> TaskExecutor<'a, T> {
-    pub fn new(task: T, phenotype: &mut Phenotype) -> TaskExecutor<T> {
+impl<'a, T, R: TaskResult> TaskRunner<'a, T, R>
+where
+    T: Task<R>
+{
+    pub fn new(task: T, phenotype: &mut Phenotype) -> TaskRunner<T, R> {
         let synapse_size = phenotype.synapse.neuron_count();
         let network_size = phenotype.neurons.size();
 
@@ -47,10 +55,11 @@ impl<'a, T: Task> TaskExecutor<'a, T> {
 
         let noise_input = None;
 
-        TaskExecutor {
+        TaskRunner {
             task,
             phenotype,
             record,
+            result: None,
             state: ExecutionState::INITIALIZED,
             network_size,
             noise_input,
@@ -61,16 +70,16 @@ impl<'a, T: Task> TaskExecutor<'a, T> {
     }
 
     /// Executes the task by repeatedly stepping until the task is finished
-    pub fn execute(&mut self, should_record: bool) -> TaskResult{
+    pub fn run(&mut self, should_record: bool) -> R {
         loop {
             let result = self.step(should_record);
             if let Some(r) = result {
-                return r
+                return r;
             }
         }
     }
 
-    pub fn step(&mut self, should_record: bool) -> Option<TaskResult>{
+    pub fn step(&mut self, should_record: bool) -> Option<R>{
         self.state = ExecutionState::RUNNING;
 
         // Task step

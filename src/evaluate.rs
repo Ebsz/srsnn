@@ -1,7 +1,7 @@
 //! Contains functionality for performing evals
 
 use crate::phenotype::Phenotype;
-use crate::task_executor::TaskExecutor;
+use crate::task_runner::TaskRunner;
 
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
@@ -24,8 +24,8 @@ pub fn movement_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
 
     let task = MovementTask::new(MovementTaskConfig {});
 
-    let mut executor = TaskExecutor::new(task, &mut phenotype);
-    let result = executor.execute(false);
+    let mut executor = TaskRunner::new(task, &mut phenotype);
+    let result = executor.run(false);
 
     let eval = (result.distance as f32 / 600.0) * 100.0;
     log::trace!("eval: {:?}", eval);
@@ -52,8 +52,8 @@ pub fn catching_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
 
         let task = CatchingTask::new(task_conf);
 
-        let mut executor = TaskExecutor::new(task, &mut phenotype);
-        let result = executor.execute(false);
+        let mut executor = TaskRunner::new(task, &mut phenotype);
+        let result = executor.run(false);
 
         total_fitness += (1.0 - result.distance/max_distance) * 100.0 - (if result.success {0.0} else {30.0});
         if result.success {

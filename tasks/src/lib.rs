@@ -8,29 +8,11 @@ use sdl2::render::WindowCanvas;
 use catching_task::CatchingTask;
 use movement_task::MovementTask;
 
+
 #[derive(Clone, Copy, Debug)]
 pub enum TaskName {
     CatchingTask,
     MovementTask,
-}
-
-pub fn get_environment(task: TaskName) -> TaskEnvironment {
-    match task {
-        TaskName::CatchingTask => CatchingTask::environment(),
-        TaskName::MovementTask => MovementTask::environment()
-    }
-}
-
-#[derive(Debug)]
-pub struct TaskState {
-    pub result: Option<TaskResult>,
-    pub sensor_data: Array1<f32>
-}
-
-#[derive(Debug)]
-pub struct TaskResult {
-    pub success: bool,
-    pub distance: f32,
 }
 
 pub struct TaskInput {
@@ -42,13 +24,28 @@ pub struct TaskEnvironment {
     pub agent_outputs: usize,
 }
 
-pub trait Task {
+pub trait TaskResult {}
+
+#[derive(Debug)]
+pub struct TaskState<R: TaskResult> {
+    pub result: Option<R>,
+    pub sensor_data: Array1<f32>
+}
+
+pub trait Task<R: TaskResult> {
     type TaskConfig; // TODO: rename to TaskSetup to differentiate from configs
 
     fn new(config: Self::TaskConfig) -> Self;
-    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState;
+    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<R>;
     fn reset(&mut self);
     fn environment() -> TaskEnvironment;
+}
+
+pub fn get_environment(task: TaskName) -> TaskEnvironment {
+    match task {
+        TaskName::CatchingTask => CatchingTask::environment(),
+        TaskName::MovementTask => MovementTask::environment()
+    }
 }
 
 /// The TaskRenderer trait is implemented by a Task in order
