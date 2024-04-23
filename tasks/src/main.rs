@@ -1,6 +1,6 @@
 //! tasks/src/main.rs
 
-use tasks::{Task, TaskName, TaskInput, TaskRenderer};
+use tasks::{Task, TaskName, TaskInput, TaskRenderer, TaskResult};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
 
@@ -15,6 +15,7 @@ use sdl2::keyboard::Keycode;
 
 use std::collections::HashMap;
 use std::time::Instant;
+use std::marker::PhantomData;
 
 
 fn main () {
@@ -54,18 +55,26 @@ fn main () {
 
 /// Enables running a task with human input, which is
 /// very useful when developing and testing tasks.
-pub struct TaskTester<T: Task + TaskRenderer> {
+pub struct TaskTester<T, R: TaskResult>
+where
+    T: Task<R> + TaskRenderer
+{
     canvas: WindowCanvas,
     context: Sdl,
     task: T,
     input_map: HashMap<Keycode, i32>,
-    finished: bool
+    finished: bool,
+    result: PhantomData<R>
 }
 
-impl<T: Task + TaskRenderer> TaskTester<T> {
+impl<T, R: TaskResult> TaskTester<T, R>
+where
+    T: Task<R> + TaskRenderer
+
+{
     const TARGET_FPS: u128 = 60;
 
-    pub fn new(task: T, input_map: HashMap<Keycode, i32>) -> TaskTester<T> {
+    pub fn new(task: T, input_map: HashMap<Keycode, i32>) -> TaskTester<T, R> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
@@ -84,6 +93,7 @@ impl<T: Task + TaskRenderer> TaskTester<T> {
             task,
             input_map,
             finished: false,
+            result: PhantomData::<R>
         }
     }
 
@@ -154,7 +164,6 @@ impl<T: Task + TaskRenderer> TaskTester<T> {
             let state = self.task.tick(input);
 
             if let Some(r) = state.result {
-                println!("{:?}", r);
                 self.finished = true;
             }
         }
