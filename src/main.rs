@@ -2,7 +2,7 @@
 
 use luna::evaluate;
 use luna::phenotype::Phenotype;
-use luna::task_runner::TaskRunner;
+use luna::task_runner::{TaskRunner, Runnable};
 use luna::visual::plots::generate_plots;
 use luna::config::RunConfig;
 
@@ -22,6 +22,7 @@ use utils::random::SEED;
 fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
     log::info!("Analyzing genome");
     let mut phenotype = Phenotype::from_genome(g, env);
+    phenotype.enable_recording();
 
     let task = CatchingTask::new( CatchingTaskConfig {
         target_pos: 450
@@ -29,8 +30,9 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
 
     let mut runner = TaskRunner::new(task, &mut phenotype);
 
-    runner.run(true);
-    generate_plots(&runner.record);
+    runner.run();
+
+    generate_plots(&phenotype.record);
 }
 
 fn run(conf: &RunConfig) {

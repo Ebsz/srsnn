@@ -2,20 +2,8 @@ use crate::phenotype::Phenotype;
 
 use tasks::{Task, TaskResult, TaskInput};
 
-use model::synapse::Synapse;
-use model::neuron::NeuronModel;
-use model::spikes::Spikes;
-use model::record::{Record, RecordType, RecordDataType};
+use ndarray::Array1;
 
-use utils::random;
-
-use ndarray::s;
-
-use rand::distributions::Uniform;
-
-
-// TODO: This belongs somewhere else
-const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 
 #[derive(PartialEq)]
 pub enum ExecutionState {
@@ -24,62 +12,50 @@ pub enum ExecutionState {
     FINISHED,
 }
 
+pub trait Runnable {
+    fn step(&mut self, sensors: Array1<f32>) -> Vec<TaskInput>;
+    fn reset(&mut self);
+}
+
 /// Runs a network on task
-pub struct TaskRunner<'a, T, R>
+pub struct TaskRunner<'a, T, R: TaskResult>
 where
     T: Task<R>,
-    R: TaskResult
 {
     pub task: T,
-    pub record: Record,
-    pub result: Option<R>, // TODO: This is never set, only here because we're required to use R
-    pub phenotype: &'a mut Phenotype,
     pub state: ExecutionState,
-    pub noise_input: Option<(f32, f32)>, // Optionally add random noise to model
 
+    runnable: &'a mut dyn Runnable,
     task_inputs: Vec<TaskInput>,
-    network_size: usize,
-    synapse_spikes: Spikes,
-    network_state: Spikes
+
+    result: Option<R> // NOTE: This is never set, we're required to use R
 }
 
 impl<'a, T, R: TaskResult> TaskRunner<'a, T, R>
 where
     T: Task<R>
 {
-    pub fn new(task: T, phenotype: &mut Phenotype) -> TaskRunner<T, R> {
-        let synapse_size = phenotype.synapse.neuron_count();
-        let network_size = phenotype.neurons.size();
-
-        let record: Record = Record::new();
-
-        let noise_input = None;
-
+    pub fn new(task: T, runnable: &mut dyn Runnable) -> TaskRunner<T, R> {
         TaskRunner {
             task,
-            phenotype,
-            record,
             result: None,
             state: ExecutionState::INITIALIZED,
-            network_size,
-            noise_input,
-            task_inputs: Vec::new(),
-            synapse_spikes: Spikes::new(synapse_size),
-            network_state: Spikes::new(network_size)
+            runnable,
+            task_inputs: Vec::new()
         }
     }
 
     /// Executes the task by repeatedly stepping until the task is finished
-    pub fn run(&mut self, should_record: bool) -> R {
+    pub fn run(&mut self) -> R {
         loop {
-            let result = self.step(should_record);
+            let result = self.step();
             if let Some(r) = result {
                 return r;
             }
         }
     }
 
-    pub fn step(&mut self, should_record: bool) -> Option<R>{
+    pub fn step(&mut self) -> Option<R>{
         self.state = ExecutionState::RUNNING;
 
         // Task step
@@ -92,43 +68,15 @@ where
             return Some(r);
         }
 
-        // Assign sensor input and previous state to the the spike input for synapses
-        self.synapse_spikes.data.slice_mut(s![(-self.phenotype.inputs)..]).assign(&task_state.sensor_data);
-        self.synapse_spikes.data.slice_mut(s![0..self.network_size]).assign(&self.network_state.data);
+        self.task_inputs = self.runnable.step(task_state.sensor_data);
 
-        // Synapse step
-        let synaptic_input = self.phenotype.synapse.step(&self.synapse_spikes) * SYNAPTIC_INPUT_SCALING;
-
-        // Get input only for network neurons
-        let mut network_input = synaptic_input.slice(s![0..self.network_size]).to_owned();
-
-        if let Some(n) = self.noise_input {
-            network_input += &(random::random_vector(self.network_size, Uniform::new(n.0, n.1)));
-
-        }
-
-        self.network_state = self.phenotype.neurons.step(network_input);
-
-        if should_record {
-            self.record.log(RecordType::Potentials, RecordDataType::Potentials(self.phenotype.neurons.potentials()));
-            self.record.log(RecordType::Spikes, RecordDataType::Spikes(self.network_state.data.clone()));
-        }
-
-        // Parse the firing state of output neurons to commands
-        for i in 0..self.phenotype.outputs {
-            // TODO: unnecessary cast; make phenotype.outputs be usize
-            // If the neurons assigned to be output fire, add the corresponding input
-            if self.network_state.data[i as usize] == 1.0 {
-                self.task_inputs.push(TaskInput { input_id: i });
-            }
-        }
         None
     }
 
     /// Reset the execution to its initial state
     pub fn reset(&mut self) {
         self.state = ExecutionState::INITIALIZED;
-        self.phenotype.reset();
+        self.runnable.reset();
         self.task.reset();
     }
 }

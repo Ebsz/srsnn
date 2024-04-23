@@ -104,7 +104,7 @@ where
 
     fn update(&mut self) {
         if self.runner.state != ExecutionState::FINISHED {
-            self.runner.step(false);
+            self.runner.step();
         }
     }
 

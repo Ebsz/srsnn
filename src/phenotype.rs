@@ -1,27 +1,80 @@
+use crate::task_runner::Runnable;
+
+use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
+use model::synapse::Synapse;
 use model::synapse::matrix_synapse::MatrixSynapse;
+use model::spikes::Spikes;
+use model::record::{Record, RecordType, RecordDataType};
 
 use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
 
-use ndarray::{Array, Array1, Array2};
+use tasks::TaskInput;
 
-// Idk?
-//trait Phenotype {
-//    fn from_genome(g: &Genome) -> Self;
-//
-//    fn inputs(&self) -> i32;
-//    fn outputs(&self) -> i32;
-//}
+use utils::random;
 
-// Network implements phenotype
+use ndarray::{s, Array, Array1, Array2};
+use rand::distributions::Uniform;
 
+
+const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 
 pub struct Phenotype {
     pub neurons: Izhikevich,
     pub synapse: MatrixSynapse,
-    pub inputs: i32, //TODO: instead add env to phenotype?
-    pub outputs: i32,
+    pub inputs: usize,
+    pub outputs: usize,
+
+    pub record: Record,
+    pub recording: bool,
+
+    network_size: usize,
+    synapse_spikes: Spikes,
+    network_state: Spikes,
+    noise_input: Option<(f32, f32)>, // Optionally add random noise to model
+}
+
+impl Runnable for Phenotype {
+    fn step(&mut self, sensors: Array1<f32>) -> Vec<TaskInput> {
+        let mut task_inputs: Vec<TaskInput> = Vec::new();
+
+        // Assign sensor input and previous state to the the spike input for synapses
+        self.synapse_spikes.data.slice_mut(s![(-(self.inputs as i32))..]).assign(&sensors);
+        self.synapse_spikes.data.slice_mut(s![0..self.network_size]).assign(&self.network_state.data);
+
+        // Synapse step
+        let synaptic_input = self.synapse.step(&self.synapse_spikes) * SYNAPTIC_INPUT_SCALING;
+
+        // Get input only for network neurons
+        let mut network_input = synaptic_input.slice(s![0..self.network_size]).to_owned();
+
+        if let Some(n) = self.noise_input {
+            network_input += &(random::random_vector(self.network_size, Uniform::new(n.0, n.1)));
+        }
+
+        self.network_state = self.neurons.step(network_input);
+
+        if self.recording {
+            self.record.log(RecordType::Potentials, RecordDataType::Potentials(self.neurons.potentials()));
+            self.record.log(RecordType::Spikes, RecordDataType::Spikes(self.network_state.data.clone()));
+        }
+
+        // Parse the firing state of output neurons to commands
+        for i in 0..self.outputs {
+            // TODO: unnecessary cast; make phenotype.outputs be usize
+            // If the neurons assigned to be output fire, add the corresponding input
+            if self.network_state.data[i as usize] == 1.0 {
+                task_inputs.push(TaskInput { input_id: i as i32});
+            }
+        }
+
+        task_inputs
+    }
+
+    fn reset(&mut self) {
+        self.neurons.initialize();
+    }
 }
 
 //impl Network<Izhikevich, MatrixSynapse> for Phenotype {
@@ -34,6 +87,30 @@ pub struct Phenotype {
 //}
 
 impl Phenotype {
+    pub fn new(neurons: Izhikevich, synapse: MatrixSynapse, inputs: usize, outputs: usize) -> Phenotype {
+        let noise_input = None;
+
+        let record: Record = Record::new();
+
+        let network_size = neurons.size();
+        let synapse_size = synapse.neuron_count();
+
+        Phenotype {
+            neurons,
+            synapse,
+            inputs,
+            outputs,
+
+            network_size,
+            noise_input,
+            synapse_spikes: Spikes::new(synapse_size),
+            network_state: Spikes::new(network_size),
+
+            record: Record::new(),
+            recording: false
+        }
+    }
+
     pub fn from_genome(g: &Genome, env: &EvolutionEnvironment) -> Phenotype {
         // Number of neurons in the network
         let network_size = g.network_size();
@@ -44,16 +121,11 @@ impl Phenotype {
         let synapse = MatrixSynapse::new(synapse_matrix, neuron_types);
         let model = Izhikevich::default(network_size);
 
-        Phenotype {
-            neurons: model,
-            synapse,
-            inputs: env.inputs as i32,
-            outputs: env.outputs as i32
-        }
+        Phenotype::new(model, synapse, env.inputs, env.outputs)
     }
 
-    pub fn reset(&mut self) {
-        self.neurons.initialize();
+    pub fn enable_recording(&mut self) {
+        self.recording = true;
     }
 }
 
