@@ -1,5 +1,6 @@
 pub mod catching_task;
 pub mod movement_task;
+pub mod survival_task;
 pub mod sensor;
 
 use ndarray::Array1;
@@ -7,12 +8,14 @@ use sdl2::render::WindowCanvas;
 
 use catching_task::CatchingTask;
 use movement_task::MovementTask;
+use survival_task::SurvivalTask;
 
 
 #[derive(Clone, Copy, Debug)]
 pub enum TaskName {
     CatchingTask,
     MovementTask,
+    SurvivalTask
 }
 
 pub struct TaskInput {
@@ -44,7 +47,8 @@ pub trait Task<R: TaskResult> {
 pub fn get_environment(task: TaskName) -> TaskEnvironment {
     match task {
         TaskName::CatchingTask => CatchingTask::environment(),
-        TaskName::MovementTask => MovementTask::environment()
+        TaskName::MovementTask => MovementTask::environment(),
+        TaskName::SurvivalTask => SurvivalTask::environment()
     }
 }
 

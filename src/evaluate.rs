@@ -5,6 +5,7 @@ use crate::task_runner::{TaskRunner, Runnable};
 
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
+use tasks::survival_task::{SurvivalTask, SurvivalTaskConfig};
 
 use tasks::{Task, TaskName, TaskRenderer};
 
@@ -16,8 +17,24 @@ pub fn get_fitness_function(name: TaskName) -> Fitness {
     match name {
         TaskName::CatchingTask => catching_evaluate,
         TaskName::MovementTask => movement_evaluate,
+        TaskName::SurvivalTask => survival_evaluate,
     }
 }
+
+pub fn survival_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
+    let mut phenotype = Phenotype::from_genome(g, env);
+
+    let task = SurvivalTask::new(SurvivalTaskConfig {});
+
+    let mut runner = TaskRunner::new(task, &mut phenotype);
+    let result = runner.run();
+
+    let eval = (result.time as f32 / SurvivalTask::MAX_T as f32) * 100.0;
+    log::trace!("eval: {:?}", eval);
+
+    eval
+}
+
 
 pub fn movement_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     let mut phenotype = Phenotype::from_genome(g, env);

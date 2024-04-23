@@ -11,7 +11,7 @@ pub struct RunConfig {
 impl Default for RunConfig {
     fn default() -> Self {
         RunConfig {
-            task: TaskName::CatchingTask,
+            task: TaskName::SurvivalTask,
             evolution_config: EvolutionConfig::default()
         }
     }

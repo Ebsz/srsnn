@@ -3,6 +3,7 @@
 use tasks::{Task, TaskName, TaskInput, TaskRenderer, TaskResult};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
+use tasks::survival_task::{SurvivalTask, SurvivalTaskConfig};
 
 use ndarray_rand::rand::rngs::StdRng;
 use ndarray_rand::rand::{Rng, SeedableRng};
@@ -19,7 +20,7 @@ use std::marker::PhantomData;
 
 
 fn main () {
-    const taskname: TaskName = TaskName::CatchingTask;
+    const taskname: TaskName = TaskName::SurvivalTask;
     let mut input_map: HashMap<Keycode, i32> = HashMap::new();
 
     match taskname {
@@ -46,6 +47,17 @@ fn main () {
             let task = CatchingTask::new(CatchingTaskConfig {
                 target_pos: x
             });
+
+            let mut t = TaskTester::new(task, input_map);
+            t.run();
+        }
+        TaskName::SurvivalTask => {
+            input_map.insert(Keycode::A, 0);
+            input_map.insert(Keycode::D, 1);
+            input_map.insert(Keycode::W, 2);
+            input_map.insert(Keycode::S, 3);
+
+            let task = SurvivalTask::new(SurvivalTaskConfig {});
 
             let mut t = TaskTester::new(task, input_map);
             t.run();
