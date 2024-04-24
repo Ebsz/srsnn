@@ -31,6 +31,8 @@ pub struct GenomeConfig {
     pub initial_neuron_count_range: (usize, usize),
     pub initial_connection_count_range: (usize, usize),
 
+    pub n_mutations: usize,
+
     pub mutate_connection_probability: f32,
     pub mutate_toggle_connection_probability: f32,
     pub mutate_add_connection_probability: f32,
@@ -43,6 +45,7 @@ impl Default for GenomeConfig {
             max_neurons: 13,
             initial_neuron_count_range: (2, 5),
             initial_connection_count_range: (3, 4),
+            n_mutations: 2,
             mutate_connection_probability: 0.8,
             mutate_toggle_connection_probability: 0.3,
             mutate_add_connection_probability: 0.03,

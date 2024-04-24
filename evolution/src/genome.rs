@@ -92,20 +92,23 @@ impl Genome {
 
     /// Perform one of a set of different mutations on the genome
     pub fn mutate(&mut self, config: &GenomeConfig) {
-        if random_range((0.0, 1.0)) <  config.mutate_connection_probability {
-            self.mutate_connection(&config);
-        }
 
-        if random_range((0.0, 1.0)) <  config.mutate_toggle_connection_probability {
-            self.mutate_toggle_connection(&config);
-        }
+        for _ in 0..config.n_mutations {
+            if random_range((0.0, 1.0)) <  config.mutate_connection_probability {
+                self.mutate_connection(&config);
+            }
 
-        if random_range((0.0, 1.0)) <  config.mutate_add_connection_probability {
-            self.mutate_add_connection(&config);
-        }
+            if random_range((0.0, 1.0)) <  config.mutate_toggle_connection_probability {
+                self.mutate_toggle_connection(&config);
+            }
 
-        if random_range((0.0, 1.0)) < config.mutate_add_neuron_probability {
-            self.mutate_add_neuron(&config);
+            if random_range((0.0, 1.0)) <  config.mutate_add_connection_probability {
+                self.mutate_add_connection(&config);
+            }
+
+            if random_range((0.0, 1.0)) < config.mutate_add_neuron_probability {
+                self.mutate_add_neuron(&config);
+            }
         }
     }
 
