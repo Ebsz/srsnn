@@ -87,7 +87,7 @@ impl Izhikevich {
     /// Reset all neurons to their initial state
     pub fn initialize(&mut self) {
         self.v = self.c.to_owned();
-        self.u = self.d.to_owned();
+        self.u = (&self.b * &self.v).to_owned();
     }
 
     pub fn default(n: usize) -> Izhikevich {

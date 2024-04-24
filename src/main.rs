@@ -10,7 +10,7 @@ use evolution::population::Population;
 use evolution::genome::Genome;
 
 use tasks::Task;
-use tasks::task_runner::{TaskRunner, Runnable};
+use tasks::task_runner::{TaskRunner};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 
 use utils::logger::init_logger;
@@ -45,7 +45,6 @@ fn run(conf: &RunConfig) {
         outputs: task_environment.agent_outputs,
         fitness: evaluate::get_fitness_function(conf.task)
     };
-
 
     let mut population = Population::new(env.clone(), conf.evolution_config);
 
