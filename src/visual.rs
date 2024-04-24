@@ -2,13 +2,13 @@ pub mod window;
 pub mod plots;
 
 use crate::phenotype::Phenotype;
-use crate::task_runner::TaskRunner;
 use crate::visual::window::TaskWindow;
 
 use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
 
 use tasks::{Task, TaskRenderer, TaskResult};
+use tasks::task_runner::TaskRunner;
 
 pub fn visualize_genome_on_task<T, R: TaskResult>(task: T, g: &Genome, env: &EvolutionEnvironment)
 where

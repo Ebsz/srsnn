@@ -1,14 +1,16 @@
+pub mod sensor;
+pub mod task_runner;
+
 pub mod catching_task;
 pub mod movement_task;
 pub mod survival_task;
-pub mod sensor;
-
-use ndarray::Array1;
-use sdl2::render::WindowCanvas;
 
 use catching_task::CatchingTask;
 use movement_task::MovementTask;
 use survival_task::SurvivalTask;
+
+use ndarray::Array1;
+use sdl2::render::WindowCanvas;
 
 
 #[derive(Clone, Copy, Debug)]
@@ -36,7 +38,7 @@ pub struct TaskState<R: TaskResult> {
 }
 
 pub trait Task<R: TaskResult> {
-    type TaskConfig; // TODO: rename to TaskSetup to differentiate from configs
+    type TaskConfig;
 
     fn new(config: Self::TaskConfig) -> Self;
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<R>;

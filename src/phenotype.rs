@@ -1,4 +1,3 @@
-use crate::task_runner::Runnable;
 
 use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
@@ -11,6 +10,7 @@ use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
 
 use tasks::TaskInput;
+use tasks::task_runner::Runnable;
 
 use utils::random;
 

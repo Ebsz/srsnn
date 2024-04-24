@@ -7,8 +7,8 @@ use sdl2::keyboard::Keycode;
 
 use std::time::Instant;
 
-use crate::task_runner::{TaskRunner, ExecutionState};
 use tasks::{Task, TaskRenderer, TaskResult};
+use tasks::task_runner::{TaskRunner, ExecutionState};
 
 
 const TARGET_FPS: u128 = 60;

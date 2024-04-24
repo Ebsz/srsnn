@@ -1,6 +1,6 @@
-use crate::phenotype::Phenotype;
+//! Executes a task with input from a Runnable
 
-use tasks::{Task, TaskResult, TaskInput};
+use crate::{Task, TaskResult, TaskInput};
 
 use ndarray::Array1;
 
@@ -17,7 +17,6 @@ pub trait Runnable {
     fn reset(&mut self);
 }
 
-/// Runs a network on task
 pub struct TaskRunner<'a, T, R: TaskResult>
 where
     T: Task<R>,

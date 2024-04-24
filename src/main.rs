@@ -2,7 +2,6 @@
 
 use luna::evaluate;
 use luna::phenotype::Phenotype;
-use luna::task_runner::{TaskRunner, Runnable};
 use luna::visual::plots::generate_plots;
 use luna::config::RunConfig;
 
@@ -11,6 +10,7 @@ use evolution::population::Population;
 use evolution::genome::Genome;
 
 use tasks::Task;
+use tasks::task_runner::{TaskRunner, Runnable};
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 
 use utils::logger::init_logger;

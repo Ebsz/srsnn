@@ -1,13 +1,13 @@
 //! Contains functionality for performing evals
 
 use crate::phenotype::Phenotype;
-use crate::task_runner::{TaskRunner, Runnable};
 
 use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use tasks::movement_task::{MovementTask, MovementTaskConfig};
 use tasks::survival_task::{SurvivalTask, SurvivalTaskConfig};
 
 use tasks::{Task, TaskName, TaskRenderer};
+use tasks::task_runner::{TaskRunner, Runnable};
 
 use evolution::{EvolutionEnvironment, Fitness};
 use evolution::genome::Genome;
