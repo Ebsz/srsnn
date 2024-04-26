@@ -2,7 +2,7 @@ use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
 use evolution::population::Population;
 
-use luna::config::RunConfig;
+use luna::config::{get_config};
 
 
 #[test]
@@ -16,9 +16,11 @@ fn evolve_large_population() {
 }
 
 fn evolve_genome(n: usize, g: u32) {
-    let mut config = RunConfig::default();
-    config.evolution_config.population_size = n;
-    config.evolution_config.max_generations = g;
+    let mut config = get_config(None);
+
+    config.evolution.population_size = n;
+    config.evolution.max_generations = g;
+    config.genome.max_neurons  = 10;
 
     let env = EvolutionEnvironment {
         inputs: 1,
@@ -26,7 +28,7 @@ fn evolve_genome(n: usize, g: u32) {
         fitness: |_: &Genome, _: &EvolutionEnvironment| -> f32 { 0.0 }
     };
 
-    let mut population = Population::new(env, config.evolution_config);
+    let mut population = Population::new(env, config.evolution, config.genome);
 
     let _genome = population.evolve();
 

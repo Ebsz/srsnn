@@ -16,6 +16,8 @@ model = {path = "model"}
 evolution = {path = "evolution"}
 tasks = {path = "tasks"}
 utils = {path = "utils"}
+config = "0.14.0"
+serde = "1.0.198"
 
 [dependencies.sdl2]
 version = "0.36"

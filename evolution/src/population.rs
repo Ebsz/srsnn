@@ -1,7 +1,7 @@
 use crate::genome::Genome;
 
 use crate::EvolutionEnvironment;
-use crate::config::EvolutionConfig;
+use crate::config::{EvolutionConfig, GenomeConfig};
 
 use utils::random;
 
@@ -14,11 +14,13 @@ pub struct Population {
     population: HashMap<u32, Genome>,
     environment: EvolutionEnvironment,
     config: EvolutionConfig,
+
+    genome_config: GenomeConfig,
     genome_num: u32, // TODO: Find new name for this yo
 }
 
 impl Population {
-    pub fn new(env: EvolutionEnvironment, config: EvolutionConfig) -> Population {
+    pub fn new(env: EvolutionEnvironment, config: EvolutionConfig, genome_config: GenomeConfig) -> Population {
         assert!(env.inputs > 0 && env.outputs > 0);
         assert!(config.population_size >= 2);
 
@@ -27,7 +29,7 @@ impl Population {
 
         log::debug!("Creating initial population");
         for _ in 0..config.population_size {
-            population.insert(genome_num, Genome::new(&env, &config.genome_config));
+            population.insert(genome_num, Genome::new(&env, &genome_config));
             genome_num += 1;
         }
 
@@ -35,8 +37,10 @@ impl Population {
             population,
             genome_num,
             environment: env,
-            config,
             generation: 0,
+
+            config,
+            genome_config
         }
     }
 
@@ -72,7 +76,7 @@ impl Population {
             log::debug!("Creating new generation");
             let new_generation = self.reproduce(&fitness);
 
-            self.population.retain(|i, _| fitness[..self.config.n_best_keep].iter().any(|x| x.0 == *i));
+            self.population.retain(|i, _| fitness[..self.config.elites].iter().any(|x| x.0 == *i));
 
             // Add new genomes to the population
             for g in new_generation {
@@ -105,13 +109,13 @@ impl Population {
         let parents: Vec<u32> = fitness[0..n_parents].iter().map(|(i, _)| *i).collect();
 
         log::trace!("Breeding {} offspring from {} parents",
-            (self.config.population_size - self.config.n_best_keep), parents.len());
+            (self.config.population_size - self.config.elites), parents.len());
 
-        let mut children = self.breed(parents, self.config.population_size - self.config.n_best_keep);
+        let mut children = self.breed(parents, self.config.population_size - self.config.elites);
 
         // Mutate children
         for c in &mut children {
-            c.mutate(&self.config.genome_config);
+            c.mutate(&self.genome_config);
         }
 
         children
