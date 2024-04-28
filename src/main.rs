@@ -38,7 +38,7 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
 
 
 fn run(conf: &MainConfig) {
-    let task_name = get_taskname(&conf.task);
+    let task_name = get_taskname(&conf.task.name);
     log::info!("Task: {:?}", task_name);
 
     let task_environment = tasks::get_environment(task_name);

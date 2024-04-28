@@ -1,4 +1,5 @@
 use evolution::config::{EvolutionConfig, GenomeConfig};
+use tasks::config::TaskConfig;
 
 use tasks::TaskName;
 
@@ -9,11 +10,10 @@ const DEFAULT_CONFIG_PATH: &str = "config/default.toml";
 
 #[derive(Debug, Deserialize)]
 pub struct MainConfig {
-    pub task: String,
+    pub task: TaskConfig,
     pub evolution: EvolutionConfig,
     pub genome: GenomeConfig,
 }
-
 
 impl MainConfig {
     fn new(config_path: &str) -> Result<Self, ConfigError> {

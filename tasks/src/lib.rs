@@ -1,5 +1,6 @@
 pub mod sensor;
 pub mod task_runner;
+pub mod config;
 
 pub mod catching_task;
 pub mod movement_task;
