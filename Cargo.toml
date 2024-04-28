@@ -24,5 +24,13 @@ version = "0.36"
 default-features = false
 features = ["gfx"]
 
+
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmarks"
+harness = false
+
 [workspace]
 members = [ "evolution", "model", "tasks", "utils"]
