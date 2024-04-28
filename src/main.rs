@@ -17,6 +17,8 @@ use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use utils::logger::init_logger;
 use utils::random::SEED;
 
+use std::env;
+
 
 /// Analyzes a genome resulting from an evolutionary process
 #[allow(dead_code)]
@@ -52,13 +54,23 @@ fn run(conf: &MainConfig) {
     let mut population = Population::new(env.clone(), conf.evolution, conf.genome);
 
     let _evolved_genome: Genome = population.evolve();
+
+fn parse_config_path_from_args() -> Option<String> {
+    let args: Vec<_> = env::args().collect();
+
+    if args.len() > 1 {
+        return Some(args[1].clone());
+    }
+
+    None
 }
 
 fn main() {
     init_logger();
+
+    let config_path = parse_config_path_from_args();
+    let config = get_config(config_path);
+
     log::info!("seed is {}", SEED);
-
-    let config = get_config(None);
-
     run(&config);
 }

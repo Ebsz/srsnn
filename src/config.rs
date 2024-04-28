@@ -16,25 +16,34 @@ pub struct MainConfig {
 }
 
 impl MainConfig {
-    fn new(config_path: &str) -> Result<Self, ConfigError> {
-        let mut config = Config::builder()
-            .add_source(File::with_name(DEFAULT_CONFIG_PATH))
-            .add_source(File::with_name(config_path))
-            .build()
-            .unwrap();
+    fn new(config_path: Option<String>) -> Result<Self, ConfigError> {
+        let mut builder = Config::builder()
+            .add_source(File::with_name(DEFAULT_CONFIG_PATH));
+
+
+        if let Some(path) = config_path {
+            builder = builder.add_source(File::with_name(path.as_str()));
+        }
+
+        let config = builder.build()?;
 
         config.try_deserialize()
     }
 }
 
-pub fn get_config(conf_path: Option<&str>) -> MainConfig {
-    let mut path = DEFAULT_CONFIG_PATH;
+pub fn get_config(config_path: Option<String>) -> MainConfig {
+    match MainConfig::new(config_path.clone()) {
+        Ok(config) => {
+            log::debug!("Using {}", config_path.unwrap_or("default config".to_string()));
 
-    if let Some(p) = conf_path {
-        path = p;
+            config
+        }
+        Err(e) => {
+            println!("Could not load config: {e}");
+
+            std::process::exit(-1);
+        }
     }
-
-    MainConfig::new(path).unwrap()
 }
 
 
