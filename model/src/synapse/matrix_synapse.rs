@@ -59,9 +59,9 @@ impl fmt::Display for MatrixSynapse {
 
 #[cfg(test)]
 mod tests {
-    use model::synapse::matrix_synapse::MatrixSynapse;
-    use model::synapse::Synapse;
-    use model::spikes::Spikes;
+    use super::*;
+    use crate::synapse::Synapse;
+    use crate::spikes::Spikes;
     use ndarray::{array, Array1, Array2};
 
     #[test]
@@ -71,7 +71,7 @@ mod tests {
                                           [0.5, 0.8, 0.0]];
 
         let neuron_type: Array1<f32> = array![1.0, 1.0, -1.0];
-        let firing_state: Array1<f32> = array![1.0, 0.0, 1.0];
+        let firing_state: Array1<bool> = array![true, false, true];
 
         let input = Spikes {
             data: firing_state

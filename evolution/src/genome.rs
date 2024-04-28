@@ -296,19 +296,36 @@ pub enum NeuronType {
 
 #[cfg(test)]
 mod tests {
-    use crate::evolution::genome::Genome;
-    use crate::evolution::EvolutionEnvironment;
+    use crate::genome::Genome;
+    use crate::config::GenomeConfig;
+    use crate::EvolutionEnvironment;
+
+    fn conf() -> GenomeConfig {
+        GenomeConfig {
+            max_neurons: 50,
+            initial_neuron_count_range: (2, 5),
+            initial_connection_count_range: (3, 4),
+            n_mutations: 2,
+            mutate_connection_probability: 0.8,
+            mutate_toggle_connection_probability: 0.3,
+            mutate_add_connection_probability: 0.03,
+            mutate_add_neuron_probability: 0.02
+        }
+    }
 
     #[test]
     fn test_crossover_correct_size() {
         let env = EvolutionEnvironment {
             inputs: 5,
-            outputs: 2
+            outputs: 2,
+            fitness: |_: &Genome, _: &EvolutionEnvironment| -> f32 { 0.0 }
         };
 
-        let mut g1 = Genome::new(&env);
-        let mut g2 = Genome::new(&env);
-        let mut gc = g1.crossover(&g2);
+        let conf = conf();
+
+        let g1 = Genome::new(&env, &conf);
+        let g2 = Genome::new(&env, &conf);
+        let gc = g1.crossover(&g2);
 
         if g1.network_size() > g2.network_size() {
             assert_eq!(gc.network_size(), g1.network_size());

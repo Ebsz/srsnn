@@ -27,3 +27,37 @@ impl Spikes {
         self.data.shape()[0]
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ndarray::s;
+
+    #[test]
+    fn test_spikes_firing_correct() {
+        const N: usize = 10;
+
+        let mut s = Spikes::new(N);
+
+        assert!(s.firing().len() == 0);
+
+        s.data.slice_mut(s![0..2]).fill(true);
+
+        let f = s.firing();
+
+        assert!(f.contains(&0));
+        assert!(f.contains(&1));
+        assert!(f.len() == 2);
+    }
+
+    #[test]
+    fn test_spikes_as_float() {
+        const N: usize = 2;
+
+        let mut s = Spikes::new(N);
+
+        let a: Array1<f32> = Array::zeros(N);
+        assert_eq!(s.as_float(), a);
+    }
+}
