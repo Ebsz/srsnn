@@ -18,6 +18,7 @@ use rand::distributions::Uniform;
 
 
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
+const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 
 pub struct Phenotype {
     pub neurons: Izhikevich,
@@ -31,7 +32,10 @@ pub struct Phenotype {
     network_size: usize,
     synapse_spikes: Spikes,
     network_state: Spikes,
-    noise_input: Option<(f32, f32)>, // Optionally add random noise to model
+
+    // Optional energy input
+    noise_input: Option<(f32, f32)>,
+    random_firing: bool
 }
 
 impl Runnable for Phenotype {
@@ -56,6 +60,14 @@ impl Runnable for Phenotype {
         }
 
         self.network_state = self.neurons.step(network_input);
+
+        if self.random_firing {
+            let random_spikes: Array1<f32> = random::random_vector(self.network_size, Uniform::new(0.0, 1.0))
+                .mapv(|x| if x > (1.0 - RANDOM_FIRING_PROBABILITY) {1.0} else {0.0});
+
+            self.network_state.data = (&self.network_state.as_float() + &random_spikes)
+                .mapv(|x| if x != 0.0 { true } else { false });
+        }
 
         if self.recording {
             self.record.log(RecordType::Potentials, RecordDataType::Potentials(self.neurons.potentials()));
@@ -82,6 +94,7 @@ impl Runnable for Phenotype {
 impl Phenotype {
     pub fn new(neurons: Izhikevich, synapse: MatrixSynapse, inputs: usize, outputs: usize) -> Phenotype {
         let noise_input = None;
+        let random_firing = false;
 
         let network_size = neurons.size();
         let synapse_size = synapse.neuron_count();
@@ -92,10 +105,12 @@ impl Phenotype {
             inputs,
             outputs,
 
-            network_size,
-            noise_input,
             synapse_spikes: Spikes::new(synapse_size),
             network_state: Spikes::new(network_size),
+            network_size,
+
+            noise_input,
+            random_firing,
 
             record: Record::new(),
             recording: false
