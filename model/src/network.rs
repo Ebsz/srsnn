@@ -31,7 +31,7 @@ pub trait Network<M: NeuronModel, S: Synapse> {
             firing_state = self.step(external_input, firing_state);
 
             record.log(RecordType::Potentials, RecordDataType::Potentials(self.model().potentials()));
-            record.log(RecordType::Spikes, RecordDataType::Spikes(firing_state.data.clone()));
+            record.log(RecordType::Spikes, RecordDataType::Spikes(firing_state.as_float()));
         }
 
         log::trace!("Simulated {} neurons for {} steps in {}s", n_neurons, steps, (start_time.elapsed().as_secs_f32()));

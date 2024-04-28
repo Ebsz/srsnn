@@ -38,8 +38,11 @@ impl Runnable for Phenotype {
     fn step(&mut self, sensors: Array1<f32>) -> Vec<TaskInput> {
         let mut task_inputs: Vec<TaskInput> = Vec::new();
 
+        // NOTE: Ensures that the sensor input is boolean. This should be done elsewhere
+        let sensor_data: Array1<bool> = sensors.mapv(|x| if x != 0.0 { true } else { false });
+
         // Assign sensor input and previous state to the the spike input for synapses
-        self.synapse_spikes.data.slice_mut(s![(-(self.inputs as i32))..]).assign(&sensors);
+        self.synapse_spikes.data.slice_mut(s![(-(self.inputs as i32))..]).assign(&sensor_data);
         self.synapse_spikes.data.slice_mut(s![0..self.network_size]).assign(&self.network_state.data);
 
         // Synapse step
@@ -56,14 +59,14 @@ impl Runnable for Phenotype {
 
         if self.recording {
             self.record.log(RecordType::Potentials, RecordDataType::Potentials(self.neurons.potentials()));
-            self.record.log(RecordType::Spikes, RecordDataType::Spikes(self.network_state.data.clone()));
+            self.record.log(RecordType::Spikes, RecordDataType::Spikes(self.network_state.as_float()));
         }
 
         // Parse the firing state of output neurons to commands
         for i in 0..self.outputs {
             // TODO: unnecessary cast; make phenotype.outputs be usize
             // If the neurons assigned to be output fire, add the corresponding input
-            if self.network_state.data[i as usize] == 1.0 {
+            if self.network_state.data[i as usize] {
                 task_inputs.push(TaskInput { input_id: i as i32});
             }
         }

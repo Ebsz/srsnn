@@ -19,7 +19,7 @@ pub struct MatrixSynapse {
 
 impl Synapse for MatrixSynapse {
     fn step(&mut self, input: &Spikes) -> Array1<f32> {
-        let ns = &input.data * &self.neuron_type;
+        let ns = &input.as_float() * &self.neuron_type;
 
         self.weights.dot(&ns)
     }

@@ -49,7 +49,7 @@ impl NeuronModel for Izhikevich {
         *&mut self.v = self.v.iter().map(|p| if *p > Self::THRESHOLD {Self::THRESHOLD} else {*p} ).collect();
 
         Spikes {
-            data: self.v.mapv(|i| if i >= Self::THRESHOLD {1.0} else {0.0})
+            data: self.v.mapv(|i| if i >= Self::THRESHOLD { true } else { false })
         }
     }
 
