@@ -35,7 +35,6 @@ pub fn survival_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     eval
 }
 
-
 pub fn movement_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     let mut phenotype = Phenotype::from_genome(g, env);
 

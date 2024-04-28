@@ -1,4 +1,3 @@
-
 use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::Synapse;
@@ -77,20 +76,9 @@ impl Runnable for Phenotype {
     }
 }
 
-//impl Network<Izhikevich, MatrixSynapse> for Phenotype {
-//    fn model(&mut self) -> Izhikevich {
-//        self.neurons
-//    }
-//    fn synapses(&mut self) -> MatrixSynapse {
-//        self.synapses
-//    }
-//}
-
 impl Phenotype {
     pub fn new(neurons: Izhikevich, synapse: MatrixSynapse, inputs: usize, outputs: usize) -> Phenotype {
         let noise_input = None;
-
-        let record: Record = Record::new();
 
         let network_size = neurons.size();
         let synapse_size = synapse.neuron_count();

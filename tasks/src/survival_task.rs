@@ -47,6 +47,8 @@ impl Task<SurvivalTaskResult> for SurvivalTask {
     fn new(config: SurvivalTaskConfig) -> SurvivalTask {
         let mut food: Vec<Food> = vec![];
 
+        food.push(Food::new(Agent::START_POS.0 as f32, (Agent::START_POS.1 - 100) as f32));
+
         food.push(Food::new(100.0,100.0));
         food.push(Food::new(800.0,100.0));
         food.push(Food::new(100.0,800.0));
