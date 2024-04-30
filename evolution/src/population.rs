@@ -9,8 +9,13 @@ use std::collections::HashMap;
 use std::time::Instant;
 use std::cmp::max;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
 pub struct Population {
     pub generation: u32,
+    pub stop_signal: Arc<AtomicBool>,
+
     population: HashMap<u32, Genome>,
     environment: EvolutionEnvironment,
     config: EvolutionConfig,
@@ -38,6 +43,7 @@ impl Population {
             genome_num,
             environment: env,
             generation: 0,
+            stop_signal: Arc::new(AtomicBool::new(false)),
 
             config,
             genome_config
@@ -63,13 +69,7 @@ impl Population {
             log::info!("Generation {} - best fit: {}, mean: {}",
                 self.generation, fitness[0].1, mean_fitness);
 
-            if fitness[0].1 > self.config.fitness_goal {
-                log::info!("Fitness goal reached, stopping evolution");
-                break;
-            }
-
-            if self.generation >= self.config.max_generations {
-                log::info!("Max generations reached");
+            if self.should_stop(&fitness) {
                 break;
             }
 
@@ -150,5 +150,24 @@ impl Population {
         self.population.insert(self.genome_num, g);
 
         self.genome_num +=1;
+    }
+
+    fn should_stop(&self, sorted_fitness: &Vec<(u32, f32)>) -> bool {
+        if sorted_fitness[0].1 > self.config.fitness_goal {
+            log::info!("Fitness goal reached, stopping evolution");
+            return true;
+        }
+
+        if self.generation >= self.config.max_generations {
+            log::info!("Max generations reached");
+            return true;
+        }
+
+        if self.stop_signal.load(Ordering::SeqCst) {
+            log::trace!("Stop signal received");
+            return true;
+        }
+
+        false
     }
 }

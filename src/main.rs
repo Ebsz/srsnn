@@ -17,6 +17,7 @@ use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
 use utils::logger::init_logger;
 use utils::random::SEED;
 
+use std::sync::atomic::Ordering;
 use std::env;
 
 
@@ -38,6 +39,23 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
     generate_plots(&phenotype.record);
 }
 
+fn init_ctrl_c_handler(population: &Population) {
+    let stop_signal = population.stop_signal.clone();
+    let mut stopped = false;
+
+    ctrlc::set_handler(move || {
+        if stopped {
+            std::process::exit(1);
+        } else {
+            log::info!("Stopping evolution..");
+
+            stopped = true;
+            stop_signal.store(true, Ordering::SeqCst);
+        }
+    }).expect("Error setting Ctrl-C handler");
+
+    log::info!("Use Ctrl-C to stop evolution");
+}
 
 fn run(conf: &MainConfig) {
     let task_name = get_taskname(&conf.task.name);
@@ -53,7 +71,10 @@ fn run(conf: &MainConfig) {
 
     let mut population = Population::new(env.clone(), conf.evolution, conf.genome);
 
+    init_ctrl_c_handler(&population);
+
     let _evolved_genome: Genome = population.evolve();
+}
 
 fn parse_config_path_from_args() -> Option<String> {
     let args: Vec<_> = env::args().collect();
