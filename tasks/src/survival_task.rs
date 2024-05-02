@@ -31,7 +31,7 @@ pub struct SurvivalTask {
     ticks: u32,
 }
 
-pub struct SurvivalTaskConfig {
+pub struct SurvivalTaskSetup {
 
 }
 
@@ -42,9 +42,9 @@ pub struct SurvivalTaskResult {
 impl TaskResult for SurvivalTaskResult {}
 
 impl Task<SurvivalTaskResult> for SurvivalTask {
-    type TaskConfig = SurvivalTaskConfig;
+    type TaskSetup = SurvivalTaskSetup;
 
-    fn new(config: SurvivalTaskConfig) -> SurvivalTask {
+    fn new(setup: SurvivalTaskSetup) -> SurvivalTask {
         let mut food: Vec<Food> = vec![];
 
         food.push(Food::new(Agent::START_POS.0 as f32, (Agent::START_POS.1 - 100) as f32));

@@ -12,7 +12,7 @@ use evolution::genome::Genome;
 
 use tasks::Task;
 use tasks::task_runner::{TaskRunner};
-use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
+use tasks::catching_task::{CatchingTask, CatchingTaskSetup};
 
 use utils::logger::init_logger;
 use utils::random::SEED;
@@ -28,7 +28,7 @@ fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
     let mut phenotype = Phenotype::from_genome(g, env);
     phenotype.enable_recording();
 
-    let task = CatchingTask::new( CatchingTaskConfig {
+    let task = CatchingTask::new( CatchingTaskSetup {
         target_pos: 450
     });
 

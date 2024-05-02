@@ -35,11 +35,11 @@ pub struct CatchingTask {
     pub agent: Agent,
     pub apple: Apple,
     pub sensors: Vec<Sensor>,
-    pub config: CatchingTaskConfig,
+    pub setup: CatchingTaskSetup,
     ticks: usize,
 }
 
-pub struct CatchingTaskConfig {
+pub struct CatchingTaskSetup {
     pub target_pos: i32
 }
 
@@ -51,19 +51,19 @@ pub struct CatchingTaskResult {
 impl TaskResult for CatchingTaskResult {}
 
 impl Task<CatchingTaskResult> for CatchingTask {
-    type TaskConfig = CatchingTaskConfig;
+    type TaskSetup = CatchingTaskSetup;
 
-    fn new(config: CatchingTaskConfig) -> CatchingTask {
-        assert!(config.target_pos <= ARENA_SIZE.0 && config.target_pos >= 0);
+    fn new(setup: CatchingTaskSetup) -> CatchingTask {
+        assert!(setup.target_pos <= ARENA_SIZE.0 && setup.target_pos >= 0);
 
         let agent = Agent::new();
-        let apple = Apple::new(config.target_pos);
+        let apple = Apple::new(setup.target_pos);
 
         CatchingTask {
             ticks: 0,
             sensors: CatchingTask::init_sensors(),
             agent,
-            config,
+            setup,
             apple
         }
     }
@@ -102,7 +102,7 @@ impl Task<CatchingTaskResult> for CatchingTask {
 
     fn reset(&mut self) {
         self.agent = Agent::new();
-        self.apple = Apple::new(self.config.target_pos);
+        self.apple = Apple::new(self.setup.target_pos);
         self.ticks = 0;
     }
 }

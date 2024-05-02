@@ -39,9 +39,9 @@ pub struct TaskState<R: TaskResult> {
 }
 
 pub trait Task<R: TaskResult> {
-    type TaskConfig;
+    type TaskSetup;
 
-    fn new(config: Self::TaskConfig) -> Self;
+    fn new(setup: Self::TaskSetup) -> Self;
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<R>;
     fn reset(&mut self);
     fn environment() -> TaskEnvironment;

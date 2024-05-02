@@ -33,7 +33,7 @@ pub struct MovementTask {
     ticks: u32,
 }
 
-pub struct MovementTaskConfig { }
+pub struct MovementTaskSetup { }
 
 pub struct MovementTaskResult {
     pub distance: f32,
@@ -43,9 +43,9 @@ impl TaskResult for MovementTaskResult {}
 
 
 impl Task<MovementTaskResult> for MovementTask {
-    type TaskConfig = MovementTaskConfig;
+    type TaskSetup = MovementTaskSetup;
 
-    fn new(_config: MovementTaskConfig) -> MovementTask {
+    fn new(_setup: MovementTaskSetup) -> MovementTask {
 
         MovementTask {
             agent: Agent::new(),

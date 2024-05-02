@@ -2,9 +2,9 @@
 
 use crate::phenotype::Phenotype;
 
-use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
-use tasks::movement_task::{MovementTask, MovementTaskConfig};
-use tasks::survival_task::{SurvivalTask, SurvivalTaskConfig};
+use tasks::catching_task::{CatchingTask, CatchingTaskSetup};
+use tasks::movement_task::{MovementTask, MovementTaskSetup};
+use tasks::survival_task::{SurvivalTask, SurvivalTaskSetup};
 
 use tasks::{Task, TaskName, TaskRenderer};
 use tasks::task_runner::{TaskRunner, Runnable};
@@ -24,7 +24,7 @@ pub fn get_fitness_function(name: TaskName) -> Fitness {
 pub fn survival_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     let mut phenotype = Phenotype::from_genome(g, env);
 
-    let task = SurvivalTask::new(SurvivalTaskConfig {});
+    let task = SurvivalTask::new(SurvivalTaskSetup {});
 
     let mut runner = TaskRunner::new(task, &mut phenotype);
     let result = runner.run();
@@ -38,7 +38,7 @@ pub fn survival_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
 pub fn movement_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     let mut phenotype = Phenotype::from_genome(g, env);
 
-    let task = MovementTask::new(MovementTaskConfig {});
+    let task = MovementTask::new(MovementTaskSetup {});
 
     let mut runner = TaskRunner::new(task, &mut phenotype);
     let result = runner.run();
@@ -62,7 +62,7 @@ pub fn catching_evaluate(g: &Genome, env: &EvolutionEnvironment) -> f32 {
     for i in 0..trial_positions.len() {
         phenotype.reset();
 
-        let task_conf = CatchingTaskConfig {
+        let task_conf = CatchingTaskSetup {
             target_pos: trial_positions[i]
         };
 
