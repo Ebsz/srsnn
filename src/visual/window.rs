@@ -7,24 +7,20 @@ use sdl2::keyboard::Keycode;
 
 use std::time::Instant;
 
-use tasks::{Task, TaskRenderer, TaskResult};
-use tasks::task_runner::{TaskRunner, ExecutionState};
+use tasks::{Task, TaskRenderer};
+use tasks::task_runner::{ExecutionState, TaskRunner, Runnable};
 
 
 const TARGET_FPS: u128 = 60;
 
-pub struct TaskWindow<'a, T, R: TaskResult>
-where
-    T: Task<R> + TaskRenderer
+pub struct TaskWindow<'a, T: Task + TaskRenderer, R: Runnable>
 {
     runner: TaskRunner<'a, T, R>,
     canvas: WindowCanvas,
     context: Sdl
 }
 
-impl<'a, T, R: TaskResult> TaskWindow<'a, T, R>
-where
-    T: Task<R> + TaskRenderer
+impl<'a, T: Task + TaskRenderer, R: Runnable> TaskWindow<'a, T, R>
 {
     pub fn new(runner: TaskRunner<T, R>) -> TaskWindow<T, R> {
         let sdl_context = sdl2::init().unwrap();

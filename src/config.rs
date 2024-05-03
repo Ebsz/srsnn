@@ -1,38 +1,64 @@
-use evolution::config::{EvolutionConfig, GenomeConfig};
-use tasks::config::TaskConfig;
+use evolution::config::EvolutionConfig;
+use evolution::genome::Genome;
 
-use tasks::TaskName;
+use utils::config::ConfigSection;
 
 use config::{Config, ConfigError, File};
 use serde::Deserialize;
 
+use std::cell::RefCell;
+
+
 const DEFAULT_CONFIG_PATH: &str = "config/default.toml";
+
+thread_local! {
+    static CONFIG: RefCell<Option<Config>> = RefCell::new(None);
+}
 
 #[derive(Debug, Deserialize)]
 pub struct MainConfig {
-    pub task: TaskConfig,
-    pub evolution: EvolutionConfig,
-    pub genome: GenomeConfig,
+    pub task: String,
+    pub genome: String,
+    pub evolution: EvolutionConfig
 }
 
 impl MainConfig {
-    fn new(config_path: Option<String>) -> Result<Self, ConfigError> {
-        let mut builder = Config::builder()
-            .add_source(File::with_name(DEFAULT_CONFIG_PATH));
-
-
-        if let Some(path) = config_path {
-            builder = builder.add_source(File::with_name(path.as_str()));
-        }
-
-        let config = builder.build()?;
-
+    fn new(config: Config) -> Result<Self, ConfigError> {
         config.try_deserialize()
     }
 }
 
+
+fn read_config(config_path: Option<String>) -> Result<Config, ConfigError>{
+    let mut builder = Config::builder()
+        .add_source(File::with_name(DEFAULT_CONFIG_PATH));
+
+
+    if let Some(path) = config_path {
+        builder = builder.add_source(File::with_name(path.as_str()));
+    }
+
+    Ok(builder.build()?)
+}
+
 pub fn get_config(config_path: Option<String>) -> MainConfig {
-    match MainConfig::new(config_path.clone()) {
+
+    // First we read the config
+    match read_config(config_path.clone()) {
+        Ok(config) => {
+            CONFIG.replace(Some(config));
+        },
+        Err(e) => {
+            println!("Could not read config: {e}");
+
+            std::process::exit(-1);
+        }
+    }
+
+    // Then deserialize into MainConfig
+    let config = CONFIG.with(|c| c.borrow().clone()).unwrap();
+
+    match MainConfig::new(config) {
         Ok(config) => {
             log::debug!("Using {}", config_path.unwrap_or("default config".to_string()));
 
@@ -46,12 +72,16 @@ pub fn get_config(config_path: Option<String>) -> MainConfig {
     }
 }
 
+pub fn genome_config<G: Genome>() -> G::Config {
+    let config = CONFIG.with(|c| c.borrow().clone()).unwrap();
 
-pub fn get_taskname(task_str: &String) -> TaskName {
-    match task_str.as_str() {
-        "SurvivalTask" => TaskName::SurvivalTask,
-        "CatchingTask" => TaskName::CatchingTask,
-        "MovementTask" => TaskName::MovementTask,
-        _ => {panic!("Unknown task {}", task_str);}
+
+    match config.get::<G::Config>(G::Config::name().as_str()) {
+        Ok(c) => c,
+        Err(e) => {
+            println!("Error loading genome config: {e}");
+
+            std::process::exit(-1);
+        }
     }
 }

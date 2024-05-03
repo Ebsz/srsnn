@@ -1,46 +1,110 @@
 //! luna/src/main.rs
 
-use luna::evaluate;
-use luna::phenotype::Phenotype;
+use luna::eval::TaskEvaluator;
+use luna::phenotype::EvolvableGenome;
+
 use luna::visual::plots::generate_plots;
 use luna::visual::visualize_genome_on_task;
-use luna::config::{MainConfig, get_config, get_taskname};
+use luna::config::{get_config, genome_config, MainConfig};
 
 use evolution::EvolutionEnvironment;
 use evolution::population::Population;
-use evolution::genome::Genome;
 
-use tasks::Task;
-use tasks::task_runner::{TaskRunner};
-use tasks::catching_task::{CatchingTask, CatchingTaskSetup};
+use evolution::genome::matrix_genome::MatrixGenome;
+
+use tasks::{Task, TaskEval, TaskRenderer};
+use tasks::catching_task::CatchingTask;
+use tasks::movement_task::MovementTask;
+use tasks::survival_task::SurvivalTask;
 
 use utils::logger::init_logger;
 use utils::random::SEED;
 
-use std::sync::atomic::Ordering;
 use std::env;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 
-/// Analyzes a genome resulting from an evolutionary process
-#[allow(dead_code)]
-fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
-    log::info!("Analyzing genome");
-    let mut phenotype = Phenotype::from_genome(g, env);
-    phenotype.enable_recording();
+trait Process {
+    type Config;
 
-    let task = CatchingTask::new( CatchingTaskSetup {
-        target_pos: 450
-    });
-
-    let mut runner = TaskRunner::new(task, &mut phenotype);
-
-    runner.run();
-
-    generate_plots(&phenotype.record);
+    fn run(conf: &Self::Config);
 }
 
-fn init_ctrl_c_handler(population: &Population) {
-    let stop_signal = population.stop_signal.clone();
+struct EvolutionProcess;
+
+impl EvolutionProcess {
+    fn resolve(config: &MainConfig) {
+        match config.genome.as_str() {
+            "matrix" => { Self::resolve_t::<MatrixGenome>(config); },
+            _ => {panic!("Unknown genome");}
+        }
+    }
+
+    fn resolve_t<G: EvolvableGenome>(config: &MainConfig) {
+        match config.task.as_str() {
+            "catching" => { Self::evolve::<G, CatchingTask>(config); },
+            "movement" => { Self::evolve::<G, MovementTask>(config); },
+            "survival" => { Self::evolve::<G, SurvivalTask>(config); },
+            _ => { panic!("Unknown task"); }
+        }
+    }
+
+    fn evolve<G: EvolvableGenome, T: Task + TaskEval + TaskRenderer>(config: &MainConfig) {
+        let env = Self::environment::<T>();
+
+        let evaluator = TaskEvaluator::<T, G>::new(env.clone());
+
+        let genome_config = genome_config::<G>();
+
+        let mut population = Population::new(env.clone(), config.evolution, genome_config, evaluator);
+
+        init_ctrl_c_handler(population.stop_signal.clone());
+
+        let evolved_genome = population.evolve();
+
+        let task = T::new(&T::eval_setups()[0]);
+        visualize_genome_on_task(task, evolved_genome, &env);
+    }
+
+    fn environment<T: Task>() -> EvolutionEnvironment {
+        let e = T::environment();
+
+        EvolutionEnvironment {
+            inputs: e.agent_inputs,
+            outputs: e.agent_outputs,
+        }
+    }
+}
+
+impl Process for EvolutionProcess {
+    type Config = MainConfig;
+
+    fn run(config: &MainConfig) {
+        Self::resolve(config);
+    }
+}
+
+
+///// Analyzes a genome resulting from an evolutionary process
+//#[allow(dead_code)]
+//fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
+//    log::info!("Analyzing genome");
+//    let mut phenotype = Phenotype::from_genome(g, env);
+//    phenotype.enable_recording();
+//
+//    let task = CatchingTask::new( CatchingTaskSetup {
+//        target_pos: 450
+//    });
+//
+//    let mut runner = TaskRunner::new(task, &mut phenotype);
+//
+//    runner.run();
+//
+//    generate_plots(&phenotype.record);
+//}
+
+fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {
     let mut stopped = false;
 
     ctrlc::set_handler(move || {
@@ -55,25 +119,6 @@ fn init_ctrl_c_handler(population: &Population) {
     }).expect("Error setting Ctrl-C handler");
 
     log::info!("Use Ctrl-C to stop evolution");
-}
-
-fn run(conf: &MainConfig) {
-    let task_name = get_taskname(&conf.task.name);
-    log::info!("Task: {:?}", task_name);
-
-    let task_environment = tasks::get_environment(task_name);
-
-    let env = EvolutionEnvironment {
-        inputs: task_environment.agent_inputs,
-        outputs: task_environment.agent_outputs,
-        fitness: evaluate::get_fitness_function(task_name)
-    };
-
-    let mut population = Population::new(env.clone(), conf.evolution, conf.genome);
-
-    init_ctrl_c_handler(&population);
-
-    let _evolved_genome: Genome = population.evolve();
 }
 
 fn parse_config_path_from_args() -> Option<String> {
@@ -93,5 +138,6 @@ fn main() {
     let config = get_config(config_path);
 
     log::info!("seed is {}", SEED);
-    run(&config);
+
+    EvolutionProcess::run(&config);
 }

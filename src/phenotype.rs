@@ -6,7 +6,9 @@ use model::spikes::Spikes;
 use model::record::{Record, RecordType, RecordDataType};
 
 use evolution::EvolutionEnvironment;
+
 use evolution::genome::Genome;
+use evolution::genome::matrix_genome::MatrixGenome;
 
 use tasks::TaskInput;
 use tasks::task_runner::Runnable;
@@ -20,7 +22,15 @@ use rand::distributions::Uniform;
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 
-pub struct Phenotype {
+
+//TODO: Rename this to reflect that being phenotypeable is the focus
+pub trait EvolvableGenome: Genome + Sized {
+    type Phenotype: Runnable;
+
+    fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype;
+}
+
+pub struct MatrixPhenotype {
     pub neurons: Izhikevich,
     pub synapse: MatrixSynapse,
     pub inputs: usize,
@@ -38,7 +48,7 @@ pub struct Phenotype {
     random_firing: bool
 }
 
-impl Runnable for Phenotype {
+impl Runnable for MatrixPhenotype {
     fn step(&mut self, sensors: Array1<f32>) -> Vec<TaskInput> {
         let mut task_inputs: Vec<TaskInput> = Vec::new();
 
@@ -91,15 +101,34 @@ impl Runnable for Phenotype {
     }
 }
 
-impl Phenotype {
-    pub fn new(neurons: Izhikevich, synapse: MatrixSynapse, inputs: usize, outputs: usize) -> Phenotype {
+impl EvolvableGenome for MatrixGenome {
+    type Phenotype = MatrixPhenotype;
+
+    fn to_phenotype(&self, env: &EvolutionEnvironment) -> MatrixPhenotype {
+        // Number of neurons in the network
+        //let network_size = g.network_size();
+        let network_size = self.network_size();
+
+        let synapse_matrix: Array2<f32> = self.connections.mapv(|(e, w)| if e {w} else {0.0});
+
+        let neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
+        let synapse = MatrixSynapse::new(synapse_matrix, neuron_types);
+        let model = Izhikevich::default(network_size);
+
+        MatrixPhenotype::new(model, synapse, env.inputs, env.outputs)
+    }
+}
+
+
+impl MatrixPhenotype {
+    pub fn new(neurons: Izhikevich, synapse: MatrixSynapse, inputs: usize, outputs: usize) -> MatrixPhenotype {
         let noise_input = None;
         let random_firing = false;
 
         let network_size = neurons.size();
         let synapse_size = synapse.neuron_count();
 
-        Phenotype {
+        MatrixPhenotype {
             neurons,
             synapse,
             inputs,
@@ -117,18 +146,6 @@ impl Phenotype {
         }
     }
 
-    pub fn from_genome(g: &Genome, env: &EvolutionEnvironment) -> Phenotype {
-        // Number of neurons in the network
-        let network_size = g.network_size();
-
-        let synapse_matrix: Array2<f32> = g.connections.mapv(|(e, w)| if e {w} else {0.0});
-
-        let neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
-        let synapse = MatrixSynapse::new(synapse_matrix, neuron_types);
-        let model = Izhikevich::default(network_size);
-
-        Phenotype::new(model, synapse, env.inputs, env.outputs)
-    }
 
     pub fn enable_recording(&mut self) {
         self.recording = true;

@@ -3,7 +3,7 @@
 //! how it's used in graphics libraries like macroquad.
 //! TODO: Change the coordinate system to correspond with human perception
 
-use crate::{Task, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
+use crate::{Task, TaskEnvironment, TaskInput, TaskState, TaskRenderer, TaskEval};
 
 use crate::sensor::Sensor;
 
@@ -39,6 +39,7 @@ pub struct CatchingTask {
     ticks: usize,
 }
 
+#[derive(Copy, Clone)]
 pub struct CatchingTaskSetup {
     pub target_pos: i32
 }
@@ -48,12 +49,11 @@ pub struct CatchingTaskResult {
     pub distance: f32,
 }
 
-impl TaskResult for CatchingTaskResult {}
+impl Task for CatchingTask {
+    type Setup = CatchingTaskSetup;
+    type Result = CatchingTaskResult;
 
-impl Task<CatchingTaskResult> for CatchingTask {
-    type TaskSetup = CatchingTaskSetup;
-
-    fn new(setup: CatchingTaskSetup) -> CatchingTask {
+    fn new(setup: &CatchingTaskSetup) -> CatchingTask {
         assert!(setup.target_pos <= ARENA_SIZE.0 && setup.target_pos >= 0);
 
         let agent = Agent::new();
@@ -63,7 +63,7 @@ impl Task<CatchingTaskResult> for CatchingTask {
             ticks: 0,
             sensors: CatchingTask::init_sensors(),
             agent,
-            setup,
+            setup: *setup,
             apple
         }
     }
@@ -195,6 +195,7 @@ impl Agent {
     }
 }
 
+
 impl Apple {
     fn new(x_pos: i32) -> Apple {
 
@@ -206,6 +207,40 @@ impl Apple {
     }
 }
 
+impl TaskEval for CatchingTask {
+    fn eval_setups() -> Vec<CatchingTaskSetup> {
+        let trial_positions: [i32; 11] = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
+
+        let mut setups = vec![];
+
+        for p in trial_positions {
+            setups.push(CatchingTaskSetup {
+                target_pos: p
+            });
+        }
+
+        setups
+    }
+
+    fn fitness(results: Vec<CatchingTaskResult>) -> f32 {
+        let max_distance = Self::render_size().0 as f32;
+
+        let mut total_fitness: f32 = 0.0;
+        let mut correct: u32 = 0;
+
+        for r in &results {
+            total_fitness += (1.0 - r.distance/max_distance) * 100.0 - (if r.success {0.0} else {30.0});
+
+            if r.success {
+                correct += 1;
+            }
+        }
+
+        // TODO: log fitness and # correct
+
+        total_fitness / results.len() as f32
+    }
+}
 
 impl TaskRenderer for CatchingTask {
     fn render(&self, canvas: &mut WindowCanvas) {

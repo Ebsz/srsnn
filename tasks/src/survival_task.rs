@@ -1,4 +1,4 @@
-use crate::{Task, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
+use crate::{Task, TaskEnvironment, TaskInput, TaskState, TaskRenderer, TaskEval};
 use crate::sensor::Sensor;
 
 use utils::random;
@@ -31,20 +31,17 @@ pub struct SurvivalTask {
     ticks: u32,
 }
 
-pub struct SurvivalTaskSetup {
-
-}
-
+pub struct SurvivalTaskSetup;
 pub struct SurvivalTaskResult {
     pub time: u32
 }
 
-impl TaskResult for SurvivalTaskResult {}
 
-impl Task<SurvivalTaskResult> for SurvivalTask {
-    type TaskSetup = SurvivalTaskSetup;
+impl Task for SurvivalTask {
+    type Setup = SurvivalTaskSetup;
+    type Result = SurvivalTaskResult;
 
-    fn new(setup: SurvivalTaskSetup) -> SurvivalTask {
+    fn new(_setup: &SurvivalTaskSetup) -> SurvivalTask {
         let mut food: Vec<Food> = vec![];
 
         food.push(Food::new(Agent::START_POS.0 as f32, (Agent::START_POS.1 - 100) as f32));
@@ -260,6 +257,21 @@ impl Food {
     }
 }
 
+impl TaskEval for SurvivalTask {
+    fn eval_setups() -> Vec<SurvivalTaskSetup> {
+        vec![SurvivalTaskSetup{}]
+    }
+
+    fn fitness(results: Vec<SurvivalTaskResult>) -> f32 {
+        let mut f = 0.0;
+
+        for r in &results {
+            f += (r.time as f32 / Self::MAX_T as f32) * 100.0;
+        }
+
+        f / results.len() as f32
+    }
+}
 
 impl TaskRenderer for SurvivalTask {
     fn render(&self, canvas: &mut WindowCanvas) {

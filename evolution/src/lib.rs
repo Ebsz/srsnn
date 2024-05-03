@@ -17,11 +17,12 @@ pub mod population;
 use genome::Genome;
 
 
-pub type Fitness = fn(&Genome, &EvolutionEnvironment) -> f32;
+pub trait Evaluate<G: Genome> {
+    fn eval(&self, g: &G) -> f32;
+}
 
 #[derive(Debug, Clone)]
 pub struct EvolutionEnvironment {
-    pub fitness: Fitness,
     pub inputs: usize,
     pub outputs: usize,
 }

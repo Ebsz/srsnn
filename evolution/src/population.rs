@@ -1,7 +1,7 @@
 use crate::genome::Genome;
 
-use crate::EvolutionEnvironment;
-use crate::config::{EvolutionConfig, GenomeConfig};
+use crate::{Evaluate, EvolutionEnvironment};
+use crate::config::EvolutionConfig;
 
 use utils::random;
 
@@ -12,20 +12,22 @@ use std::cmp::max;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-pub struct Population {
+pub struct Population<E: Evaluate<G>, G: Genome> {
     pub generation: u32,
     pub stop_signal: Arc<AtomicBool>,
 
-    population: HashMap<u32, Genome>,
+    population: HashMap<u32, G>,
     environment: EvolutionEnvironment,
     config: EvolutionConfig,
 
-    genome_config: GenomeConfig,
+    genome_config: G::Config,
     genome_num: u32, // TODO: Find new name for this yo
+                     //
+    evaluator: E // TODO: Figure out if this should just be injected instead.
 }
 
-impl Population {
-    pub fn new(env: EvolutionEnvironment, config: EvolutionConfig, genome_config: GenomeConfig) -> Population {
+impl<E: Evaluate<G>, G: Genome> Population<E, G> {
+    pub fn new(env: EvolutionEnvironment, config: EvolutionConfig, genome_config: G::Config, evaluator: E) -> Population<E, G> {
         assert!(env.inputs > 0 && env.outputs > 0);
         assert!(config.population_size >= 2);
 
@@ -34,7 +36,7 @@ impl Population {
 
         log::debug!("Creating initial population");
         for _ in 0..config.population_size {
-            population.insert(genome_num, Genome::new(&env, &genome_config));
+            population.insert(genome_num, G::new(&env, &genome_config));
             genome_num += 1;
         }
 
@@ -46,11 +48,13 @@ impl Population {
             stop_signal: Arc::new(AtomicBool::new(false)),
 
             config,
-            genome_config
+            genome_config,
+
+            evaluator
         }
     }
 
-    pub fn evolve(&mut self) -> Genome {
+    pub fn evolve(&mut self) -> &G {
         let mut fitness: Vec<(u32, f32)>;
 
         loop {
@@ -89,18 +93,19 @@ impl Population {
         }
 
         // Return the best fit genome of the population
-        self.population.get(&fitness[0].0).unwrap().clone()
+        self.population.get(&fitness[0].0).unwrap()
     }
 
     /// Evaluate the fitness of each genome
     fn evaluate(&mut self) -> Vec<(u32, f32)> {
         let fitness: Vec<(u32, f32)> = self.population.iter()
-            .map(|(id, g)| (*id, (self.environment.fitness)(g, &self.environment))).collect();
+            .map(|(id, g)| (*id, self.evaluator.eval(g))).collect();
+            //.map(|(id, g)| (*id, self.evaluator.eval(g, &self.environment))).collect();
 
         fitness
     }
 
-    fn reproduce(&mut self, fitness: &Vec<(u32, f32)>) -> Vec<Genome> {
+    fn reproduce(&mut self, fitness: &Vec<(u32, f32)>) -> Vec<G> {
         // Select the best fit to be parents
         let n_parents = max(2, ((self.config.population_size as f32) * self.config.parent_fraction) as usize);
 
@@ -122,10 +127,10 @@ impl Population {
     }
 
     /// Create n offspring from a set of parent genomes
-    fn breed(&mut self, parent_ids: Vec<u32>, n: usize) -> Vec<Genome> {
+    fn breed(&mut self, parent_ids: Vec<u32>, n: usize) -> Vec<G> {
         assert!(parent_ids.len() != 0);
 
-        let mut offspring: Vec<Genome> = Vec::new();
+        let mut offspring: Vec<G> = Vec::new();
 
         while offspring.len() < n {
             let id_1 = random::random_choice(&parent_ids);
@@ -146,7 +151,7 @@ impl Population {
         offspring
     }
 
-    fn add_genome(&mut self, g: Genome) {
+    fn add_genome(&mut self, g: G) {
         self.population.insert(self.genome_num, g);
 
         self.genome_num +=1;

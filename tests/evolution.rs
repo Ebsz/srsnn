@@ -1,21 +1,24 @@
-use evolution::EvolutionEnvironment;
+use evolution::{Evaluate, EvolutionEnvironment};
 use evolution::genome::Genome;
+use evolution::genome::matrix_genome::MatrixGenome;
 use evolution::population::Population;
 
-use luna::config::{get_config, MainConfig};
+use luna::config::{get_config, genome_config, MainConfig};
 
 
-fn get_test_config(n: usize, g: u32) -> MainConfig {
-    let mut config = get_config(None);
+fn get_test_config(n: usize, g: u32) -> (MainConfig, <MatrixGenome as Genome>::Config) {
+    let mut main_config = get_config(None);
 
-    config.evolution.population_size = n;
-    config.evolution.max_generations = g;
+    main_config.evolution.population_size = n;
+    main_config.evolution.max_generations = g;
 
-    config.genome.max_neurons  = 10;
-    config.genome.initial_neuron_count_range = (2, 4);
-    config.genome.initial_connection_count_range = (5, 10);
+    let mut genome_config = genome_config::<MatrixGenome>();
 
-    config
+    genome_config.max_neurons  = 10;
+    genome_config.initial_neuron_count_range = (2, 4);
+    genome_config.initial_connection_count_range = (5, 10);
+
+    (main_config, genome_config)
 }
 
 
@@ -31,14 +34,20 @@ fn evolve_large_population() {
 
 fn evolve_genome(n: usize, g: u32) {
     let config = get_test_config(n, g);
+    let main_config = config.0;
+    let genome_config = config.1;
 
     let env = EvolutionEnvironment {
         inputs: 1,
         outputs: 1,
-        fitness: |_: &Genome, _: &EvolutionEnvironment| -> f32 { 0.0 }
     };
 
-    let mut population = Population::new(env, config.evolution, config.genome);
+    struct TestEvaluator;
+    impl Evaluate<MatrixGenome> for TestEvaluator {
+        fn eval(&self, g: &MatrixGenome) -> f32 { 0.0 }
+    }
+
+    let mut population = Population::new(env, main_config.evolution, genome_config, TestEvaluator {});
 
     let _genome = population.evolve();
 

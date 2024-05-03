@@ -1,4 +1,4 @@
-use crate::{Task, TaskResult, TaskEnvironment, TaskInput, TaskState, TaskRenderer};
+use crate::{Task, TaskEnvironment, TaskInput, TaskState, TaskRenderer, TaskEval};
 use crate::sensor::Sensor;
 
 use ndarray::{Array, Array1};
@@ -39,13 +39,11 @@ pub struct MovementTaskResult {
     pub distance: f32,
 }
 
-impl TaskResult for MovementTaskResult {}
+impl Task for MovementTask {
+    type Setup = MovementTaskSetup;
+    type Result = MovementTaskResult;
 
-
-impl Task<MovementTaskResult> for MovementTask {
-    type TaskSetup = MovementTaskSetup;
-
-    fn new(_setup: MovementTaskSetup) -> MovementTask {
+    fn new(_setup: &MovementTaskSetup) -> MovementTask {
 
         MovementTask {
             agent: Agent::new(),
@@ -170,6 +168,16 @@ impl Target {
             x,
             y
         }
+    }
+}
+
+impl TaskEval for MovementTask {
+    fn eval_setups() -> Vec<MovementTaskSetup> {
+        vec![MovementTaskSetup {}]
+    }
+
+    fn fitness(_results: Vec<MovementTaskResult>) -> f32 {
+        0.0
     }
 }
 

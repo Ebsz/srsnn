@@ -1,23 +1,19 @@
 pub mod window;
 pub mod plots;
 
-use crate::phenotype::Phenotype;
 use crate::visual::window::TaskWindow;
+use crate::phenotype::EvolvableGenome;
 
 use evolution::EvolutionEnvironment;
-use evolution::genome::Genome;
 
-use tasks::{Task, TaskRenderer, TaskResult};
+use tasks::{Task, TaskRenderer};
 use tasks::task_runner::TaskRunner;
 
-pub fn visualize_genome_on_task<T, R: TaskResult>(task: T, g: &Genome, env: &EvolutionEnvironment)
-where
-    T: Task<R> + TaskRenderer
-
-{
+pub fn visualize_genome_on_task<G: EvolvableGenome, T: Task + TaskRenderer>(task: T, g: &G, env: &EvolutionEnvironment) {
     log::info!("Visualizing genome behavior on task");
 
-    let mut phenotype = Phenotype::from_genome(g, env);
+    let mut phenotype = g.to_phenotype(env);
+
     let runner = TaskRunner::new(task, &mut phenotype);
 
     let mut window = TaskWindow::new(runner);

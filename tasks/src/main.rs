@@ -1,9 +1,9 @@
 //! tasks/src/main.rs
 
-use tasks::{Task, TaskName, TaskInput, TaskRenderer, TaskResult};
-use tasks::catching_task::{CatchingTask, CatchingTaskConfig};
-use tasks::movement_task::{MovementTask, MovementTaskConfig};
-use tasks::survival_task::{SurvivalTask, SurvivalTaskConfig};
+use tasks::{Task, TaskInput, TaskRenderer};
+use tasks::catching_task::{CatchingTask, CatchingTaskSetup};
+use tasks::movement_task::{MovementTask, MovementTaskSetup};
+use tasks::survival_task::{SurvivalTask, SurvivalTaskSetup};
 
 use ndarray_rand::rand::rngs::StdRng;
 use ndarray_rand::rand::{Rng, SeedableRng};
@@ -20,23 +20,24 @@ use std::marker::PhantomData;
 
 
 fn main () {
-    const taskname: TaskName = TaskName::SurvivalTask;
+    const taskname: &str  = "catching";
+
     let mut input_map: HashMap<Keycode, i32> = HashMap::new();
 
     match taskname {
-        TaskName::MovementTask => {
+        "movement" => {
             input_map.insert(Keycode::D, 0);
             input_map.insert(Keycode::A, 1);
             input_map.insert(Keycode::W, 2);
             input_map.insert(Keycode::S, 3);
 
-            let task = MovementTask::new(MovementTaskConfig {});
+            let task = MovementTask::new(&MovementTaskSetup {});
 
             let mut t = TaskTester::new(task, input_map);
             t.run();
 
         },
-        TaskName::CatchingTask => {
+        "catching" => {
             input_map.insert(Keycode::D, 0);
             input_map.insert(Keycode::A, 1);
 
@@ -44,49 +45,45 @@ fn main () {
             let size = CatchingTask::render_size().0;
             let x: i32 = rng.gen_range(0..size);
 
-            let task = CatchingTask::new(CatchingTaskConfig {
+            let task = CatchingTask::new(&CatchingTaskSetup {
                 target_pos: x
             });
 
             let mut t = TaskTester::new(task, input_map);
             t.run();
         }
-        TaskName::SurvivalTask => {
+        "survival" => {
             input_map.insert(Keycode::A, 0);
             input_map.insert(Keycode::D, 1);
             input_map.insert(Keycode::W, 2);
             input_map.insert(Keycode::S, 3);
 
-            let task = SurvivalTask::new(SurvivalTaskConfig {});
+            let task = SurvivalTask::new(&SurvivalTaskSetup {});
 
             let mut t = TaskTester::new(task, input_map);
             t.run();
-        }
+        },
+        _ => { println!("Unknown task"); }
     }
 }
 
 /// Enables running a task with human input, which is
 /// very useful when developing and testing tasks.
-pub struct TaskTester<T, R: TaskResult>
-where
-    T: Task<R> + TaskRenderer
+pub struct TaskTester<T: Task + TaskRenderer>
 {
     canvas: WindowCanvas,
     context: Sdl,
     task: T,
     input_map: HashMap<Keycode, i32>,
     finished: bool,
-    result: PhantomData<R>
 }
 
-impl<T, R: TaskResult> TaskTester<T, R>
-where
-    T: Task<R> + TaskRenderer
+impl<T: Task + TaskRenderer> TaskTester<T>
 
 {
     const TARGET_FPS: u128 = 60;
 
-    pub fn new(task: T, input_map: HashMap<Keycode, i32>) -> TaskTester<T, R> {
+    pub fn new(task: T, input_map: HashMap<Keycode, i32>) -> TaskTester<T> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
@@ -105,7 +102,6 @@ where
             task,
             input_map,
             finished: false,
-            result: PhantomData::<R>
         }
     }
 
