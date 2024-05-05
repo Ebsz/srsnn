@@ -326,23 +326,6 @@ impl ConfigSection for MatrixGenomeConfig {
     }
 }
 
-
-impl Default for MatrixGenomeConfig {
-    fn default() -> Self {
-        MatrixGenomeConfig {
-            max_neurons: 25,
-            initial_neuron_count_range: (3, 15),
-            initial_connection_count_range: (4, 20),
-            n_mutations: 2,
-            mutate_connection_probability: 0.8,
-            mutate_toggle_connection_probability: 0.3,
-            mutate_add_connection_probability: 0.03,
-            mutate_add_neuron_probability: 0.02,
-        }
-    }
-}
-
-
 #[cfg(test)]
 mod tests {
     use super::*;

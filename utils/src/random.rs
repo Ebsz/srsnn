@@ -16,7 +16,6 @@ pub const SEED: u64 = 0;
 
 thread_local! {
     static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));
-
 }
 
 pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> {

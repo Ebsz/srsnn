@@ -6,7 +6,7 @@ use utils::config::ConfigSection;
 
 
 pub trait Genome {
-    type Config: Default + ConfigSection;
+    type Config: ConfigSection;
 
     fn new(env: &EvolutionEnvironment, config: &Self::Config) -> Self;
 

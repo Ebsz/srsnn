@@ -1,10 +1,3 @@
-//! A synapse where connections where connections between the N neurons
-//! are represented by an NxN matrix; entry W_jk is the weight from neuron k to neuron j
-///
-/// neuron_type is a vector of length N, where entry i is -1 if
-/// neuron i is inhibitory, or 1 if it is excitatory.
-///
-
 use crate::synapse::Synapse;
 use crate::spikes::Spikes;
 
@@ -12,6 +5,11 @@ use ndarray::{Array1, Array2};
 
 use std::fmt;
 
+/// A synapse where connections where connections between the N neurons
+/// are represented by an NxN matrix; entry W_jk is the weight from neuron k to neuron j
+///
+/// neuron_type is a vector of length N, where entry i is -1 if
+/// neuron i is inhibitory, or 1 if it is excitatory.
 pub struct MatrixSynapse {
     weights: Array2<f32>,
     neuron_type: Array1<f32>,

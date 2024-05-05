@@ -16,6 +16,7 @@ use tasks::{Task, TaskEval, TaskRenderer};
 use tasks::catching_task::CatchingTask;
 use tasks::movement_task::MovementTask;
 use tasks::survival_task::SurvivalTask;
+use tasks::energy_task::EnergyTask;
 
 use utils::logger::init_logger;
 use utils::random::SEED;
@@ -46,11 +47,12 @@ impl EvolutionProcess {
             "catching" => { Self::evolve::<G, CatchingTask>(config); },
             "movement" => { Self::evolve::<G, MovementTask>(config); },
             "survival" => { Self::evolve::<G, SurvivalTask>(config); },
+            "energy"   => { Self::evolve::<G, EnergyTask>(config); },
             _ => { panic!("Unknown task"); }
         }
     }
 
-    fn evolve<G: EvolvableGenome, T: Task + TaskEval + TaskRenderer>(config: &MainConfig) {
+    fn evolve<G: EvolvableGenome, T: Task + TaskEval>(config: &MainConfig) {
         let env = Self::environment::<T>();
 
         let evaluator = TaskEvaluator::<T, G>::new(env.clone());
@@ -63,8 +65,8 @@ impl EvolutionProcess {
 
         let evolved_genome = population.evolve();
 
-        let task = T::new(&T::eval_setups()[0]);
-        visualize_genome_on_task(task, evolved_genome, &env);
+        //let task = T::new(&T::eval_setups()[0]);
+        //visualize_genome_on_task(task, evolved_genome, &env);
     }
 
     fn environment<T: Task>() -> EvolutionEnvironment {

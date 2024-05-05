@@ -4,6 +4,7 @@ pub mod task_runner;
 pub mod catching_task;
 pub mod movement_task;
 pub mod survival_task;
+pub mod energy_task;
 
 use ndarray::Array1;
 use sdl2::render::WindowCanvas;
