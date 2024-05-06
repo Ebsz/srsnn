@@ -18,11 +18,11 @@ pub struct Pool<S: Synapse> {
 }
 
 impl<S: Synapse> Network<Izhikevich, S> for Pool<S> {
-    fn model(&mut self) -> &mut dyn NeuronModel {
+    fn model(&mut self) -> &mut Izhikevich {
         &mut self.neurons
     }
 
-    fn synapse(&mut self) -> &mut dyn Synapse {
+    fn synapse(&mut self) -> &mut S {
         &mut self.synapse
     }
 }

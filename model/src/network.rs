@@ -47,6 +47,6 @@ pub trait Network<M: NeuronModel, S: Synapse> {
         self.model().step(step_input)
     }
 
-    fn model(&mut self) -> &mut dyn NeuronModel;
-    fn synapse(&mut self) -> &mut dyn Synapse;
+    fn model(&mut self) -> &mut M;
+    fn synapse(&mut self) -> &mut S;
 }
