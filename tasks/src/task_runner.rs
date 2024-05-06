@@ -1,6 +1,6 @@
 //! Executes a task with input from a Runnable
 
-use crate::{Task, TaskInput};
+use crate::{Task, TaskInput, TaskOutput};
 
 use ndarray::Array1;
 
@@ -13,7 +13,7 @@ pub enum ExecutionState {
 }
 
 pub trait Runnable {
-    fn step(&mut self, sensors: Array1<f32>) -> Vec<TaskInput>;
+    fn step(&mut self, task_output: TaskOutput) -> Vec<TaskInput>;
     fn reset(&mut self);
 }
 
@@ -25,8 +25,7 @@ pub struct TaskRunner<'a, T: Task, R: Runnable> {
     task_inputs: Vec<TaskInput>,
 }
 
-impl<'a, T: Task, R: Runnable> TaskRunner<'a, T, R>
-{
+impl<'a, T: Task, R: Runnable> TaskRunner<'a, T, R> {
     pub fn new(task: T, runnable: &'a mut R) -> TaskRunner<T, R> {
         TaskRunner {
             task,
@@ -49,17 +48,15 @@ impl<'a, T: Task, R: Runnable> TaskRunner<'a, T, R>
     pub fn step(&mut self) -> Option<T::Result> {
         self.state = ExecutionState::RUNNING;
 
-        // Task step
         let task_state = self.task.tick(&self.task_inputs);
         self.task_inputs.clear();
 
-        // If we have a result, return it
         if let Some(r) = task_state.result {
             self.state = ExecutionState::FINISHED;
             return Some(r);
         }
 
-        self.task_inputs = self.runnable.step(task_state.sensor_data);
+        self.task_inputs = self.runnable.step(task_state.output);
 
         None
     }

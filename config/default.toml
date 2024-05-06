@@ -6,7 +6,7 @@ genome = "matrix"
 population_size =  50
 parent_fraction =  0.3
 elites = 2
-fitness_goal = 90.0
+fitness_goal = 999999.0
 max_generations =  50
 
 [matrix_genome]

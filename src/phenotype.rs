@@ -10,7 +10,7 @@ use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
 use evolution::genome::matrix_genome::MatrixGenome;
 
-use tasks::TaskInput;
+use tasks::{TaskInput, TaskOutput};
 use tasks::task_runner::Runnable;
 
 use utils::random;
@@ -49,8 +49,8 @@ pub struct MatrixPhenotype {
 }
 
 impl Runnable for MatrixPhenotype {
-    fn step(&mut self, sensors: Array1<f32>) -> Vec<TaskInput> {
-        self.get_synapse_spikes(sensors);
+    fn step(&mut self, task_output: TaskOutput) -> Vec<TaskInput> {
+        self.get_synapse_spikes(task_output.data);
         let synaptic_input = self.synapse.step(&self.synapse_spikes) * SYNAPTIC_INPUT_SCALING;
 
         let network_input = self.get_network_input(&synaptic_input);

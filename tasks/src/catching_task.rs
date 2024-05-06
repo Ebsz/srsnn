@@ -3,7 +3,7 @@
 //! how it's used in graphics libraries like macroquad.
 //! TODO: Change the coordinate system to correspond with human perception
 
-use crate::{Task, TaskEnvironment, TaskInput, TaskState, TaskRenderer, TaskEval};
+use crate::{Task, TaskEnvironment, TaskInput, TaskOutput, TaskState, TaskRenderer, TaskEval};
 
 use crate::sensor::Sensor;
 
@@ -88,8 +88,7 @@ impl Task for CatchingTask {
 
         TaskState {
             result,
-            sensor_data,
-
+            output: TaskOutput { data: sensor_data }
         }
     }
 

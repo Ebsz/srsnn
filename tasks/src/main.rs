@@ -16,7 +16,6 @@ use sdl2::keyboard::Keycode;
 
 use std::collections::HashMap;
 use std::time::Instant;
-use std::marker::PhantomData;
 
 
 fn main () {

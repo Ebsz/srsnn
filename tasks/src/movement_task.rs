@@ -1,4 +1,4 @@
-use crate::{Task, TaskEnvironment, TaskInput, TaskState, TaskRenderer, TaskEval};
+use crate::{Task, TaskEnvironment, TaskInput, TaskOutput, TaskState, TaskRenderer, TaskEval};
 use crate::sensor::Sensor;
 
 use ndarray::{Array, Array1};
@@ -68,7 +68,7 @@ impl Task for MovementTask {
 
         TaskState {
             result: None,
-            sensor_data
+            output: TaskOutput { data: sensor_data }
         }
     }
     fn environment() -> TaskEnvironment {
@@ -104,7 +104,7 @@ impl MovementTask {
             result: Some(MovementTaskResult {
                 distance
             }),
-            sensor_data: Array::zeros(N_SENSORS)
+            output: TaskOutput { data: Array::zeros(N_SENSORS) }
         }
     }
 

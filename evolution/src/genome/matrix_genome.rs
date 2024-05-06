@@ -93,7 +93,6 @@ impl Genome for MatrixGenome {
 
     /// Perform one of a set of different mutations on the genome
     fn mutate(&mut self, config: &MatrixGenomeConfig) {
-
         for _ in 0..config.n_mutations {
             if random_range((0.0, 1.0)) <  config.mutate_connection_probability {
                 self.mutate_connection(&config);

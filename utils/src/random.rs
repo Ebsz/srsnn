@@ -12,7 +12,7 @@ use ndarray_rand::rand_distr::uniform::SampleUniform;
 use rand::seq::SliceRandom;
 
 
-pub const SEED: u64 = 0;
+pub const SEED: u64 = 1337;
 
 thread_local! {
     static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));

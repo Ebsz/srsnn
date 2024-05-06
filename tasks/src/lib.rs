@@ -9,9 +9,15 @@ pub mod energy_task;
 use ndarray::Array1;
 use sdl2::render::WindowCanvas;
 
-
+// Input to the task, from the agent
 pub struct TaskInput {
     pub input_id: i32
+}
+
+// Output from the task, to the agent
+#[derive(Debug)]
+pub struct TaskOutput {
+    pub data: Array1<f32>
 }
 
 pub struct TaskEnvironment {
@@ -22,7 +28,7 @@ pub struct TaskEnvironment {
 #[derive(Debug)]
 pub struct TaskState<R> {
     pub result: Option<R>,
-    pub sensor_data: Array1<f32>
+    pub output: TaskOutput,
 }
 
 pub trait Task {

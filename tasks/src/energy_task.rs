@@ -1,4 +1,4 @@
-use crate::{Task, TaskInput, TaskState, TaskEnvironment, TaskEval};
+use crate::{Task, TaskInput, TaskOutput, TaskState, TaskEnvironment, TaskEval};
 
 use utils::random;
 
@@ -48,7 +48,7 @@ impl Task for EnergyTask {
 
         if self.ticks - self.last_spike > self.setup.max_timeout {
             return TaskState {
-                sensor_data: Array::zeros(AGENT_INPUTS),
+                output: TaskOutput { data: Array::zeros(AGENT_INPUTS) },
                 result: Some(EnergyTaskResult {t: self.last_spike })
             }
         }
@@ -57,9 +57,11 @@ impl Task for EnergyTask {
 
 
         TaskState {
-            sensor_data: match self.ticks < self.setup.input_duration {
-                true => { random::random_vector(AGENT_INPUTS, Uniform::new(0.0, 1.0)) },
-                false => { Array::zeros(AGENT_INPUTS) }
+            output: TaskOutput {
+                data: match self.ticks < self.setup.input_duration {
+                    true => { random::random_vector(AGENT_INPUTS, Uniform::new(0.0, 1.0)) },
+                    false => { Array::zeros(AGENT_INPUTS) }
+                },
             },
             result: None
         }
