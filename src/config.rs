@@ -9,6 +9,7 @@ use serde::Deserialize;
 use std::cell::RefCell;
 
 
+const CONFIG_DIR: &str = "config/";
 const DEFAULT_CONFIG_PATH: &str = "config/default.toml";
 
 thread_local! {
@@ -19,6 +20,7 @@ thread_local! {
 pub struct MainConfig {
     pub task: String,
     pub genome: String,
+    pub log_level: Option<String>,
     pub evolution: EvolutionConfig
 }
 
@@ -41,10 +43,16 @@ fn read_config(config_path: Option<String>) -> Result<Config, ConfigError>{
     Ok(builder.build()?)
 }
 
-pub fn get_config(config_path: Option<String>) -> MainConfig {
+pub fn get_config(config_name: Option<String>) -> MainConfig {
+    let mut path: Option<String> = None;
 
-    // First we read the config
-    match read_config(config_path.clone()) {
+    // Parse config path from name
+    if let Some(name) = config_name {
+        path = Some([CONFIG_DIR, name.as_str(), ".toml"].join(""));
+    }
+
+    // Read the config file.
+    match read_config(path.clone()) {
         Ok(config) => {
             CONFIG.replace(Some(config));
         },
@@ -55,15 +63,11 @@ pub fn get_config(config_path: Option<String>) -> MainConfig {
         }
     }
 
-    // Then deserialize into MainConfig
+    // Deserialize into MainConfig.
     let config = CONFIG.with(|c| c.borrow().clone()).unwrap();
 
     match MainConfig::new(config) {
-        Ok(config) => {
-            log::debug!("Using {}", config_path.unwrap_or("default config".to_string()));
-
-            config
-        }
+        Ok(config) => { config },
         Err(e) => {
             println!("Could not load config: {e}");
 

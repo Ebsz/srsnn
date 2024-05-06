@@ -38,7 +38,7 @@ impl EvolutionProcess {
     fn resolve(config: &MainConfig) {
         match config.genome.as_str() {
             "matrix" => { Self::resolve_t::<MatrixGenome>(config); },
-            _ => {panic!("Unknown genome");}
+            _ => {panic!("Unknown genome: {}", config.genome);}
         }
     }
 
@@ -48,11 +48,14 @@ impl EvolutionProcess {
             "movement" => { Self::evolve::<G, MovementTask>(config); },
             "survival" => { Self::evolve::<G, SurvivalTask>(config); },
             "energy"   => { Self::evolve::<G, EnergyTask>(config); },
-            _ => { panic!("Unknown task"); }
+            _ => { panic!("Unknown task: {}", config.task); }
         }
     }
 
     fn evolve<G: EvolvableGenome, T: Task + TaskEval>(config: &MainConfig) {
+        log::info!("task: {}", config.task);
+        log::info!("genome: {}", config.genome);
+
         let env = Self::environment::<T>();
 
         let evaluator = TaskEvaluator::<T, G>::new(env.clone());
@@ -123,7 +126,7 @@ fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {
     log::info!("Use Ctrl-C to stop evolution");
 }
 
-fn parse_config_path_from_args() -> Option<String> {
+fn parse_config_name_from_args() -> Option<String> {
     let args: Vec<_> = env::args().collect();
 
     if args.len() > 1 {
@@ -134,11 +137,12 @@ fn parse_config_path_from_args() -> Option<String> {
 }
 
 fn main() {
-    init_logger();
+    let config_name = parse_config_name_from_args();
+    let config = get_config(config_name.clone());
 
-    let config_path = parse_config_path_from_args();
-    let config = get_config(config_path);
+    init_logger(config.log_level.clone());
 
+    log::info!("Using config: {}", config_name.unwrap_or("default".to_string()));
     log::info!("seed is {}", SEED);
 
     EvolutionProcess::run(&config);

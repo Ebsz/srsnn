@@ -104,7 +104,7 @@ fn run() {
 }
 
 fn main() {
-    init_logger();
+    init_logger(None);
     iterate();
     //run();
 }
