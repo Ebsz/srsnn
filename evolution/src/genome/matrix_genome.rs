@@ -26,7 +26,6 @@ pub struct MatrixGenome {
 impl Genome for MatrixGenome {
     type Config = MatrixGenomeConfig;
 
-
     fn new(env: &EvolutionEnvironment, config: &MatrixGenomeConfig) -> MatrixGenome {
         let mut neurons: Vec<NeuronGene> = vec![];
 

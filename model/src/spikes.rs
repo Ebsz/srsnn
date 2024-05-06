@@ -13,9 +13,10 @@ impl Spikes {
         }
     }
 
+    // TODO: implement and use AsRef instead; requires making data private
+    // and only giving access through refs, so we can keep track of changes
     pub fn as_float(&self) -> Array1<f32> {
         self.data.mapv(|x| if x { 1.0 } else { 0.0 })
-
     }
 
     /// Get the indices of neurons that fire
@@ -27,7 +28,6 @@ impl Spikes {
         self.data.shape()[0]
     }
 }
-
 
 #[cfg(test)]
 mod tests {
