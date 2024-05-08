@@ -1,4 +1,4 @@
-use crate::synapse::Synapse;
+use crate::synapse::{Synapse, SynapticPotential};
 use crate::spikes::Spikes;
 
 use ndarray::{Array1, Array2};
@@ -16,7 +16,7 @@ pub struct MatrixSynapse {
 }
 
 impl Synapse for MatrixSynapse {
-    fn step(&mut self, input: &Spikes) -> Array1<f32> {
+    fn step(&mut self, input: &Spikes) -> SynapticPotential {
         let ns = &input.as_float() * &self.neuron_type;
 
         self.weights.dot(&ns)

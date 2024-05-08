@@ -1,9 +1,10 @@
 //! Synapses where connections are stored in a HashMap
 //!
 
-use crate::synapse::Synapse;
+use crate::synapse::{Synapse, SynapticPotential};
 use crate::spikes::Spikes;
 use ndarray::{Array1, Array};
+
 
 use std::collections::HashMap;
 
@@ -16,7 +17,7 @@ pub struct LinearSynapse {
 }
 
 impl Synapse for LinearSynapse {
-    fn step(&mut self, input: &Spikes) -> Array1<f32> {
+    fn step(&mut self, input: &Spikes) -> SynapticPotential {
         let mut output: Array1<f32> = Array::zeros(input.len());
 
         for neuron in input.firing() {

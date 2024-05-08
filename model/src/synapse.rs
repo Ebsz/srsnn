@@ -5,8 +5,9 @@ use crate::spikes::Spikes;
 
 use ndarray::{Array1};
 
+pub type SynapticPotential = Array1<f32>;
 
 /// Model of a set of synapses
 pub trait Synapse {
-    fn step(&mut self, input: &Spikes) -> Array1<f32>;
+    fn step(&mut self, input: &Spikes) -> SynapticPotential;
 }
