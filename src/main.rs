@@ -109,6 +109,7 @@ impl Process for EvolutionProcess {
 //    generate_plots(&phenotype.record);
 //}
 
+
 fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {
     let mut stopped = false;
 

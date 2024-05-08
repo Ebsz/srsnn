@@ -11,9 +11,9 @@ use std::time::Instant;
 const SYNAPTIC_INPUT_SCALING: f32 = 15.0;
 
 
-/// A network contains a neurons of a specific model M that are
+/// A network contains a neurons of a specific model N that are
 /// connected via a specific type of synapse S
-pub trait Network<M: NeuronModel, S: Synapse> {
+pub trait Network<N: NeuronModel, S: Synapse> {
 
     /// Run the network on pre-defined input
     fn run(&mut self, steps: usize, input: &Array2<f32>) -> Record {
@@ -47,6 +47,29 @@ pub trait Network<M: NeuronModel, S: Synapse> {
         self.model().step(step_input)
     }
 
-    fn model(&mut self) -> &mut M;
+    fn model(&mut self) -> &mut N; // Rename to neuron
     fn synapse(&mut self) -> &mut S;
+}
+
+
+
+struct SpikingNetwork<N: NeuronModel, S: Synapse> {
+    network_state: Spikes,
+    neuron: N,
+    synapse: S,
+}
+
+impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
+    fn new(neuron: N, synapse: S) -> SpikingNetwork<N,S> {
+
+        SpikingNetwork {
+            network_state: Spikes::new(),
+            neuron,
+            synapse
+        }
+    }
+
+    fn step(&mut self) {
+
+    }
 }

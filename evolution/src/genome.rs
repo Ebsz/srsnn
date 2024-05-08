@@ -1,4 +1,5 @@
 pub mod matrix_genome;
+pub mod pool_genome;
 
 use crate::EvolutionEnvironment;
 

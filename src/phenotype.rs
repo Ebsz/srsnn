@@ -22,6 +22,11 @@ use rand::distributions::Uniform;
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 
+//pub trait ToPhenotype {
+//    type Phenotype: Runnable;
+//
+//    fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype;
+//}
 
 //TODO: Rename this to reflect that being phenotypeable is the focus
 pub trait EvolvableGenome: Genome + Sized {
@@ -29,6 +34,9 @@ pub trait EvolvableGenome: Genome + Sized {
 
     fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype;
 }
+
+//impl<Izhikevich, MatrixSynapse> Network<Izhikevich
+
 
 pub struct MatrixPhenotype {
     pub neurons: Izhikevich,
