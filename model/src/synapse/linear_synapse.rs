@@ -3,10 +3,12 @@
 
 use crate::spikes::Spikes;
 use crate::synapse::{Synapse, SynapticPotential};
+use crate::synapse::matrix_synapse::MatrixSynapse;
 
 use ndarray::{Array1, Array};
 
 use std::collections::HashMap;
+use std::convert::From;
 
 
 /// NOTE: connections are stored as from->to, that is,
@@ -43,11 +45,26 @@ impl LinearSynapse {
     }
 }
 
+impl From<MatrixSynapse> for LinearSynapse {
+    fn from(item: MatrixSynapse) -> LinearSynapse {
+        let mut connections: HashMap<usize, Vec<(usize, f32)>> = HashMap::new();
+
+        for (from_neuron, weights) in item.weights.t().outer_iter().enumerate() {
+            for (to_neuron, w) in weights.iter().enumerate() {
+                connections.entry(from_neuron).or_insert(Vec::new()).push((to_neuron, *w));
+            }
+        }
+
+        LinearSynapse::new(connections, item.neuron_type)
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    use ndarray::array;
+    use ndarray::{array, Array2};
 
     #[test]
     fn test_linear_synapse() {
@@ -77,5 +94,28 @@ mod tests {
         let output = s.step(&input);
 
         assert_eq!(output, array![-1.0, 1.0, 0.5]);
+    }
+
+    #[test]
+    fn test_from_matrix_synapse() {
+        let weights: Array2<f32> = array![[0.0, 2.0, 1.0],
+                                          [1.0, 0.0, 0.0],
+                                          [0.5, 0.8, 0.0]];
+
+        let neuron_type: Array1<f32> = array![1.0, 1.0, -1.0];
+
+        let firing_state: Array1<bool> = array![true, false, true];
+
+        let input = Spikes {
+            data: firing_state
+        };
+
+        let mut matrix_synapse = MatrixSynapse::new(weights, neuron_type);
+        let matrix_output = matrix_synapse.step(&input);
+
+        let mut linear_synapse = LinearSynapse::from(matrix_synapse);
+        let linear_output = linear_synapse.step(&input);
+
+        assert_eq!(linear_output, matrix_output);
     }
 }

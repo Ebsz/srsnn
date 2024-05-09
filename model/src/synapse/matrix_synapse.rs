@@ -11,8 +11,8 @@ use std::fmt;
 /// neuron_type is a vector of length N, where entry i is -1 if
 /// neuron i is inhibitory, or 1 if it is excitatory.
 pub struct MatrixSynapse {
-    weights: Array2<f32>,
-    neuron_type: Array1<f32>,
+    pub weights: Array2<f32>,
+    pub neuron_type: Array1<f32>,
 }
 
 impl Synapse for MatrixSynapse {
