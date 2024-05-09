@@ -41,6 +41,9 @@ pub mod synapse_gen {
 
         let mut connections: HashMap<usize, Vec<(usize, f32)>> = HashMap::new();
 
+        // NOTE: Temporary, this will be changed
+        let neuron_type: Array1<f32> = Array::zeros(n);
+
         for i in 0..n {
             for j in 0..n {
                 if i == j {
@@ -55,6 +58,6 @@ pub mod synapse_gen {
             }
         }
 
-        LinearSynapse::new(connections)
+        LinearSynapse::new(connections, neuron_type)
     }
 }
