@@ -1,5 +1,4 @@
-//! Representations are low-level containers for synaptic connections between neurons
-//! that all other types of synapse are derived from.
+//! Representations are low-level containers for synaptic connections between neurons.
 //!
 
 use crate::spikes::Spikes;
@@ -15,17 +14,46 @@ use std::convert::From;
 /// neuron i is inhibitory, or 1.0 if it is excitatory.
 type NeuronType = Array1<f32>;
 
+pub trait SynapseRepresentation {
+    fn step(&mut self, input: &Spikes) -> SynapticPotential;
+
+    fn neuron_count(&self) -> usize;
+    fn connection_count(&self) -> usize;
+}
 
 pub enum Representation {
     Matrix(MatrixRepresentation),
-    Map(MapRepresentation)
+    Map(MapRepresentation),
 }
 
-pub trait SynapseRepresentation {
-    fn step(&mut self, input: &Spikes) -> SynapticPotential;
+
+// Manually implement dynamic dispatch for SynapseRepresentation
+// TODO: This should be rewritten using dyn, but this works for now.
+impl Representation {
+    pub fn step(&mut self, input: &Spikes) -> SynapticPotential {
+        match self {
+            Self::Matrix(m) => {m.step(input)},
+            Self::Map(m) => {m.step(input)},
+        }
+    }
+
+    fn neuron_count(&self) -> usize {
+        match self {
+            Self::Matrix(m) => {m.neuron_count()},
+            Self::Map(m) => {m.neuron_count()},
+        }
+    }
+
+    fn connection_count(&self) -> usize {
+        match self {
+            Self::Matrix(m) => {m.connection_count()},
+            Self::Map(m) => {m.connection_count()},
+        }
+    }
 }
 
-/// NOTE: Connections are stored as from->to;
+
+/// Connections are stored in a HashMap as from->to;
 /// that is, connections[i] contains weights of the neurons that neuron i projects TO.
 pub struct MapRepresentation {
     connections: HashMap<usize, Vec<(usize, f32)>>,
@@ -46,6 +74,14 @@ impl SynapseRepresentation for MapRepresentation {
         }
 
         output
+    }
+
+    fn neuron_count(&self) -> usize {
+        self.neuron_type.len()
+    }
+
+    fn connection_count(&self) -> usize {
+        self.connections.iter().fold(0usize, |acc, c| acc + c.1.len())
     }
 }
 
@@ -72,7 +108,6 @@ impl From<&MatrixRepresentation> for MapRepresentation {
     }
 }
 
-
 /// Connections betweenN neurons represented by an NXN matrix.
 ///
 /// This means that entry W_jk is the weight from neuron k to neuron j
@@ -88,6 +123,14 @@ impl SynapseRepresentation for MatrixRepresentation {
 
         self.weights.dot(&ns)
     }
+
+    fn neuron_count(&self) -> usize {
+        self.weights.shape()[0]
+    }
+
+    fn connection_count(&self) -> usize {
+        self.weights.iter().fold(0usize, |acc, &x| if x != 0.0 {acc + 1} else {acc})
+    }
 }
 
 impl MatrixRepresentation {
@@ -100,15 +143,6 @@ impl MatrixRepresentation {
         }
     }
 
-    /// Number of neurons
-    pub fn neuron_count(&self) -> usize {
-        self.weights.shape()[0]
-    }
-
-    /// Number of connections
-    pub fn connection_count(&self) -> usize {
-        self.weights.iter().fold(0usize, |acc, &x| if x != 0.0 {acc + 1} else {acc})
-    }
 
     /// % of connections of all possible
     pub fn density(&self) -> f32 {

@@ -19,8 +19,21 @@ pub struct BaseSynapse {
     representation: Representation
 }
 
+impl Synapse for BaseSynapse {
+    fn step(&mut self, input: &Spikes) -> SynapticPotential {
+        self.representation.step(input)
+    }
+}
+
+
 impl BaseSynapse {
-    pub fn new(weights: Array2<f32>, neuron_type: Array1<f32>) -> BaseSynapse {
+    pub fn new(representation: Representation) -> BaseSynapse {
+        BaseSynapse {
+            representation
+        }
+    }
+
+    pub fn matrix_repr(weights: Array2<f32>, neuron_type: Array1<f32>) -> BaseSynapse {
         BaseSynapse {
             representation: Representation::Matrix(MatrixRepresentation::new(weights, neuron_type))
         }
@@ -29,6 +42,7 @@ impl BaseSynapse {
     fn to_map_representation(&mut self) {
         self.representation = match &self.representation {
             Representation::Matrix(m) => { Representation::Map(MapRepresentation::from(m)) },
+            Representation::Map(_) => {panic!("Synapse is already  map representation"); },
             _ => {panic!("Could not convert synapse to map representation");}
         };
     }
