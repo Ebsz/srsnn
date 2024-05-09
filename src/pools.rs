@@ -48,7 +48,11 @@ impl Pool<MatrixSynapse> {
 impl Pool<LinearSynapse> {
     pub fn linear_pool(n: usize, p: f32) -> Pool<LinearSynapse> {
         let izh = Izhikevich::default(n);
-        let synapse = synapse_gen::linear_from_probability(n, p);
+
+        // TODO: add inhibitory_fraction param
+        let inhibitory = Array::zeros(n).mapv(|_: u32| false);
+
+        let synapse = synapse_gen::linear_from_probability(n, p, inhibitory);
 
         Pool {
             neurons: izh,

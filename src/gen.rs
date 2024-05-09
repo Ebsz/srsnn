@@ -36,13 +36,12 @@ pub mod synapse_gen {
             synapses
     }
 
-    pub fn linear_from_probability(n: usize, p: f32) -> LinearSynapse {
+    pub fn linear_from_probability(n: usize, p: f32, inhibitory: Array1<bool>) -> LinearSynapse {
         assert!(p > 0.0 && p < 1.0);
 
         let mut connections: HashMap<usize, Vec<(usize, f32)>> = HashMap::new();
 
-        // NOTE: Temporary, this will be changed
-        let neuron_type: Array1<f32> = Array::zeros(n);
+        let neuron_type: Array1<f32> = inhibitory.mapv(|i| if i {-1.0} else {1.0});
 
         for i in 0..n {
             for j in 0..n {
