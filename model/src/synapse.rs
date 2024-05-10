@@ -1,4 +1,3 @@
-pub mod matrix_synapse;
 pub mod representation;
 
 use crate::spikes::Spikes;

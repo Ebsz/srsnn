@@ -4,7 +4,6 @@ use model::spikes::Spikes;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::{Synapse, BaseSynapse};
 use model::synapse::representation::MatrixRepresentation;
-use model::synapse::matrix_synapse::MatrixSynapse;
 use model::record::{Record, RecordType, RecordDataType};
 
 use evolution::EvolutionEnvironment;
@@ -37,7 +36,7 @@ impl<N: Network> Phenotype<N> {
     }
 
     fn task_output_to_network_input(&self, output: TaskOutput) -> Spikes {
-        // Ensures that the sensor input is boolean
+        // Ensure that the sensor input is boolean
         let task_data: Array1<bool> = output.data.mapv(|x| if x != 0.0 { true } else { false });
 
         let mut network_input = Spikes::new(self.network_inputs);
@@ -87,7 +86,7 @@ pub trait EvolvableGenome: Genome + Sized {
 }
 
 impl EvolvableGenome for MatrixGenome {
-    type Phenotype = Phenotype<RunnableNetwork<Izhikevich, MatrixSynapse>>;
+    type Phenotype = Phenotype<RunnableNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
 
     fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
         let network_size = self.network_size();
@@ -99,7 +98,8 @@ impl EvolvableGenome for MatrixGenome {
         //let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
         //let synapse = BaseSynapse::new(synapse_representation);
 
-        let synapse = MatrixSynapse::new(synapse_matrix, neuron_types);
+        let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
+        let synapse = BaseSynapse::new(synapse_representation);
 
         let model = Izhikevich::default(network_size);
 

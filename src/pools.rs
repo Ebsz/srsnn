@@ -4,7 +4,6 @@ use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::{BaseSynapse, Synapse};
 use model::synapse::representation::{MapRepresentation, MatrixRepresentation};
-use model::synapse::matrix_synapse::MatrixSynapse;
 use model::network::Network;
 
 use crate::gen::synapse_gen;
@@ -27,7 +26,7 @@ impl<S: Synapse> Network<Izhikevich, S> for Pool<S> {
     }
 }
 
-impl Pool<MatrixSynapse> {
+impl Pool<BaseSynapse<MatrixRepresentation>> {
     pub fn new(n: usize, p: f32, inhibitory_fraction: f32) -> Pool<BaseSynapse<MatrixRepresentation>> {
         let model = Izhikevich::default(n);
 
