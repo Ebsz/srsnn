@@ -49,11 +49,19 @@ impl From<&BaseSynapse<MatrixRepresentation>> for BaseSynapse<MapRepresentation>
 
 #[test]
 fn test_create_and_step_base_synapse() {
-    let a = ndarray::array![[1.0, 2.0],[3.0,4.0]];
-
-    let mut m: BaseSynapse<MatrixRepresentation> =
-        BaseSynapse::<MatrixRepresentation>::from_matrix(a, ndarray::Array::zeros(2));
-
+    let m = ndarray::array![[1.0, 2.0],[3.0,4.0]];
     let mut input = Spikes::new(2);
-    let k = m.step(&input);
+
+    let mut a: BaseSynapse<MatrixRepresentation> =
+        BaseSynapse::<MatrixRepresentation>::from_matrix(m, ndarray::Array::zeros(2));
+
+    let a_out = a.step(&input);
+
+    let mut b: BaseSynapse<MapRepresentation> =
+        BaseSynapse::<MapRepresentation>::from(&a);
+
+    let b_out = b.step(&input);
+
+    assert_eq!(a_out, b_out);
+
 }
