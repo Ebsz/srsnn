@@ -21,6 +21,10 @@ impl Synapse for MatrixSynapse {
 
         self.weights.dot(&ns)
     }
+
+    fn neuron_count(&self) -> usize {
+        self.weights.shape()[0]
+    }
 }
 
 impl MatrixSynapse {
@@ -33,10 +37,6 @@ impl MatrixSynapse {
         }
     }
 
-    /// Number of neurons
-    pub fn neuron_count(&self) -> usize {
-        self.weights.shape()[0]
-    }
 
     /// Number of connections
     pub fn connection_count(&self) -> usize {

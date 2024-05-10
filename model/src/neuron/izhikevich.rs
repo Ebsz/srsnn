@@ -4,30 +4,59 @@ use crate::neuron::NeuronModel;
 use crate::spikes::Spikes;
 
 
+/*
+ * The Izhikevich model captures the dynamics of neurons in a computationally feasible way,
+ * and is described by the equations
+ *
+ *      dv/dt = 0.04 * v^2 + 5v + 140 -u + I
+ *      du/dt = a(bv - u)
+ *
+ * and parameters a, b, c, d
+ *
+ * A neuron fires if v >= 30. Upon firing, the neuron is reset according to
+ *
+ *      v = c
+ *      u = u + d
+ */
 pub struct Izhikevich {
+    v: Array1<f32>,
+    u: Array1<f32>,
+
     a: Array1<f32>,
     b: Array1<f32>,
     c: Array1<f32>,
     d: Array1<f32>,
-    v: Array1<f32>,
-    u: Array1<f32>,
 }
 
+//pub struct IzhikevichParameters {
+//    a: Array1<f32>,
+//    b: Array1<f32>,
+//    c: Array1<f32>,
+//    d: Array1<f32>,
+//}
+//
+//impl IzhikevichParameters {
+//    fn n_default(n: usize) {
+//
+//    }
+//}
+//
+//impl Default for IzhikevichParameters {
+//
+//    fn default() -> Self {
+//        const DEFAULT_PARAMS: Array1<f32> = vec!(0.02, 0.2, -65.0, 2.0);
+//
+//        IzhikevichParameters {
+//            a: array!(
+//
+//        }
+//    }
+//}
+
+
 impl NeuronModel for Izhikevich {
-    /*
-     * The Izhikevich model captures the dynamics of neurons in a computationally feasible way,
-     * and is described by the equations
-     *
-     *      dv/dt = 0.04 * v^2 + 5v + 140 -u + I
-     *      du/dt = a(bv - u)
-     *
-     * and parameters a, b, c, d
-     *
-     * A neuron fires if v >= 30. Upon firing, the neuron is reset according to
-     *
-     *      v = c
-     *      u = u + d
-     */
+    //type Parameters = IzhikevichParameters;
+
 
     fn step(&mut self, input: Array1<f32>) -> Spikes {
         assert!(input.shape()[0] == self.v.shape()[0]);
@@ -51,6 +80,12 @@ impl NeuronModel for Izhikevich {
         Spikes {
             data: self.v.mapv(|i| if i >= Self::THRESHOLD { true } else { false })
         }
+    }
+
+    /// Reset all neurons to their initial state
+    fn reset(&mut self) {
+        self.v = self.c.to_owned();
+        self.u = (&self.b * &self.v).to_owned();
     }
 
     fn potentials(&self) -> Array1<f32> {
@@ -84,18 +119,6 @@ impl Izhikevich {
         }
     }
 
-    /// Reset all neurons to their initial state
-    pub fn initialize(&mut self) {
-        self.v = self.c.to_owned();
-        self.u = (&self.b * &self.v).to_owned();
-    }
-
-    pub fn default(n: usize) -> Izhikevich {
-        let izh_default: Vec<f32> = vec!(0.02, 0.2, -65.0, 2.0);
-        let params: Array2<f32> = Array::from_shape_fn((n,4), |(_,j)| izh_default[j]);
-
-        Self::new(n, params)
-    }
 
     fn reset(&mut self) {
         /*
@@ -109,6 +132,15 @@ impl Izhikevich {
                 *&mut self.u[i] = self.u[i] + self.d[i];
             }
         }
+    }
+
+    pub fn default(n: usize) -> Izhikevich {
+        let izh_default: Vec<f32> = vec!(0.02, 0.2, -65.0, 2.0);
+        let param_data: Array2<f32> = Array::from_shape_fn((n,4), |(_,j)| izh_default[j]);
+
+        //let params = IzhikevichParameters {params: param_data},
+
+        Self::new(n, param_data)
     }
 }
 

@@ -1,11 +1,9 @@
 use crate::network::RunnableNetwork;
 
-use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::{Synapse, BaseSynapse};
 use model::synapse::representation::MatrixRepresentation;
 use model::synapse::matrix_synapse::MatrixSynapse;
-use model::spikes::Spikes;
 use model::record::{Record, RecordType, RecordDataType};
 
 use evolution::EvolutionEnvironment;
@@ -15,10 +13,7 @@ use evolution::genome::matrix_genome::MatrixGenome;
 use tasks::{TaskInput, TaskOutput};
 use tasks::task_runner::Runnable;
 
-use utils::random;
-
 use ndarray::{s, Array, Array1, Array2};
-use rand::distributions::Uniform;
 
 
 //TODO: Rename this to reflect that being phenotypeable is the focus

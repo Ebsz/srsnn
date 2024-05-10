@@ -6,14 +6,24 @@ use crate::record::{Record, RecordType, RecordDataType};
 use ndarray::{s, Array1, Array2};
 use std::time::Instant;
 
-
 // Output of a neuron is multiplied by this; determines the impact of a single spike.
 const SYNAPTIC_INPUT_SCALING: f32 = 15.0;
 
+//struct NetworkInput {
+//
+//}
 
-/// A network contains a neurons of a specific model N that are
+
+/// A network contains neurons of a specific model N that are
 /// connected via a specific type of synapse S
 pub trait Network<N: NeuronModel, S: Synapse> {
+    fn step(&mut self, input: Array1<f32>, state: Spikes) -> Spikes {
+        let synaptic_input = self.synapse().step(&state) * SYNAPTIC_INPUT_SCALING;
+
+        let step_input = synaptic_input + &input;
+
+        self.model().step(step_input)
+    }
 
     /// Run the network on pre-defined input
     fn run(&mut self, steps: usize, input: &Array2<f32>) -> Record {
@@ -39,37 +49,6 @@ pub trait Network<N: NeuronModel, S: Synapse> {
         record
     }
 
-    fn step(&mut self, input: Array1<f32>, state: Spikes) -> Spikes {
-        let synaptic_input = self.synapse().step(&state) * SYNAPTIC_INPUT_SCALING;
-
-        let step_input = synaptic_input + &input;
-
-        self.model().step(step_input)
-    }
-
     fn model(&mut self) -> &mut N; // Rename to neuron
     fn synapse(&mut self) -> &mut S;
-}
-
-
-
-struct SpikingNetwork<N: NeuronModel, S: Synapse> {
-    network_state: Spikes,
-    neuron: N,
-    synapse: S,
-}
-
-impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
-    fn new(neuron: N, synapse: S) -> SpikingNetwork<N,S> {
-
-        SpikingNetwork {
-            network_state: Spikes::new(),
-            neuron,
-            synapse
-        }
-    }
-
-    fn step(&mut self) {
-
-    }
 }

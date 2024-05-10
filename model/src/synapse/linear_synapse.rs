@@ -34,6 +34,10 @@ impl Synapse for LinearSynapse {
 
         output
     }
+
+    fn neuron_count(&self) -> usize {
+        self.neuron_type.len()
+    }
 }
 
 impl LinearSynapse {

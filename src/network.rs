@@ -1,9 +1,6 @@
-use model::neuron::NeuronModel;
-use model::neuron::izhikevich::Izhikevich;
-use model::synapse::{Synapse, BaseSynapse};
-use model::synapse::representation::MatrixRepresentation;
-use model::synapse::matrix_synapse::MatrixSynapse;
 use model::spikes::Spikes;
+use model::neuron::NeuronModel;
+use model::synapse::Synapse;
 use model::record::{Record, RecordType, RecordDataType};
 
 use tasks::{TaskInput, TaskOutput};

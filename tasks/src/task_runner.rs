@@ -2,8 +2,6 @@
 
 use crate::{Task, TaskInput, TaskOutput};
 
-use ndarray::Array1;
-
 
 #[derive(PartialEq)]
 pub enum ExecutionState {

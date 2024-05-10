@@ -21,38 +21,6 @@ pub trait SynapseRepresentation {
     fn connection_count(&self) -> usize;
 }
 
-pub enum Representation {
-    Matrix(MatrixRepresentation),
-    Map(MapRepresentation),
-}
-
-
-// Manually implement dynamic dispatch for SynapseRepresentation
-// TODO: This should be rewritten using dyn, but this works for now.
-impl Representation {
-    pub fn step(&mut self, input: &Spikes) -> SynapticPotential {
-        match self {
-            Self::Matrix(m) => {m.step(input)},
-            Self::Map(m) => {m.step(input)},
-        }
-    }
-
-    fn neuron_count(&self) -> usize {
-        match self {
-            Self::Matrix(m) => {m.neuron_count()},
-            Self::Map(m) => {m.neuron_count()},
-        }
-    }
-
-    fn connection_count(&self) -> usize {
-        match self {
-            Self::Matrix(m) => {m.connection_count()},
-            Self::Map(m) => {m.connection_count()},
-        }
-    }
-}
-
-
 /// Connections are stored in a HashMap as from->to;
 /// that is, connections[i] contains weights of the neurons that neuron i projects TO.
 pub struct MapRepresentation {
