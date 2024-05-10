@@ -1,5 +1,4 @@
-use crate::network::{Network, RunnableNetwork};
-
+use model::network::{Network, BaseNetwork};
 use model::spikes::Spikes;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::{Synapse, BaseSynapse};
@@ -86,7 +85,7 @@ pub trait EvolvableGenome: Genome + Sized {
 }
 
 impl EvolvableGenome for MatrixGenome {
-    type Phenotype = Phenotype<RunnableNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
+    type Phenotype = Phenotype<BaseNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
 
     fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
         let network_size = self.network_size();
@@ -103,7 +102,7 @@ impl EvolvableGenome for MatrixGenome {
 
         let model = Izhikevich::default(network_size);
 
-        let network = RunnableNetwork::new(model, synapse, env.inputs, env.outputs);
+        let network = BaseNetwork::new(model, synapse, env.inputs, env.outputs);
 
         Phenotype::new(network, env.clone())
     }

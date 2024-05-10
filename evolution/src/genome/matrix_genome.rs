@@ -16,7 +16,6 @@ use serde::Deserialize;
 /// M is the number of inputs.
 ///
 /// Network neurons have id's [0..MAX_NEURONS]; inputs have ID's [MAX_NEURONS..size].
-///
 #[derive(Clone, Debug)]
 pub struct MatrixGenome {
     pub neurons: Vec<NeuronGene>,
@@ -180,9 +179,7 @@ impl Genome for MatrixGenome {
             connections: connection_matrix,
         }
     }
-
 }
-
 
 
 impl MatrixGenome {

@@ -4,7 +4,7 @@ use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::{BaseSynapse, Synapse};
 use model::synapse::representation::{MapRepresentation, MatrixRepresentation};
-use model::network::Network;
+use model::network::RunnableNetwork;
 
 use crate::gen::synapse_gen;
 
@@ -16,7 +16,7 @@ pub struct Pool<S: Synapse> {
     synapse: S
 }
 
-impl<S: Synapse> Network<Izhikevich, S> for Pool<S> {
+impl<S: Synapse> RunnableNetwork<Izhikevich, S> for Pool<S> {
     fn model(&mut self) -> &mut Izhikevich {
         &mut self.neurons
     }

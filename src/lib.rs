@@ -1,5 +1,4 @@
 pub mod pools;
-pub mod network;
 pub mod config;
 pub mod eval;
 pub mod visual;
