@@ -9,10 +9,6 @@ use std::time::Instant;
 // Output of a neuron is multiplied by this; determines the impact of a single spike.
 const SYNAPTIC_INPUT_SCALING: f32 = 15.0;
 
-//struct NetworkInput {
-//
-//}
-
 
 /// A network contains neurons of a specific model N that are
 /// connected via a specific type of synapse S

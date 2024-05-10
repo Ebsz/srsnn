@@ -3,9 +3,6 @@ use model::neuron::NeuronModel;
 use model::synapse::Synapse;
 use model::record::{Record, RecordType, RecordDataType};
 
-use tasks::{TaskInput, TaskOutput};
-use tasks::task_runner::Runnable;
-
 use utils::random;
 
 use ndarray::{s, Array, Array1, Array2};
@@ -14,6 +11,10 @@ use rand::distributions::Uniform;
 
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0;
 const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
+
+pub trait Network {
+    fn step(&mut self, input: Spikes) -> Spikes;
+}
 
 pub struct RunnableNetwork<N: NeuronModel, S: Synapse> {
     pub neurons: N,
@@ -24,7 +25,6 @@ pub struct RunnableNetwork<N: NeuronModel, S: Synapse> {
     pub record: Record,
     pub recording: bool,
 
-    synapse_spikes: Spikes,
     network_state: Spikes,
 
     // Optional energy input
@@ -32,10 +32,14 @@ pub struct RunnableNetwork<N: NeuronModel, S: Synapse> {
     random_firing: bool
 }
 
-impl<N: NeuronModel, S: Synapse> Runnable for RunnableNetwork<N, S> {
-    fn step(&mut self, task_output: TaskOutput) -> Vec<TaskInput> {
-        self.get_synapse_spikes(task_output.data);
-        let synaptic_input = self.synapse.step(&self.synapse_spikes) * SYNAPTIC_INPUT_SCALING;
+impl<N: NeuronModel, S: Synapse> Network for RunnableNetwork<N, S> {
+    fn step(&mut self, input: Spikes) -> Spikes {
+        assert!(input.len() == self.inputs);
+
+        let full_network_state = self.get_full_network_state(input);
+        assert!(full_network_state.len() == self.synapse.neuron_count());
+
+        let synaptic_input = self.synapse.step(&full_network_state) * SYNAPTIC_INPUT_SCALING;
 
         let network_input = self.get_network_input(&synaptic_input);
         self.network_state = self.neurons.step(network_input);
@@ -49,11 +53,7 @@ impl<N: NeuronModel, S: Synapse> Runnable for RunnableNetwork<N, S> {
             self.record.log(RecordType::Spikes, RecordDataType::Spikes(self.network_state.as_float()));
         }
 
-        self.task_input()
-    }
-
-    fn reset(&mut self) {
-        self.neurons.reset();
+        self.network_state.clone()
     }
 }
 
@@ -62,7 +62,6 @@ impl<N: NeuronModel, S: Synapse> RunnableNetwork<N, S> {
         let noise_input = None;
         let random_firing = false;
 
-        let synapse_size = synapse.neuron_count();
         let network_size = neurons.len();
 
         RunnableNetwork {
@@ -71,7 +70,6 @@ impl<N: NeuronModel, S: Synapse> RunnableNetwork<N, S> {
             inputs,
             outputs,
 
-            synapse_spikes: Spikes::new(synapse_size),
             network_state: Spikes::new(network_size),
 
             noise_input,
@@ -82,14 +80,15 @@ impl<N: NeuronModel, S: Synapse> RunnableNetwork<N, S> {
         }
     }
 
-    fn get_synapse_spikes(&mut self, sensors: Array1<f32>) {
-        // Read sensor data
-        // NOTE: Ensures that the sensor input is boolean. This should be done elsewhere
-        let sensor_data: Array1<bool> = sensors.mapv(|x| if x != 0.0 { true } else { false });
+    /// Get network state including the spikes from input neurons
+    fn get_full_network_state(&mut self, input: Spikes) -> Spikes {
+        let mut state = Spikes::new(self.synapse.neuron_count());
 
-        // Assign sensor input and previous state to the the spike input for synapses
-        self.synapse_spikes.data.slice_mut(s![(-(self.inputs as i32))..]).assign(&sensor_data);
-        self.synapse_spikes.data.slice_mut(s![0..self.neurons.len()]).assign(&self.network_state.data);
+        // Add network state
+        state.data.slice_mut(s![(-(self.inputs as i32))..]).assign(&input.data);
+        state.data.slice_mut(s![0..self.neurons.len()]).assign(&self.network_state.data);
+
+        state
     }
 
     fn get_network_input(&mut self, synaptic_input: &Array1<f32>) -> Array1<f32> {
@@ -101,21 +100,6 @@ impl<N: NeuronModel, S: Synapse> RunnableNetwork<N, S> {
         }
 
         network_input
-    }
-
-    fn task_input(&mut self) -> Vec<TaskInput> {
-        let mut task_inputs: Vec<TaskInput> = Vec::new();
-
-        // Parse the firing state of output neurons to commands
-        for i in 0..self.outputs {
-            // TODO: unnecessary cast; make phenotype.outputs be usize
-            // If the neurons assigned to be output fire, add the corresponding input
-            if self.network_state.data[i as usize] {
-                task_inputs.push(TaskInput { input_id: i as i32});
-            }
-        }
-
-        task_inputs
     }
 
     fn add_random_output_firing(&mut self) {

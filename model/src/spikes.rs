@@ -1,7 +1,7 @@
 use ndarray::{Array, Array1};
 
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Spikes {
     pub data: Array1<bool>
 }
