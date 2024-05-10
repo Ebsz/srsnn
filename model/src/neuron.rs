@@ -7,7 +7,7 @@ use ndarray::Array1;
 
 /// Defines a model of a neuron
 pub trait NeuronModel {
-    //type Parameters;
+    type Parameters;
 
     fn step(&mut self, input: Array1<f32>) -> Spikes;
     fn reset(&mut self);
@@ -18,7 +18,6 @@ pub trait NeuronModel {
     fn len(&self) -> usize {
         self.potentials().shape()[0]
     }
-
 }
 
 
