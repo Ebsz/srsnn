@@ -3,7 +3,7 @@
 use luna::eval::TaskEvaluator;
 use luna::phenotype::EvolvableGenome;
 
-use luna::visual::plots::generate_plots;
+use luna::visual::plots::{plot_evolution_stats, generate_plots};
 use luna::visual::visualize_genome_on_task;
 use luna::config::{get_config, genome_config, MainConfig};
 
@@ -67,6 +67,8 @@ impl EvolutionProcess {
         init_ctrl_c_handler(population.stop_signal.clone());
 
         let evolved_genome = population.evolve();
+
+        plot_evolution_stats(&population.stats);
 
         //let task = T::new(&T::eval_setups()[0]);
         //visualize_genome_on_task(task, evolved_genome, &env);

@@ -13,6 +13,7 @@
 pub mod genome;
 pub mod config;
 pub mod population;
+pub mod stats;
 
 use genome::Genome;
 

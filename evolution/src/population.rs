@@ -2,6 +2,7 @@ use crate::genome::Genome;
 
 use crate::{Evaluate, EvolutionEnvironment};
 use crate::config::EvolutionConfig;
+use crate::stats::EvolutionStatistics;
 
 use utils::random;
 
@@ -15,6 +16,7 @@ use std::sync::Arc;
 pub struct Population<E: Evaluate<G>, G: Genome> {
     pub generation: u32,
     pub stop_signal: Arc<AtomicBool>,
+    pub stats: EvolutionStatistics,
 
     population: HashMap<u32, G>,
     environment: EvolutionEnvironment,
@@ -23,7 +25,7 @@ pub struct Population<E: Evaluate<G>, G: Genome> {
     genome_config: G::Config,
     genome_num: u32, // TODO: Find new name for this yo
                      //
-    evaluator: E // TODO: Figure out if this should just be injected instead.
+    evaluator: E, // TODO: Figure out if this should just be injected instead.
 }
 
 impl<E: Evaluate<G>, G: Genome> Population<E, G> {
@@ -50,7 +52,8 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
             config,
             genome_config,
 
-            evaluator
+            evaluator,
+            stats: EvolutionStatistics::new()
         }
     }
 
@@ -66,12 +69,7 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
             fitness.sort_by(|x,y| y.1.partial_cmp(&x.1).unwrap());
 
             let eval_time = start_time.elapsed().as_secs_f32();
-            let mean_fitness: f32 = fitness.iter().map(|(_, f)| f).sum::<f32>() / fitness.len() as f32;
-
-            log::trace!("Evaluated population in {}s ({}s per genome)",
-                eval_time, eval_time / self.config.population_size as f32 );
-            log::info!("Generation {} - best fit: {}, mean: {}",
-                self.generation, fitness[0].1, mean_fitness);
+            self.log_generation(&fitness, eval_time);
 
             if self.should_stop(&fitness) {
                 break;
@@ -174,5 +172,17 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
         }
 
         false
+    }
+
+    fn log_generation(&mut self, sorted_fitness: &Vec<(u32, f32)>, eval_time: f32) {
+        let mean_fitness: f32 = sorted_fitness.iter().map(|(_, f)| f).sum::<f32>() / sorted_fitness.len() as f32;
+        let best_fitness: f32 = sorted_fitness[0].1;
+
+        log::trace!("Evaluated population in {}s ({}s per genome)",
+            eval_time, eval_time / self.config.population_size as f32 );
+        log::info!("Generation {} - best fit: {}, mean: {}",
+            self.generation, best_fitness, mean_fitness);
+
+        self.stats.log_generation(best_fitness, mean_fitness);
     }
 }

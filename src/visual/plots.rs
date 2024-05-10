@@ -3,6 +3,8 @@ use plotters::prelude::*;
 use ndarray::Array1;
 use model::record::{Record, RecordType, RecordDataType};
 
+use evolution::stats::EvolutionStatistics;
+
 pub fn generate_plots(record: &Record) {
     // Potentials
     let single_pot = record.get_potentials().iter().map(|x| x[0]).collect();
@@ -31,8 +33,15 @@ pub fn generate_plots(record: &Record) {
     }
 }
 
+pub fn plot_evolution_stats(stats: &EvolutionStatistics) {
+    log::info!("Plotting evolution stats");
+
+    let _ = plot_single_variable(stats.generation_best_fitness.clone(), "Generation best", "Evolution", "evolution_best.png", &BLUE);
+    let _ = plot_single_variable(stats.generation_mean_fitness.clone(), "Generation mean", "Evolution", "evolution_mean.png", &BLUE);
+}
+
 pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {
-    plot_single_variable(energy, "Energy", "Energy", "energy.png",&RED)
+    plot_single_variable(energy, "Energy", "Energy", "energy.png", &RED)
 }
 
 pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {

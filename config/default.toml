@@ -1,7 +1,6 @@
 task = "catching"
 genome = "matrix"
 
-
 [evolution]
 population_size =  50
 parent_fraction =  0.3
