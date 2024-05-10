@@ -1,5 +1,4 @@
 pub mod matrix_synapse;
-pub mod linear_synapse;
 pub mod representation;
 
 use crate::spikes::Spikes;
@@ -16,7 +15,7 @@ pub trait Synapse {
 }
 
 pub struct BaseSynapse<R: SynapseRepresentation> {
-    representation: R
+    pub representation: R
 }
 
 impl<R: SynapseRepresentation> Synapse for BaseSynapse<R> {
@@ -41,14 +40,6 @@ impl<R: SynapseRepresentation> BaseSynapse<R> {
             representation: MatrixRepresentation::new(weights, neuron_type)
         }
     }
-
-    //fn to_map_representation(&mut self) {
-    //    self.representation = match &self.representation {
-    //        Representation::Matrix(m) => { Representation::Map(MapRepresentation::from(m)) },
-    //        Representation::Map(_) => {panic!("Synapse is already  map representation"); },
-    //        _ => {panic!("Could not convert synapse to map representation");}
-    //    };
-    //}
 }
 
 impl From<&BaseSynapse<MatrixRepresentation>> for BaseSynapse<MapRepresentation> {

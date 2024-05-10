@@ -2,9 +2,9 @@
 
 use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
-use model::synapse::Synapse;
+use model::synapse::{BaseSynapse, Synapse};
+use model::synapse::representation::{MapRepresentation, MatrixRepresentation};
 use model::synapse::matrix_synapse::MatrixSynapse;
-use model::synapse::linear_synapse::LinearSynapse;
 use model::network::Network;
 
 use crate::gen::synapse_gen;
@@ -28,7 +28,7 @@ impl<S: Synapse> Network<Izhikevich, S> for Pool<S> {
 }
 
 impl Pool<MatrixSynapse> {
-    pub fn new(n: usize, p: f32, inhibitory_fraction: f32) -> Pool<MatrixSynapse> {
+    pub fn new(n: usize, p: f32, inhibitory_fraction: f32) -> Pool<BaseSynapse<MatrixRepresentation>> {
         let model = Izhikevich::default(n);
 
         let k = (n as f32 * inhibitory_fraction ) as usize;
@@ -45,8 +45,8 @@ impl Pool<MatrixSynapse> {
     }
 }
 
-impl Pool<LinearSynapse> {
-    pub fn linear_pool(n: usize, p: f32) -> Pool<LinearSynapse> {
+impl Pool<BaseSynapse<MapRepresentation>> {
+    pub fn linear_pool(n: usize, p: f32) -> Pool<BaseSynapse<MapRepresentation>> {
         let izh = Izhikevich::default(n);
 
         // TODO: add inhibitory_fraction param

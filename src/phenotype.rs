@@ -76,7 +76,7 @@ impl<N: Network> Runnable for Phenotype<N> {
     }
 
     fn reset(&mut self) {
-        //TODO: Implement?
+        //TODO: Add reset fn to network trait and implement
     }
 }
 
