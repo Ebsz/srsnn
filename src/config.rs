@@ -79,7 +79,6 @@ pub fn get_config(config_name: Option<String>) -> MainConfig {
 pub fn genome_config<G: Genome>() -> G::Config {
     let config = CONFIG.with(|c| c.borrow().clone()).unwrap();
 
-
     match config.get::<G::Config>(G::Config::name().as_str()) {
         Ok(c) => c,
         Err(e) => {

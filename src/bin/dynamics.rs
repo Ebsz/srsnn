@@ -59,6 +59,18 @@ fn plot(record: &Record) {
 
 }
 
+//fn plot_psth(record: &Record) {
+//    let potentials: Vec<Array1<f32>> = record.get_potentials();
+//
+//    let spikedata: Array2<f32> = Array::zeros((potentials.len(), potentials[0].shape()[0]));
+//
+//    for (i, p) in potentials.iter().enumerate() {
+//        println!("{:?}, {:?}", p, i);
+//    }
+//
+//    let psth = luna::analysis::to_firing_rate(spikedata);
+//}
+
 /// Iterates a network over a set of network parameters
 /// In a sense, we compute a function from parameter space to state space * time
 fn iterate() {
@@ -87,11 +99,12 @@ fn iterate() {
     if let Some(r) = records.get(&142) {
         plot(&r);
     }
-
 }
+
 
 #[allow(dead_code)]
 fn run() {
+    log::info!("Running network");
     let input = generate_network_input(N, DEFAULT_INPUT_SIZE);
     let mut network = Pool::new(N, P, INHIBITORY_RATIO);
 
@@ -99,12 +112,11 @@ fn run() {
 
     log::info!("Last spike: t={:?}", last_spiketime(&mut record));
 
-
-    let _ = generate_plots(&record);
+    let _ = plot(&record);
 }
 
 fn main() {
     init_logger(None);
-    iterate();
-    //run();
+    //iterate();
+    run();
 }

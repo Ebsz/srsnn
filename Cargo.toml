@@ -12,13 +12,14 @@ plotters = "0.3.3"
 once_cell = "1.19.0"
 log = "0.4.21"
 env_logger = "0.11.3"
-model = {path = "model"}
-evolution = {path = "evolution"}
-tasks = {path = "tasks"}
-utils = {path = "utils"}
 config = "0.14.0"
 serde = "1.0.198"
 ctrlc = "3.4.4"
+model = {path = "model"}
+evolution = {path = "evolution"}
+tasks = {path = "tasks"}
+visual = {path = "visual"}
+utils = {path = "utils"}
 
 [dependencies.sdl2]
 version = "0.36"
@@ -34,4 +35,4 @@ name = "benchmarks"
 harness = false
 
 [workspace]
-members = [ "evolution", "model", "tasks", "utils"]
+members = [ "evolution", "model", "tasks", "utils", "visual" ]

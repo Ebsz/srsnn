@@ -1,9 +1,12 @@
 use plotters::prelude::*;
 
-use ndarray::Array1;
+use visual::plots::plot_single_variable;
+
+use ndarray::{s, Array, Array1, Array2};
 use model::record::{Record, RecordType, RecordDataType};
 
 use evolution::stats::EvolutionStatistics;
+
 
 pub fn generate_plots(record: &Record) {
     // Potentials
@@ -26,11 +29,23 @@ pub fn generate_plots(record: &Record) {
         }
     }
 
-    let plot_ok = plot_spikes(spikedata);
+    let plot_ok = plot_spikes(spikedata.clone());
+
     match plot_ok {
         Ok(_) => (),
         Err(e) => println!("Error creating plot: {:?}", e),
     }
+
+    let mut spike_array: Array2<f32> = Array::zeros((spikedata.len(), spikedata[0].shape()[0]));
+
+    for (i, p) in spikedata.iter().enumerate() {
+        //println!("{:?}, {:?}", i, p);
+        spike_array.slice_mut(s!(i,..)).assign(&p);
+    }
+
+    let psth = crate::analysis::to_firing_rate(spike_array);
+
+    //plot_firing_rates(psth);
 }
 
 pub fn plot_evolution_stats(stats: &EvolutionStatistics) {
@@ -48,45 +63,29 @@ pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn 
     plot_single_variable(potentials, "Potential", "Potentials", "pots.png", &BLACK)
 }
 
-fn plot_single_variable(data: Vec<f32>, description: &str, caption: &str, filename: &str, color: &RGBColor) -> Result<(), Box<dyn std::error::Error>> {
-    let max_x: f32 = data.len() as f32;
-    let min_x: f32 = 0.0;
 
-    let max_y: f32 = data.iter().fold(0.0f32, |acc, &x| if x > acc {x} else {acc});
-    let min_y: f32 = data.iter().fold(0.0f32, |acc, &x| if x < acc {x} else {acc});
+fn plot_firing_rates(data: Array2<f32>) -> Result<(), Box<dyn std::error::Error>> {
+    let filename = "firing_rates.png";
+    //let points = data.iter().map()
+
+    let max_x = data.nrows();
+    let max_y = data.ncols();
 
     let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
     root.fill(&WHITE)?;
 
     let mut chart = ChartBuilder::on(&root)
-        .caption(caption, ("sans-serif", 50).into_font())
+        .caption("Network firing rates", ("sans-serif", 30).into_font())
         .margin(15)
-        .x_label_area_size(30)
-        .y_label_area_size(30)
-        .build_cartesian_2d(min_x..max_x, min_y..max_y)?;
+        .x_label_area_size(20)
+        .y_label_area_size(20)
+        .build_cartesian_2d(0..max_x, 0..max_y)?;
+
 
     chart.configure_mesh().draw()?;
 
-    let series = LineSeries::new(
-        data.iter().enumerate().map(|(i, x)| (i as f32, *x)),
-        color,
-    );
-
-    chart
-        .draw_series(series)?
-        .label(description)
-        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], color));
-
-
-    chart
-        .configure_series_labels()
-        .background_style(&WHITE.mix(0.8))
-        .border_style(&BLACK)
-        .draw()?;
-
-    root.present()?;
-
-    log::info!("Plot saved to {}", filename);
+    //chart.draw_series(
+    //points.iter().map(|p|
 
     Ok(())
 }
