@@ -114,11 +114,8 @@ impl Genome for MatrixGenome {
         }
     }
 
-    /// Return a new Genome that is a mix of two Genomes.
-    ///
     /// The genome is created by iterating over each neuron and selecting
     /// its input connections from one of the genomes at random.
-    ///
     ///
     /// let g = Genome::new();
     fn crossover(&self, other: &MatrixGenome) -> MatrixGenome{

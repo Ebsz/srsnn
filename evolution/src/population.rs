@@ -155,7 +155,15 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
             let g1 = self.population.iter().find(|g| g.id == *id_1).unwrap();
             let g2 = self.population.iter().find(|g| g.id == *id_2).unwrap();
 
-            offspring.push(g1.genome.crossover(&g2.genome));
+            let g: G;
+
+            if g1.fitness > g2.fitness {
+                g = g1.genome.crossover(&g2.genome);
+            } else {
+                g = g2.genome.crossover(&g1.genome);
+            }
+
+            offspring.push(g);
         }
 
         assert!(offspring.len() == n);
