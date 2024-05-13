@@ -13,12 +13,14 @@ use std::cmp::max;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
+
 pub struct Population<E: Evaluate<G>, G: Genome> {
     pub generation: u32,
     pub stop_signal: Arc<AtomicBool>,
     pub stats: EvolutionStatistics,
 
-    population: HashMap<u32, G>,
+    population: Vec<Individual<G>>,
+
     environment: EvolutionEnvironment,
     config: EvolutionConfig,
 
@@ -33,12 +35,13 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
         assert!(env.inputs > 0 && env.outputs > 0);
         assert!(config.population_size >= 2);
 
-        let mut population = HashMap::new();
+        let mut population = Vec::new();
         let mut genome_num: u32 = 0;
 
         log::debug!("Creating initial population");
         for _ in 0..config.population_size {
-            population.insert(genome_num, G::new(&env, &genome_config));
+            population.push( Individual::new(G::new(&env, &genome_config), genome_num));
+
             genome_num += 1;
         }
 
@@ -58,27 +61,23 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
     }
 
     pub fn evolve(&mut self) -> &G {
-        let mut fitness: Vec<(u32, f32)>;
+        let mut sorted_fitness: Vec<(u32, f32)> = vec![];
 
         loop {
-            log::debug!("Evaluating population");
-            let start_time = Instant::now();
+            self.evaluate();
 
-            // Evaluate the population and sort by fitness
-            fitness = self.evaluate();
-            fitness.sort_by(|x,y| y.1.partial_cmp(&x.1).unwrap());
+            sorted_fitness = self.get_sorted_fitness();
 
-            let eval_time = start_time.elapsed().as_secs_f32();
-            self.log_generation(&fitness, eval_time);
+            self.log_generation(&sorted_fitness);
 
-            if self.should_stop(&fitness) {
+            if self.should_stop(&sorted_fitness) {
                 break;
             }
 
             log::debug!("Creating new generation");
-            let new_generation = self.reproduce(&fitness);
+            let new_generation = self.reproduce(&sorted_fitness);
 
-            self.population.retain(|i, _| fitness[..self.config.elites].iter().any(|x| x.0 == *i));
+            self.population.retain(|g| sorted_fitness[..self.config.elites].iter().any(|x| x.0 == g.id));
 
             // Add new genomes to the population
             for g in new_generation {
@@ -91,30 +90,45 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
         }
 
         // Return the best fit genome of the population
-        self.population.get(&fitness[0].0).unwrap()
+        &self.population.iter().find(|g| g.id == sorted_fitness[0].0).unwrap().genome
     }
 
-    /// Evaluate the fitness of each genome
-    fn evaluate(&mut self) -> Vec<(u32, f32)> {
-        let fitness: Vec<(u32, f32)> = self.population.iter()
-            .map(|(id, g)| (*id, self.evaluator.eval(g))).collect();
-            //.map(|(id, g)| (*id, self.evaluator.eval(g, &self.environment))).collect();
 
-        fitness
+    /// Evaluate the fitness of each genome
+    fn evaluate(&mut self) {
+        log::debug!("Evaluating population");
+
+        let start_time = Instant::now();
+        for g in &mut self.population {
+            if g.fitness == None {
+                g.fitness = Some(self.evaluator.eval(&g.genome));
+            }
+        }
+        let eval_time = start_time.elapsed().as_secs_f32();
+
+        log::trace!("Evaluated population in {}s", eval_time);
+    }
+
+    fn get_sorted_fitness(&self) -> Vec<(u32, f32)> {
+        let mut sorted_fitness: Vec<(u32, f32)> = self.population.iter()
+            .map(|g| (g.id, g.fitness.unwrap())).collect();
+
+        sorted_fitness.sort_by(|x, y| y.1.partial_cmp(&x.1).unwrap());
+
+        sorted_fitness
     }
 
     fn reproduce(&mut self, fitness: &Vec<(u32, f32)>) -> Vec<G> {
-        // Select the best fit to be parents
         let n_parents = max(2, ((self.config.population_size as f32) * self.config.parent_fraction) as usize);
 
         assert!(n_parents >= 2);
 
-        let parents: Vec<u32> = fitness[0..n_parents].iter().map(|(i, _)| *i).collect();
+        let parent_ids: Vec<u32> = fitness[0..n_parents].iter().map(|(i, _)| *i).collect();
 
         log::trace!("Breeding {} offspring from {} parents",
-            (self.config.population_size - self.config.elites), parents.len());
+            (self.config.population_size - self.config.elites), parent_ids.len());
 
-        let mut children = self.breed(parents, self.config.population_size - self.config.elites);
+        let mut children = self.breed(parent_ids, self.config.population_size - self.config.elites);
 
         // Mutate children
         for c in &mut children {
@@ -138,10 +152,10 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
                 continue;
             }
 
-            let g1 = self.population.get(id_1).unwrap();
-            let g2 = self.population.get(id_2).unwrap();
+            let g1 = self.population.iter().find(|g| g.id == *id_1).unwrap();
+            let g2 = self.population.iter().find(|g| g.id == *id_2).unwrap();
 
-            offspring.push(g1.crossover(g2));
+            offspring.push(g1.genome.crossover(&g2.genome));
         }
 
         assert!(offspring.len() == n);
@@ -150,7 +164,7 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
     }
 
     fn add_genome(&mut self, g: G) {
-        self.population.insert(self.genome_num, g);
+        self.population.push( Individual::new(g, self.genome_num) );
 
         self.genome_num +=1;
     }
@@ -174,15 +188,30 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
         false
     }
 
-    fn log_generation(&mut self, sorted_fitness: &Vec<(u32, f32)>, eval_time: f32) {
+    fn log_generation(&mut self, sorted_fitness: &Vec<(u32, f32)>) {
         let mean_fitness: f32 = sorted_fitness.iter().map(|(_, f)| f).sum::<f32>() / sorted_fitness.len() as f32;
         let best_fitness: f32 = sorted_fitness[0].1;
 
-        log::trace!("Evaluated population in {}s ({}s per genome)",
-            eval_time, eval_time / self.config.population_size as f32 );
         log::info!("Generation {} - best fit: {}, mean: {}",
             self.generation, best_fitness, mean_fitness);
 
         self.stats.log_generation(best_fitness, mean_fitness);
+    }
+}
+
+/// Represents a member of the population
+pub struct Individual<G: Genome> {
+    genome: G,
+    id: u32,
+    fitness: Option<f32>
+}
+
+impl<G: Genome> Individual<G> {
+    fn new(genome: G, id: u32) -> Individual<G> {
+        Individual {
+            genome,
+            id,
+            fitness: None
+        }
     }
 }
