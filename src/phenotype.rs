@@ -92,10 +92,11 @@ impl EvolvableGenome for MatrixGenome {
 
         let synapse_matrix: Array2<f32> = self.connections.mapv(|(e, w)| if e {w} else {0.0});
 
-        let neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
+        let mut neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
 
-        //let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
-        //let synapse = BaseSynapse::new(synapse_representation);
+        for n in &self.neurons {
+            neuron_types[n.id as usize] = if n.inhibitory { -1.0  } else { 1.0 };
+        }
 
         let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
         let synapse = BaseSynapse::new(synapse_representation);

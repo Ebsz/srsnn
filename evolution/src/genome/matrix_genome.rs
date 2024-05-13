@@ -10,7 +10,6 @@ use ndarray_rand::rand_distr::StandardNormal;
 
 use serde::Deserialize;
 
-
 /// The connections matrix is stored as [to, from], and
 /// has dim [N, (N + M)], where N is the number of neurons,
 /// M is the number of inputs.
@@ -35,15 +34,19 @@ impl Genome for MatrixGenome {
         for i in 0..env.outputs {
             neurons.push(NeuronGene {
                 id: (i as u32),
-                ntype: NeuronType::Output
+                ntype: NeuronType::Output,
+                inhibitory: false
             });
         }
 
         // Add network neurons
         for i in 0..random_range(config.initial_neuron_count_range) {
+            let inhibitory = if random_range((0.0, 1.0)) > config.inhibitory_probability { false } else { true };
+
             neurons.push(NeuronGene {
                 id: (i + env.outputs) as u32,
-                ntype: NeuronType::Network
+                ntype: NeuronType::Network,
+                inhibitory
             });
         }
 
@@ -220,10 +223,12 @@ impl MatrixGenome {
         }
 
         let id = self.network_size() as u32;
+        let inhibitory = if random_range((0.0, 1.0)) > config.inhibitory_probability { false } else { true };
 
         self.neurons.push( NeuronGene {
             id,
-            ntype: NeuronType::Output
+            ntype: NeuronType::Network,
+            inhibitory
         });
 
 
@@ -285,13 +290,13 @@ impl MatrixGenome {
 
         Some(*random_choice(&enabled_connections))
     }
-
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct NeuronGene {
     pub id: u32,
-    pub ntype: NeuronType
+    pub ntype: NeuronType,
+    pub inhibitory: bool
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -313,6 +318,8 @@ pub struct MatrixGenomeConfig {
     pub mutate_toggle_connection_probability: f32,
     pub mutate_add_connection_probability: f32,
     pub mutate_add_neuron_probability: f32,
+
+    pub inhibitory_probability: f32
 }
 
 impl ConfigSection for MatrixGenomeConfig {
@@ -335,7 +342,8 @@ mod tests {
             mutate_connection_probability: 0.8,
             mutate_toggle_connection_probability: 0.3,
             mutate_add_connection_probability: 0.03,
-            mutate_add_neuron_probability: 0.02
+            mutate_add_neuron_probability: 0.02,
+            inhibitory_probability: 0.0
         }
     }
 

@@ -18,3 +18,5 @@ mutate_connection_probability = 0.8
 mutate_toggle_connection_probability = 0.3
 mutate_add_connection_probability = 0.03
 mutate_add_neuron_probability = 0.02
+
+inhibitory_probability = 0.0
