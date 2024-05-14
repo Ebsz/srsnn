@@ -17,7 +17,6 @@ pub struct EnergyTaskSetup {
    input_duration: u32
 }
 
-
 pub struct EnergyTaskResult {
     t: u32
 }

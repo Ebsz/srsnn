@@ -17,6 +17,7 @@ use tasks::catching_task::CatchingTask;
 use tasks::movement_task::MovementTask;
 use tasks::survival_task::SurvivalTask;
 use tasks::energy_task::EnergyTask;
+use tasks::xor_task::XORTask;
 
 use utils::logger::init_logger;
 use utils::random::SEED;
@@ -48,6 +49,7 @@ impl EvolutionProcess {
             "movement" => { Self::evolve::<G, MovementTask>(config); },
             "survival" => { Self::evolve::<G, SurvivalTask>(config); },
             "energy"   => { Self::evolve::<G, EnergyTask>(config); },
+            "xor"      => { Self::evolve::<G, XORTask>(config); },
             _ => { panic!("Unknown task: {}", config.task); }
         }
     }

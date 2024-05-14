@@ -56,7 +56,6 @@ fn plot(record: &Record) {
     let _ = plot_network_energy(energy);
 
     generate_plots(record);
-
 }
 
 //fn plot_psth(record: &Record) {
