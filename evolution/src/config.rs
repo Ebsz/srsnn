@@ -10,5 +10,6 @@ pub struct EvolutionConfig {
     // Stop conditions
     pub fitness_goal: f32,
     pub max_generations: u32,
-}
 
+    pub n_stale_before_reset: usize
+}

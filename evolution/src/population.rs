@@ -14,6 +14,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 
+const STALE_THRESHOLD: f32 = 0.1;
+
 pub struct Population<E: Evaluate<G>, G: Genome> {
     pub generation: u32,
     pub stop_signal: Arc<AtomicBool>,
@@ -63,10 +65,26 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
     pub fn evolve(&mut self) -> &G {
         let mut sorted_fitness: Vec<(u32, f32)> = vec![];
 
+        let mut stale_counter = 0;
+        let mut last_gen_best_fitness: f32 = 0.0;
+
         loop {
             self.evaluate();
-
             sorted_fitness = self.get_sorted_fitness();
+
+            if sorted_fitness[0].1 - last_gen_best_fitness < STALE_THRESHOLD {
+                stale_counter += 1
+            } else {
+                stale_counter = 0;
+            }
+
+            if self.config.n_stale_before_reset > 0 && stale_counter >= self.config.n_stale_before_reset {
+                log::debug!("Population is stale, resetting");
+                self.reset_population(&sorted_fitness);
+
+                stale_counter = 0;
+                continue;
+            }
 
             self.log_generation(&sorted_fitness);
 
@@ -86,11 +104,24 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
 
             assert!(self.population.len() == self.config.population_size);
 
+            last_gen_best_fitness = sorted_fitness[0].1;
+
             self.generation += 1;
         }
 
         // Return the best fit genome of the population
         &self.population.iter().find(|g| g.id == sorted_fitness[0].0).unwrap().genome
+    }
+
+    /// Reset the population by generating a new population, keeping only the elites
+    fn reset_population(&mut self, sorted_fitness: &Vec<(u32, f32)>) {
+        self.population.retain(|g| sorted_fitness[..self.config.elites].iter().any(|x| x.0 == g.id));
+
+        for _ in 0..(self.config.population_size-self.config.elites) {
+            self.population.push( Individual::new(G::new(&self.environment, &self.genome_config), self.genome_num));
+
+            self.genome_num += 1;
+        }
     }
 
 
