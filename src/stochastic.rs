@@ -1,11 +1,11 @@
 //! Stochastic models of RSNNs
 
-use crate::phenotype::{EvolvableGenome, Phenotype};
 use crate::gen;
+use crate::phenotype::{EvolvableGenome, Phenotype};
 
 use model::network::SpikingNetwork;
 use model::neuron::izhikevich::Izhikevich;
-use model::synapse::{Synapse, BaseSynapse};
+use model::synapse::BaseSynapse;
 use model::synapse::representation::MatrixRepresentation;
 
 use evolution::EvolutionEnvironment;
@@ -16,8 +16,7 @@ use utils::config::ConfigSection;
 
 use serde::Deserialize;
 
-use ndarray::{Array, Array2};
-use ndarray_rand::rand_distr::StandardNormal;
+use ndarray::Array;
 
 
 #[derive(Clone)]
@@ -36,11 +35,11 @@ impl Genome for StochasticGenome {
         }
     }
 
-    fn mutate(&mut self, config: &Self::Config) {
+    fn mutate(&mut self, _config: &Self::Config) {
         self.n += random::random_range((0,2));
     }
 
-    fn crossover(&self, other: &Self) -> Self {
+    fn crossover(&self, _other: &Self) -> Self {
         self.clone()
     }
 }
@@ -52,7 +51,7 @@ impl EvolvableGenome for StochasticGenome {
         //log::info!("n: {:?}", self.n);
 
         let model = Izhikevich::default(self.n);
-        let synapse = gen::synapse_gen::from_probability(self.n, 0.1, Array::ones(self.n).mapv(|x: f32| false));
+        let synapse = gen::synapse_gen::from_probability(self.n, 0.1, Array::ones(self.n).mapv(|_: f32| false));
 
         let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
         Phenotype::new(network, env.clone())

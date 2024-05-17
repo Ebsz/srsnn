@@ -181,7 +181,6 @@ impl Genome for MatrixGenome {
     }
 }
 
-
 impl MatrixGenome {
     pub fn network_size(&self) -> usize {
         self.neurons.len()

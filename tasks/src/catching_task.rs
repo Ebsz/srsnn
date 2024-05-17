@@ -225,17 +225,10 @@ impl TaskEval for CatchingTask {
         let max_distance = Self::render_size().0 as f32;
 
         let mut total_fitness: f32 = 0.0;
-        let mut correct: u32 = 0;
 
         for r in &results {
             total_fitness += (1.0 - r.distance/max_distance) * 100.0 - (if r.success {0.0} else {30.0});
-
-            if r.success {
-                correct += 1;
-            }
         }
-
-        // TODO: log fitness and # correct
 
         total_fitness / results.len() as f32
     }

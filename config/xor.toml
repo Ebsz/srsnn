@@ -4,17 +4,20 @@ genome = "matrix"
 log_level ="info"
 
 [evolution]
-max_generations = 200
+max_generations = 3000
 population_size = 100
 
 fitness_goal = 100.0
 
+
+n_stale_before_reset = 10 # =0 disables resetting
+
 [matrix_genome]
 max_neurons =  75
-initial_neuron_count_range = [5, 10]
-initial_connection_count_range = [2, 3]
+initial_neuron_count_range = [5, 30]
+initial_connection_count_range = [2, 10]
 
-n_mutations = 2
+n_mutations = 3
 mutate_connection_probability = 0.83
 mutate_toggle_connection_probability = 0.10
 mutate_add_connection_probability = 0.05

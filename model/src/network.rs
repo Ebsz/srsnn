@@ -59,7 +59,7 @@ pub trait RunnableNetwork<N: NeuronModel, S: Synapse> {
     fn synapse(&mut self) -> &mut S;
 }
 
-pub struct BaseNetwork<N: NeuronModel, S: Synapse> {
+pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
     pub neurons: N,
     pub synapse: S,
     pub inputs: usize,
@@ -75,7 +75,7 @@ pub struct BaseNetwork<N: NeuronModel, S: Synapse> {
     random_firing: bool
 }
 
-impl<N: NeuronModel, S: Synapse> Network for BaseNetwork<N, S> {
+impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
     fn step(&mut self, input: Spikes) -> Spikes {
         assert!(input.len() == self.inputs);
 
@@ -100,14 +100,14 @@ impl<N: NeuronModel, S: Synapse> Network for BaseNetwork<N, S> {
     }
 }
 
-impl<N: NeuronModel, S: Synapse> BaseNetwork<N, S> {
-    pub fn new(neurons: N, synapse: S, inputs: usize, outputs: usize) -> BaseNetwork<N, S> {
+impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
+    pub fn new(neurons: N, synapse: S, inputs: usize, outputs: usize) -> SpikingNetwork<N, S> {
         let noise_input = None;
         let random_firing = false;
 
         let network_size = neurons.len();
 
-        BaseNetwork {
+        SpikingNetwork {
             neurons,
             synapse,
             inputs,

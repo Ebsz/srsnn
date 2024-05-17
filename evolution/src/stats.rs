@@ -1,6 +1,3 @@
-use crate::population::Population;
-
-
 pub struct EvolutionStatistics {
     pub generation_mean_fitness: Vec<f32>,
     pub generation_best_fitness: Vec<f32>

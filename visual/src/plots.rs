@@ -1,7 +1,5 @@
 use plotters::prelude::*;
 
-use model::record::{Record, RecordType, RecordDataType};
-
 
 pub fn plot_single_variable(data: Vec<f32>, description: &str, caption: &str, filename: &str, color: &RGBColor)
     -> Result<(), Box<dyn std::error::Error>> {

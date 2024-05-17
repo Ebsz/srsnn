@@ -5,8 +5,6 @@
 
 use crate::{Task, TaskInput, TaskOutput, TaskState, TaskEnvironment, TaskEval};
 
-use utils::random;
-
 use ndarray::{array, Array};
 
 
@@ -46,7 +44,7 @@ impl Task for XORTask {
     }
 
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<Self::Result> {
-        let mut output: TaskOutput;
+        let output: TaskOutput;
 
         if self.ticks <= INPUT_T {
             output = self.get_output();

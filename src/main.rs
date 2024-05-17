@@ -3,8 +3,7 @@
 use luna::eval::TaskEvaluator;
 use luna::phenotype::EvolvableGenome;
 
-use luna::visual::plots::{plot_evolution_stats, generate_plots};
-use luna::visual::visualize_genome_on_task;
+use luna::visual::plots::{plot_evolution_stats};
 use luna::config::{get_config, genome_config, MainConfig};
 
 use luna::stochastic;
@@ -16,7 +15,7 @@ use evolution::genome::matrix_genome::MatrixGenome;
 
 use stochastic::StochasticGenome;
 
-use tasks::{Task, TaskEval, TaskRenderer};
+use tasks::{Task, TaskEval};
 use tasks::catching_task::CatchingTask;
 use tasks::movement_task::MovementTask;
 use tasks::survival_task::SurvivalTask;
@@ -73,7 +72,7 @@ impl EvolutionProcess {
 
         init_ctrl_c_handler(population.stop_signal.clone());
 
-        let evolved_genome = population.evolve();
+        let _evolved_genome = population.evolve();
 
         plot_evolution_stats(&population.stats);
 
@@ -91,13 +90,6 @@ impl EvolutionProcess {
     }
 }
 
-impl Process for EvolutionProcess {
-    type Config = MainConfig;
-
-    fn run(config: &MainConfig) {
-        Self::resolve(config);
-    }
-}
 
 
 ///// Analyzes a genome resulting from an evolutionary process
@@ -146,6 +138,25 @@ fn parse_config_name_from_args() -> Option<String> {
     None
 }
 
+impl Process for EvolutionProcess {
+    type Config = MainConfig;
+
+    fn run(config: &MainConfig) {
+        Self::resolve(config);
+    }
+}
+
+
+struct TestProcess;
+
+impl Process for TestProcess {
+    type Config = bool;
+
+    fn run(_config: &Self::Config) {
+        log::info!("Running test process");
+    }
+}
+
 fn main() {
     let config_name = parse_config_name_from_args();
     let config = get_config(config_name.clone());
@@ -156,4 +167,5 @@ fn main() {
     log::info!("seed is {}", SEED);
 
     EvolutionProcess::run(&config);
+    //TestProcess::run(&true);
 }

@@ -1,5 +1,4 @@
 pub mod matrix_genome;
-pub mod pool_genome;
 
 use crate::EvolutionEnvironment;
 
@@ -13,6 +12,6 @@ pub trait Genome {
 
     fn mutate(&mut self, config: &Self::Config);
 
-    /// This function is called on the genome with greater or equal fitness
+    /// This is called on the genome with greater or equal fitness
     fn crossover(&self, other: &Self) -> Self;
 }

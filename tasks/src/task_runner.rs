@@ -10,6 +10,7 @@ pub enum ExecutionState {
     FINISHED,
 }
 
+// TODO: Rename to something else; runnable implies .run() -able.
 pub trait Runnable {
     fn step(&mut self, task_output: TaskOutput) -> Vec<TaskInput>;
     fn reset(&mut self);

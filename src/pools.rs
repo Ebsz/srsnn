@@ -1,6 +1,5 @@
 //! A pool is a randomly generated network shaped by certain parameters
 
-use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::{BaseSynapse, Synapse};
 use model::synapse::representation::{MapRepresentation, MatrixRepresentation};

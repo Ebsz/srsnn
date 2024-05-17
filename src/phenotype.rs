@@ -1,23 +1,28 @@
-use model::network::{Network, BaseNetwork};
+use model::network::{Network, SpikingNetwork};
 use model::spikes::Spikes;
 use model::neuron::izhikevich::Izhikevich;
-use model::synapse::{Synapse, BaseSynapse};
+use model::synapse::BaseSynapse;
 use model::synapse::representation::MatrixRepresentation;
-use model::record::{Record, RecordType, RecordDataType};
 
 use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
 use evolution::genome::matrix_genome::MatrixGenome;
+//use evolution::genome::network_genome::NetworkGenome;
 
 use tasks::{TaskInput, TaskOutput};
 use tasks::task_runner::Runnable;
 
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{Array, Array1, Array2};
 
+
+pub trait EvolvableGenome: Genome + Sized {
+    type Phenotype: Runnable;
+
+    fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype;
+}
 
 pub struct Phenotype<N: Network> {
     network: N,
-    env: EvolutionEnvironment,
 
     network_inputs: usize,
     network_outputs: usize,
@@ -27,7 +32,6 @@ impl<N: Network> Phenotype<N> {
     pub fn new(network: N, env: EvolutionEnvironment) -> Phenotype<N> {
         Phenotype {
             network,
-            env: env.clone(),
 
             network_inputs: env.inputs,
             network_outputs: env.outputs,
@@ -58,10 +62,6 @@ impl<N: Network> Phenotype<N> {
 
         task_inputs
     }
-
-    fn environment(&self) -> &EvolutionEnvironment {
-        &self.env
-    }
 }
 
 impl<N: Network> Runnable for Phenotype<N> {
@@ -78,14 +78,9 @@ impl<N: Network> Runnable for Phenotype<N> {
     }
 }
 
-pub trait EvolvableGenome: Genome + Sized {
-    type Phenotype: Runnable;
-
-    fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype;
-}
 
 impl EvolvableGenome for MatrixGenome {
-    type Phenotype = Phenotype<BaseNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
+    type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
 
     fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
         let network_size = self.network_size();
@@ -107,7 +102,6 @@ impl EvolvableGenome for MatrixGenome {
         Phenotype::new(network, env.clone())
     }
 }
-
 
 //trait PhenotypeBuilder {
 //    fn from_genome(g: Genome) -> Network;

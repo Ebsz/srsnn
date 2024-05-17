@@ -43,8 +43,7 @@ pub fn generate_plots(record: &Record) {
         spike_array.slice_mut(s!(i,..)).assign(&p);
     }
 
-    let psth = crate::analysis::to_firing_rate(spike_array);
-
+    //let psth = crate::analysis::to_firing_rate(spike_array);
     //plot_firing_rates(psth);
 }
 
@@ -64,7 +63,7 @@ pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn 
 }
 
 
-fn plot_firing_rates(data: Array2<f32>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn plot_firing_rates(data: Array2<f32>) -> Result<(), Box<dyn std::error::Error>> {
     let filename = "firing_rates.png";
     //let points = data.iter().map()
 

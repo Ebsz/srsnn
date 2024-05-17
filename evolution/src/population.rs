@@ -6,7 +6,6 @@ use crate::stats::EvolutionStatistics;
 
 use utils::random;
 
-use std::collections::HashMap;
 use std::time::Instant;
 use std::cmp::max;
 
@@ -63,7 +62,7 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
     }
 
     pub fn evolve(&mut self) -> &G {
-        let mut sorted_fitness: Vec<(u32, f32)> = vec![];
+        let mut sorted_fitness: Vec<(u32, f32)>;
 
         let mut stale_counter = 0;
         let mut last_gen_best_fitness: f32 = 0.0;

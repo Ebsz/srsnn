@@ -1,4 +1,4 @@
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{Array, Array1};
 
 use crate::neuron::NeuronModel;
 use crate::spikes::Spikes;
@@ -34,18 +34,14 @@ pub struct IzhikevichParameters {
 
 impl IzhikevichParameters {
     fn n_default(n: usize) -> IzhikevichParameters {
-        const defaults: (f32, f32, f32, f32) = (0.02, 0.2, -65.0, 2.0);
+        const DEFAULTS: (f32, f32, f32, f32) = (0.02, 0.2, -65.0, 2.0);
 
         IzhikevichParameters {
-            a: Array::ones(n) * defaults.0,
-            b: Array::ones(n) * defaults.1,
-            c: Array::ones(n) * defaults.2,
-            d: Array::ones(n) * defaults.3,
+            a: Array::ones(n) * DEFAULTS.0,
+            b: Array::ones(n) * DEFAULTS.1,
+            c: Array::ones(n) * DEFAULTS.2,
+            d: Array::ones(n) * DEFAULTS.3,
         }
-
-        //let param_data: Array2<f32> = Array::from_shape_fn((n,4), |(_,j)| izh_default[j]);
-
-        //let params = IzhikevichParameters {params: param_data},
     }
 }
 

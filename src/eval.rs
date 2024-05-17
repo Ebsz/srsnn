@@ -7,7 +7,7 @@ use crate::phenotype::EvolvableGenome;
 
 pub struct TaskEvaluator<T: Task + TaskEval, G: EvolvableGenome> {
     setups: Vec<T::Setup>,
-    genome: Option<G>, // NOTE: not used, required..
+    _genome: Option<G>, // NOTE: not used, required..
     env: EvolutionEnvironment
 }
 
@@ -36,7 +36,7 @@ impl<T: Task + TaskEval, G: EvolvableGenome> TaskEvaluator<T,  G> {
         log::trace!("Creating evaluator");
         TaskEvaluator {
             setups: T::eval_setups(),
-            genome: None,
+            _genome: None,
             env
         }
     }
