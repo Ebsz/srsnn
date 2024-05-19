@@ -24,7 +24,7 @@ pub struct Phenotype<N: Network> {
 }
 
 impl<N: Network> Phenotype<N> {
-    fn new(network: N, env: EvolutionEnvironment) -> Phenotype<N> {
+    pub fn new(network: N, env: EvolutionEnvironment) -> Phenotype<N> {
         Phenotype {
             network,
             env: env.clone(),
@@ -103,8 +103,7 @@ impl EvolvableGenome for MatrixGenome {
 
         let model = Izhikevich::default(network_size);
 
-        let network = BaseNetwork::new(model, synapse, env.inputs, env.outputs);
-
+        let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
         Phenotype::new(network, env.clone())
     }
 }
