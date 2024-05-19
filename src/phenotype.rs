@@ -78,7 +78,6 @@ impl<N: Network> Runnable for Phenotype<N> {
     }
 }
 
-
 impl EvolvableGenome for MatrixGenome {
     type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
 

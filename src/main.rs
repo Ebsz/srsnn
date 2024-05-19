@@ -6,14 +6,13 @@ use luna::phenotype::EvolvableGenome;
 use luna::visual::plots::{plot_evolution_stats};
 use luna::config::{get_config, genome_config, MainConfig};
 
-use luna::stochastic;
+use luna::models::stochastic::random_model::RandomGenome;
+use luna::models::stochastic::base_model::BaseStochasticGenome;
 
 use evolution::EvolutionEnvironment;
 use evolution::population::Population;
 
 use evolution::genome::matrix_genome::MatrixGenome;
-
-use stochastic::StochasticGenome;
 
 use tasks::{Task, TaskEval};
 use tasks::catching_task::CatchingTask;
@@ -42,7 +41,8 @@ impl EvolutionProcess {
     fn resolve(config: &MainConfig) {
         match config.genome.as_str() {
             "matrix" => { Self::resolve_t::<MatrixGenome>(config); },
-            "stochastic" => { Self::resolve_t::<StochasticGenome>(config); },
+            "random" => { Self::resolve_t::<RandomGenome>(config); },
+            "base_stochastic" => { Self::resolve_t::<BaseStochasticGenome>(config); },
             _ => {panic!("Unknown genome: {}", config.genome);}
         }
     }

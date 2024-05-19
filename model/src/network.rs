@@ -10,15 +10,14 @@ use rand::distributions::Uniform;
 
 use std::time::Instant;
 
+
 // Output of a neuron is multiplied by this; determines the impact of a single spike.
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0; // 15.0;
 const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 
-
 pub trait Network {
     fn step(&mut self, input: Spikes) -> Spikes;
 }
-
 
 /// A network contains neurons of a specific model N that are
 /// connected via a specific type of synapse S

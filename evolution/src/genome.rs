@@ -27,7 +27,7 @@ pub mod representation {
     use utils::random;
 
     /// Generic matrix representation for arbitrary kinds of data,
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     pub struct MatrixGene {
         pub data: Array2<f32>,
     }

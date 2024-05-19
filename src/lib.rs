@@ -5,4 +5,4 @@ pub mod visual;
 pub mod gen;
 pub mod phenotype;
 pub mod analysis;
-pub mod stochastic;
+pub mod models;
