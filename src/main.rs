@@ -15,6 +15,7 @@ use evolution::population::Population;
 use evolution::genome::matrix_genome::MatrixGenome;
 
 use tasks::{Task, TaskEval};
+use tasks::task_runner::TaskRunner;
 use tasks::catching_task::CatchingTask;
 use tasks::movement_task::MovementTask;
 use tasks::survival_task::SurvivalTask;
@@ -30,15 +31,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 
 trait Process {
-    type Config;
+    fn run<G: EvolvableGenome, T: Task + TaskEval>(conf: MainConfig);
 
-    fn run(conf: &Self::Config);
-}
-
-struct EvolutionProcess;
-
-impl EvolutionProcess {
-    fn resolve(config: &MainConfig) {
+    fn init(config: MainConfig) {
         match config.genome.as_str() {
             "matrix" => { Self::resolve_t::<MatrixGenome>(config); },
             "random" => { Self::resolve_t::<RandomGenome>(config); },
@@ -47,18 +42,31 @@ impl EvolutionProcess {
         }
     }
 
-    fn resolve_t<G: EvolvableGenome>(config: &MainConfig) {
+    fn resolve_t<G: EvolvableGenome>(config: MainConfig) {
         match config.task.as_str() {
-            "catching" => { Self::evolve::<G, CatchingTask>(config); },
-            "movement" => { Self::evolve::<G, MovementTask>(config); },
-            "survival" => { Self::evolve::<G, SurvivalTask>(config); },
-            "energy"   => { Self::evolve::<G, EnergyTask>(config); },
-            "xor"      => { Self::evolve::<G, XORTask>(config); },
+            "catching" => { Self::run::<G, CatchingTask>(config); },
+            "movement" => { Self::run::<G, MovementTask>(config); },
+            "survival" => { Self::run::<G, SurvivalTask>(config); },
+            "energy"   => { Self::run::<G, EnergyTask>(config); },
+            "xor"      => { Self::run::<G, XORTask>(config); },
             _ => { panic!("Unknown task: {}", config.task); }
         }
     }
 
-    fn evolve<G: EvolvableGenome, T: Task + TaskEval>(config: &MainConfig) {
+    fn environment<T: Task>() -> EvolutionEnvironment {
+        let e = T::environment();
+
+        EvolutionEnvironment {
+            inputs: e.agent_inputs,
+            outputs: e.agent_outputs,
+        }
+    }
+}
+
+struct EvolutionProcess;
+
+impl Process for EvolutionProcess {
+    fn run<G: EvolvableGenome, T: Task + TaskEval>(config: MainConfig) {
         log::info!("task: {}", config.task);
         log::info!("genome: {}", config.genome);
 
@@ -72,25 +80,34 @@ impl EvolutionProcess {
 
         init_ctrl_c_handler(population.stop_signal.clone());
 
-        let _evolved_genome = population.evolve();
+        let evolved_genome = population.evolve();
 
         plot_evolution_stats(&population.stats);
 
         //let task = T::new(&T::eval_setups()[0]);
         //visualize_genome_on_task(task, evolved_genome, &env);
     }
-
-    fn environment<T: Task>() -> EvolutionEnvironment {
-        let e = T::environment();
-
-        EvolutionEnvironment {
-            inputs: e.agent_inputs,
-            outputs: e.agent_outputs,
-        }
-    }
 }
 
+struct AnalysisProcess;
 
+impl Process for AnalysisProcess {
+    fn run<G: EvolvableGenome, T: Task + TaskEval>(config: MainConfig) {
+        log::info!("Running analysis");
+
+        let genome_config = genome_config::<G>();
+        let env = Self::environment::<T>();
+
+        let genome = G::new(&env, &genome_config);
+        let setups = T::eval_setups();
+
+        let task = T::new(&setups[0]);
+
+        let mut p = genome.to_phenotype(&env);
+        let mut runner = TaskRunner::new(task, &mut p);
+        runner.run();
+    }
+}
 
 ///// Analyzes a genome resulting from an evolutionary process
 //#[allow(dead_code)]
@@ -138,24 +155,6 @@ fn parse_config_name_from_args() -> Option<String> {
     None
 }
 
-impl Process for EvolutionProcess {
-    type Config = MainConfig;
-
-    fn run(config: &MainConfig) {
-        Self::resolve(config);
-    }
-}
-
-
-struct TestProcess;
-
-impl Process for TestProcess {
-    type Config = bool;
-
-    fn run(_config: &Self::Config) {
-        log::info!("Running test process");
-    }
-}
 
 fn main() {
     let config_name = parse_config_name_from_args();
@@ -166,6 +165,6 @@ fn main() {
     log::info!("Using config: {}", config_name.unwrap_or("default".to_string()));
     log::info!("seed is {}", SEED);
 
-    EvolutionProcess::run(&config);
-    //TestProcess::run(&true);
+    EvolutionProcess::init(config);
+    //AnalysisProcess::init(config);
 }

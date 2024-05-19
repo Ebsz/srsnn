@@ -4,15 +4,8 @@
 
 use ndarray::{Array, Array2};
 
+
 pub type ConnectionProbabilityMatrix = Array2<f32>;
-
-
-/// Instantiate a connection probability matrix
-pub fn resolve_connection_probability_matrix(m: Array2<f32>) -> Array2<u32> {
-    let out: Array2<u32> = Array::zeros(m.raw_dim());
-
-    out
-}
 
 pub mod synapse_gen {
     use model::synapse::BaseSynapse;

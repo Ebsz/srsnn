@@ -29,10 +29,10 @@ impl Genome for BaseStochasticGenome {
     fn new(env: &EvolutionEnvironment, config: &Self::Config) -> Self {
         assert!(config.max_neurons >= (env.inputs + env.outputs));
 
-        let cp = random::random_matrix((config.max_neurons, config.max_neurons), Uniform::new(0.0, 1.0));
+        let cpm = random::random_matrix((config.max_neurons, config.max_neurons), Uniform::new(0.0, 1.0));
 
         BaseStochasticGenome {
-            connection_probability: MatrixGene { data: cp }
+            connection_probability: MatrixGene { data: cpm }
         }
     }
 
@@ -55,8 +55,6 @@ impl EvolvableGenome for BaseStochasticGenome {
 
         let connection_mask = sample_connection_probability_matrix(&self.connection_probability.data);
 
-        // TODO: This might be unnecessary, we could be better off just returning A<f32> when
-        // sampling
         let synapse_matrix: Array2<f32> = connection_mask.mapv(|v| v as f32);
 
         let neuron_types = Array::ones(n).mapv(|_: f32| 1.0);
@@ -71,6 +69,7 @@ impl EvolvableGenome for BaseStochasticGenome {
     }
 }
 
+/// Instantiate a connection probability matrix
 pub fn sample_connection_probability_matrix(probability_matrix: &Array2<f32>) -> Array2<u32> {
     let n = probability_matrix.shape()[0];
 
@@ -108,7 +107,4 @@ fn test_sampling_connection_probability_matrix() {
     let c2 = sample_connection_probability_matrix(&p2);
 
     assert!(c2 == no_connections);
-
-    let p3 = Array::ones((n,n));
-    let c2 = sample_connection_probability_matrix(&p2);
 }

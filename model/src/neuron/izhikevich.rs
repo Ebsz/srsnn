@@ -132,4 +132,3 @@ impl Izhikevich {
         Self::new(n, IzhikevichParameters::n_default(n))
     }
 }
-

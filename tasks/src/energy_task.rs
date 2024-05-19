@@ -8,8 +8,8 @@ use ndarray_rand::rand_distr::Uniform;
 const DEFAULT_MAX_TIMEOUT: u32 = 10;
 const DEFAULT_INPUT_DURATION: u32 =  100;
 
-const AGENT_INPUTS: usize = 3;
-const AGENT_OUTPUTS: usize = 1;
+const AGENT_INPUTS: usize = 5;
+const AGENT_OUTPUTS: usize = 5;
 
 #[derive(Copy, Clone)]
 pub struct EnergyTaskSetup {

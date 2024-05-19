@@ -5,6 +5,11 @@ use evolution::{Evaluate, EvolutionEnvironment};
 use crate::phenotype::EvolvableGenome;
 
 
+//pub trait Evaluateable: Runnable {
+//  fn reset(&mut self);
+//}
+
+
 pub struct TaskEvaluator<T: Task + TaskEval, G: EvolvableGenome> {
     setups: Vec<T::Setup>,
     _genome: Option<G>, // NOTE: not used, required..
