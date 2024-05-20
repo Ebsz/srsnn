@@ -1,5 +1,6 @@
 use model::network::{Network, SpikingNetwork};
 use model::spikes::Spikes;
+use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::BaseSynapse;
 use model::synapse::representation::MatrixRepresentation;
@@ -95,7 +96,7 @@ impl EvolvableGenome for MatrixGenome {
         let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
         let synapse = BaseSynapse::new(synapse_representation);
 
-        let model = Izhikevich::default(network_size);
+        let model = Izhikevich::n_default(network_size);
 
         let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
         Phenotype::new(network, env.clone())

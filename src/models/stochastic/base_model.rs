@@ -5,6 +5,7 @@ use crate::models::stochastic::StochasticGenomeConfig;
 use crate::phenotype::{EvolvableGenome, Phenotype};
 
 use model::network::SpikingNetwork;
+use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::BaseSynapse;
 use model::synapse::representation::MatrixRepresentation;
@@ -62,7 +63,7 @@ impl EvolvableGenome for BaseStochasticGenome {
         let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
         let synapse = BaseSynapse::new(synapse_representation);
 
-        let model = Izhikevich::default(n);
+        let model = Izhikevich::n_default(n);
 
         let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
         Phenotype::new(network, env.clone())

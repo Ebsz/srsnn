@@ -8,6 +8,7 @@ use crate::gen;
 use crate::phenotype::{EvolvableGenome, Phenotype};
 
 use model::network::SpikingNetwork;
+use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::synapse::BaseSynapse;
 use model::synapse::representation::MatrixRepresentation;
@@ -21,6 +22,7 @@ use utils::config::ConfigSection;
 use serde::Deserialize;
 
 use ndarray::Array;
+
 
 #[derive(Clone)]
 pub struct RandomGenome {
@@ -61,7 +63,7 @@ impl EvolvableGenome for RandomGenome {
     fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
         //log::info!("n: {:?}", self.n);
 
-        let model = Izhikevich::default(self.n);
+        let model = Izhikevich::n_default(self.n);
         let synapse = gen::synapse_gen::from_probability(self.n, 0.1, Array::ones(self.n).mapv(|_: f32| false));
 
         let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);

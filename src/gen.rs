@@ -2,7 +2,7 @@
 //!
 //! Functions for randomly generating models
 
-use ndarray::{Array, Array2};
+use ndarray::Array2;
 
 
 pub type ConnectionProbabilityMatrix = Array2<f32>;

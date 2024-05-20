@@ -1,8 +1,7 @@
-use ndarray::{Array, Array1};
-
 use crate::neuron::NeuronModel;
 use crate::spikes::Spikes;
 
+use ndarray::Array1;
 
 /*
  * The Izhikevich model captures the dynamics of neurons in a computationally feasible way,
@@ -22,32 +21,57 @@ pub struct Izhikevich {
     v: Array1<f32>,
     u: Array1<f32>,
 
-    params: IzhikevichParameters
-}
-
-pub struct IzhikevichParameters {
     a: Array1<f32>,
     b: Array1<f32>,
     c: Array1<f32>,
     d: Array1<f32>,
 }
 
-impl IzhikevichParameters {
-    fn n_default(n: usize) -> IzhikevichParameters {
+#[derive(Clone, Debug)]
+pub struct IzhikevichParameters {
+    a: f32,
+    b: f32,
+    c: f32,
+    d: f32,
+}
+
+impl Default for IzhikevichParameters {
+    fn default() -> Self {
         const DEFAULTS: (f32, f32, f32, f32) = (0.02, 0.2, -65.0, 2.0);
 
         IzhikevichParameters {
-            a: Array::ones(n) * DEFAULTS.0,
-            b: Array::ones(n) * DEFAULTS.1,
-            c: Array::ones(n) * DEFAULTS.2,
-            d: Array::ones(n) * DEFAULTS.3,
+            a: DEFAULTS.0,
+            b: DEFAULTS.1,
+            c: DEFAULTS.2,
+            d: DEFAULTS.3,
         }
     }
 }
 
-
 impl NeuronModel for Izhikevich {
     type Parameters = IzhikevichParameters;
+
+    fn new(n: usize, params: Vec<IzhikevichParameters>) -> Izhikevich {
+        assert!(params.len() == n);
+
+        let a: Array1<f32> = params.iter().map(|p| p.a).collect();
+        let b: Array1<f32> = params.iter().map(|p| p.b).collect();
+        let c: Array1<f32> = params.iter().map(|p| p.c).collect();
+        let d: Array1<f32> = params.iter().map(|p| p.d).collect();
+
+        let potential: Array1<f32> = c.to_owned();
+        let recovery: Array1<f32> = (&b * &potential).to_owned();
+
+        Izhikevich {
+            v: potential,
+            u: recovery,
+
+            a,
+            b,
+            c,
+            d
+        }
+    }
 
     fn step(&mut self, input: Array1<f32>) -> Spikes {
         assert!(input.shape()[0] == self.v.shape()[0]);
@@ -61,7 +85,7 @@ impl NeuronModel for Izhikevich {
             *&mut self.v = &self.v + 1.0/(INTEGRATION_STEPS as f32) * (0.04 * (&self.v * &self.v) + 5.0 * &self.v + 140.0 - &self.u + &input);
         }
 
-        *&mut self.u = &self.params.a * (&self.params.b * &self.v - &self.u);
+        *&mut self.u = &self.a * (&self.b * &self.v - &self.u);
 
         // Ensure potentials do not exceed the threshold value.
         // This has no effect on the model, but is necessary when using
@@ -75,8 +99,8 @@ impl NeuronModel for Izhikevich {
 
     /// Reset all neurons to their initial state
     fn reset(&mut self) {
-        self.v = self.params.c.to_owned();
-        self.u = (&self.params.b * &self.v).to_owned();
+        self.v = self.c.to_owned();
+        self.u = (&self.b * &self.v).to_owned();
     }
 
     fn potentials(&self) -> Array1<f32> {
@@ -88,32 +112,6 @@ impl NeuronModel for Izhikevich {
 impl Izhikevich {
     const THRESHOLD: f32 = 30.0;
 
-    pub fn new(n: usize, params: IzhikevichParameters) -> Izhikevich {
-        //assert!(params.shape() == [n, 4]);
-
-        assert!(params.a.len() == n);
-        assert!(params.b.len() == n);
-        assert!(params.c.len() == n);
-        assert!(params.d.len() == n);
-
-
-        //// Unpack parameter matrix for ease of use
-        //let a = params.slice(s![..,0]).to_owned();
-        //let b = params.slice(s![..,1]).to_owned();
-        //let c = params.slice(s![..,2]).to_owned();
-        //let d = params.slice(s![..,3]).to_owned();
-
-        let potential: Array1<f32> = params.c.to_owned();
-        let recovery: Array1<f32> = (&params.b * &potential).to_owned();
-
-        Izhikevich {
-            v: potential,
-            u: recovery,
-            params
-        }
-    }
-
-
     fn reset_spiking(&mut self) {
         /*
          * Reset neurons with v >= 30
@@ -122,13 +120,9 @@ impl Izhikevich {
         // TODO: This can be parallelized w/ rayon
         for i in 0..self.v.shape()[0] {
             if self.v[i] >= Self::THRESHOLD {
-                *&mut self.v[i] = self.params.c[i];
-                *&mut self.u[i] = self.u[i] + self.params.d[i];
+                *&mut self.v[i] = self.c[i];
+                *&mut self.u[i] = self.u[i] + self.d[i];
             }
         }
-    }
-
-    pub fn default(n: usize) -> Izhikevich {
-        Self::new(n, IzhikevichParameters::n_default(n))
     }
 }

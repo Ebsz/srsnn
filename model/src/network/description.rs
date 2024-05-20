@@ -1,18 +1,42 @@
 use crate::neuron::NeuronModel;
-use crate::synapse::Synapse;
 
-use std::collections::HashMap;
-use ndarray::Array2;
+use ndarray::{Array1, Array2};
 
 
-pub struct NeuronDescription<N: NeuronModel> {
-    params: N::Parameters,
-    inhibitory: bool,
-    ntype: NeuronType,
+pub struct NetworkDescription<N: NeuronModel> {
+    pub n: usize,
+    pub neurons: Array1<NeuronDescription<N>>,
+
+    pub connection_mask: Array2<u32>,
+    pub weights: Array2<f32>,
+
+    pub inputs: usize,
+    pub outputs: usize,
 }
 
-pub struct Connections {
+impl<N: NeuronModel> NetworkDescription<N> {
+    fn new(neurons: Array1<NeuronDescription<N>>,
+        connection_mask: Array2<u32>,
+        weights: Array2<f32>,
+        inputs: usize,
+        outputs: usize)
+        -> NetworkDescription<N>
+    {
+        NetworkDescription {
+            n: neurons.shape()[0],
+            neurons,
+            connection_mask,
+            weights,
+            inputs,
+            outputs
+        }
+    }
+}
 
+pub struct NeuronDescription<N: NeuronModel> {
+    pub params: N::Parameters,
+    pub inhibitory: bool,
+    pub ntype: NeuronType,
 }
 
 pub enum NeuronType {
@@ -20,16 +44,3 @@ pub enum NeuronType {
     Output,
     Network,
 }
-
-
-pub struct NetworkDescription<N: NeuronModel> {
-    neurons: HashMap<u32, NeuronDescription<N>>,
-    connections: Array2<u32>,
-    inputs: usize,
-    outputs: usize,
-}
-
-//impl NetworkDescription<N> {
-//    fn new(neurons: Vec<NeuronDescription>, connections: Connections
-//
-//}

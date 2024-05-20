@@ -9,7 +9,7 @@ use crate::record::{Record, RecordType, RecordDataType};
 
 use utils::random;
 
-use ndarray::{s, Array1, Array2};
+use ndarray::{s, Array1};
 use rand::distributions::Uniform;
 
 
@@ -21,7 +21,6 @@ const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 pub trait Network {
     fn step(&mut self, input: Spikes) -> Spikes;
 }
-
 
 pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
     pub neurons: N,
