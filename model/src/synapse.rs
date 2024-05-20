@@ -50,7 +50,7 @@ impl From<&BaseSynapse<MatrixRepresentation>> for BaseSynapse<MapRepresentation>
 #[test]
 fn test_create_and_step_base_synapse() {
     let m = ndarray::array![[1.0, 2.0],[3.0,4.0]];
-    let mut input = Spikes::new(2);
+    let input = Spikes::new(2);
 
     let mut a: BaseSynapse<MatrixRepresentation> =
         BaseSynapse::<MatrixRepresentation>::from_matrix(m, ndarray::Array::zeros(2));

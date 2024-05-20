@@ -160,16 +160,17 @@ mod tests {
     #[test]
     fn test_matrix_repr_output_correct() {
         let mut matrix_repr = get_test_matrix_repr();
-        let mut i = get_test_input();
+        let i = get_test_input();
 
         let output = matrix_repr.step(&i);
 
         assert_eq!(output, array![-1.0, 1.0, 0.5]);
     }
 
+    #[test]
     fn test_map_repr_output_correct() {
         let mut map_repr = get_test_map_repr();
-        let mut i = get_test_input();
+        let i = get_test_input();
 
         let output = map_repr.step(&i);
 
@@ -178,7 +179,7 @@ mod tests {
 
     #[test]
     fn test_map_repr_from_matrix_repr() {
-        let mut input = get_test_input();
+        let input = get_test_input();
 
         let mut matrix_repr = get_test_matrix_repr();
 

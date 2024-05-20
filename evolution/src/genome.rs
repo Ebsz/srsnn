@@ -100,7 +100,7 @@ pub mod representation {
 
         #[test]
         fn matrix_gene_single_value_mutation() {
-            let mut m1 = MatrixGene {data: Array::ones((N, N))};
+            let m1 = MatrixGene {data: Array::ones((N, N))};
             let mut m2 = m1.clone();
 
             for _ in 0..100 {

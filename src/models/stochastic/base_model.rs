@@ -17,7 +17,7 @@ use evolution::genome::representation::MatrixGene;
 use utils::random;
 
 use ndarray::{Array, Array2};
-use ndarray_rand::rand_distr::{StandardNormal, Uniform};
+use ndarray_rand::rand_distr::Uniform;
 
 
 pub struct BaseStochasticGenome {
@@ -37,7 +37,7 @@ impl Genome for BaseStochasticGenome {
         }
     }
 
-    fn mutate(&mut self, config: &Self::Config) {
+    fn mutate(&mut self, _config: &Self::Config) {
         self.connection_probability.mutate_single_value(0.1, (0.0, 1.0));
     }
 

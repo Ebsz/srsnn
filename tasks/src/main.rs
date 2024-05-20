@@ -19,11 +19,11 @@ use std::time::Instant;
 
 
 fn main () {
-    const taskname: &str  = "catching";
+    const TASKNAME: &str  = "catching";
 
     let mut input_map: HashMap<Keycode, i32> = HashMap::new();
 
-    match taskname {
+    match TASKNAME {
         "movement" => {
             input_map.insert(Keycode::D, 0);
             input_map.insert(Keycode::A, 1);
@@ -170,7 +170,7 @@ impl<T: Task + TaskRenderer> TaskTester<T>
         if !self.finished {
             let state = self.task.tick(input);
 
-            if let Some(r) = state.result {
+            if let Some(_) = state.result {
                 self.finished = true;
             }
         }

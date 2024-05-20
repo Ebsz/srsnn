@@ -55,7 +55,7 @@ mod tests {
     fn test_spikes_as_float() {
         const N: usize = 2;
 
-        let mut s = Spikes::new(N);
+        let s = Spikes::new(N);
 
         let a: Array1<f32> = Array::zeros(N);
         assert_eq!(s.as_float(), a);
