@@ -3,12 +3,9 @@
 use crate::network::SpikingNetwork;
 use crate::network::description::NetworkDescription;
 use crate::neuron::NeuronModel;
-use crate::synapse::{BaseSynapse, Synapse};
+use crate::synapse::BaseSynapse;
 
 use crate::synapse::representation::{NeuronType, MatrixRepresentation};
-
-use ndarray::Array1;
-
 
 pub struct NetworkBuilder;
 

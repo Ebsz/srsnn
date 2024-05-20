@@ -1,6 +1,6 @@
 use evolution::{Evaluate, EvolutionEnvironment};
 use evolution::genome::Genome;
-use evolution::genome::matrix_genome::MatrixGenome;
+use luna::models::matrix::MatrixGenome;
 use evolution::population::Population;
 
 use luna::config::{get_config, genome_config, MainConfig};

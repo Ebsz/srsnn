@@ -1,5 +1,3 @@
-pub mod matrix_genome;
-
 use crate::EvolutionEnvironment;
 
 use utils::config::ConfigSection;

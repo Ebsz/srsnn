@@ -15,7 +15,7 @@ pub struct NetworkDescription<N: NeuronModel> {
 }
 
 impl<N: NeuronModel> NetworkDescription<N> {
-    fn new(neurons: Array1<NeuronDescription<N>>,
+    pub fn new(neurons: Array1<NeuronDescription<N>>,
         connection_mask: Array2<u32>,
         weights: Array2<f32>,
         inputs: usize,

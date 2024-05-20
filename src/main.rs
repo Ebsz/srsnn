@@ -8,11 +8,10 @@ use luna::config::{get_config, genome_config, MainConfig};
 
 use luna::models::stochastic::random_model::RandomGenome;
 use luna::models::stochastic::base_model::BaseStochasticGenome;
+use luna::models::matrix::MatrixGenome;
 
 use evolution::EvolutionEnvironment;
 use evolution::population::Population;
-
-use evolution::genome::matrix_genome::MatrixGenome;
 
 use tasks::{Task, TaskEval};
 use tasks::task_runner::TaskRunner;

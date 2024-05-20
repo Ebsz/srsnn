@@ -1,13 +1,19 @@
-use ndarray::{s, Array, Array2};
+use crate::phenotype::{Phenotype, EvolvableGenome};
 
-use crate::genome::Genome;
-use crate::EvolutionEnvironment;
+use model::network::SpikingNetwork;
+use model::neuron::NeuronModel;
+use model::neuron::izhikevich::Izhikevich;
+use model::synapse::BaseSynapse;
+use model::synapse::representation::MatrixRepresentation;
+
+use evolution::genome::Genome;
+use evolution::EvolutionEnvironment;
 
 use utils::random::{random_range, random_sample, random_choice};
 use utils::config::ConfigSection;
 
+use ndarray::{s, Array, Array1, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
-
 use serde::Deserialize;
 
 /// The connections matrix is stored as [to, from], and
@@ -301,6 +307,31 @@ pub enum NeuronType {
     Output,
 }
 
+impl EvolvableGenome for MatrixGenome {
+    type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
+
+    fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
+        let network_size = self.network_size();
+
+        let synapse_matrix: Array2<f32> = self.connections.mapv(|(e, w)| if e {w} else {0.0});
+
+        let mut neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
+
+        for n in &self.neurons {
+            neuron_types[n.id as usize] = if n.inhibitory { -1.0  } else { 1.0 };
+        }
+
+        let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
+        let synapse = BaseSynapse::new(synapse_representation);
+
+        let model = Izhikevich::n_default(network_size);
+
+        let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
+        Phenotype::new(network, env.clone())
+    }
+}
+
+
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub struct MatrixGenomeConfig {
     pub max_neurons: usize,
@@ -327,7 +358,6 @@ impl ConfigSection for MatrixGenomeConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::EvolutionEnvironment;
 
     fn conf() -> MatrixGenomeConfig {
         MatrixGenomeConfig {
