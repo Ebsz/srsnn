@@ -12,7 +12,7 @@ use std::convert::From;
 
 /// A vector describing the neuron type of N neurons, where entry i is -1.0 if
 /// neuron i is inhibitory, or 1.0 if it is excitatory.
-type NeuronType = Array1<f32>;
+pub type NeuronType = Array1<f32>;
 
 pub trait SynapseRepresentation {
     fn step(&mut self, input: &Spikes) -> SynapticPotential;

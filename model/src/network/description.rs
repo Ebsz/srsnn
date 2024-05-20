@@ -36,10 +36,10 @@ impl<N: NeuronModel> NetworkDescription<N> {
 pub struct NeuronDescription<N: NeuronModel> {
     pub params: N::Parameters,
     pub inhibitory: bool,
-    pub ntype: NeuronType,
+    pub role: NeuronRole,
 }
 
-pub enum NeuronType {
+pub enum NeuronRole {
     Input,
     Output,
     Network,

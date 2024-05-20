@@ -8,7 +8,7 @@ use ndarray::Array1;
 
 /// Defines a model of a neuron
 pub trait NeuronModel {
-    type Parameters: Default + Clone;
+    type Parameters: Default + Copy + Clone;
 
     fn new(n: usize, params: Vec<Self::Parameters>) -> Self;
     fn step(&mut self, input: Array1<f32>) -> Spikes;

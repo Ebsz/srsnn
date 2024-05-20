@@ -27,7 +27,7 @@ pub struct Izhikevich {
     d: Array1<f32>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct IzhikevichParameters {
     a: f32,
     b: f32,

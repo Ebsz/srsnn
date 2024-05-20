@@ -63,7 +63,7 @@ impl NeuronModel for Lapicque {
     }
 }
 
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct LapicqueParameters {
     pub r: f32,
     pub c: f32,
