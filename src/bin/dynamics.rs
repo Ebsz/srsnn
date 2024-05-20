@@ -3,7 +3,7 @@
 use luna::pools::Pool;
 use luna::visual::plots::{generate_plots, plot_network_energy};
 
-use model::network::RunnableNetwork;
+use model::network::runnable::RunnableNetwork;
 use model::record::{Record, RecordType, RecordDataType};
 
 use utils::logger::init_logger;

@@ -1,5 +1,5 @@
 use luna::pools::Pool;
-use model::network::RunnableNetwork;
+use model::network::runnable::RunnableNetwork;
 use ndarray::{Array, Array2};
 
 
