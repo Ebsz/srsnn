@@ -36,6 +36,6 @@ impl NetworkBuilder {
     }
 
     fn parse_neuron_params<N: NeuronModel> (desc: &NetworkDescription<N>) -> Vec<N::Parameters> {
-        desc.neurons.iter().filter_map(|n| if n.role != NeuronRole::Input {Some(n.params)} else { None }).collect()
+        desc.neurons.iter().filter_map(|n| n.params).collect()
     }
 }

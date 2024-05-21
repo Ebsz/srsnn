@@ -41,13 +41,13 @@ impl<N: NeuronModel> NetworkDescription<N> {
 #[derive(Copy, Debug)]
 pub struct NeuronDescription<N: NeuronModel> {
     pub id: u32,
-    pub params: N::Parameters,
+    pub params: Option<N::Parameters>,
     pub inhibitory: bool,
     pub role: NeuronRole,
 }
 
 impl<N: NeuronModel> NeuronDescription<N> {
-    pub fn new(id: u32, params: N::Parameters, inhibitory: bool, role: NeuronRole) -> NeuronDescription<N> {
+    pub fn new(id: u32, params: Option<N::Parameters>, inhibitory: bool, role: NeuronRole) -> NeuronDescription<N> {
         NeuronDescription {
             id,
             params,

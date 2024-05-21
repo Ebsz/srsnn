@@ -35,10 +35,10 @@ impl Genome for BaseStochasticGenome {
 
         // Create neurons
         let mut nvec = Vec::new();
-        let params = IzhikevichParameters::default();
 
         for i in 0..config.max_neurons {
             let role: NeuronRole;
+            let mut params = Some(IzhikevichParameters::default());
 
             if i < env.outputs {
                 role = NeuronRole::Output;
@@ -46,6 +46,7 @@ impl Genome for BaseStochasticGenome {
                 role = NeuronRole::Network;
             } else {
                 role = NeuronRole::Input;
+                params = None;
             }
 
             nvec.push(NeuronDescription::new(i as u32, params, false, role));
