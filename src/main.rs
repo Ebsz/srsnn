@@ -66,8 +66,7 @@ struct EvolutionProcess;
 
 impl Process for EvolutionProcess {
     fn run<G: EvolvableGenome, T: Task + TaskEval>(config: MainConfig) {
-        log::info!("task: {}", config.task);
-        log::info!("genome: {}", config.genome);
+        log::info!("EvolutionProcess - task: {}, genome: {}", config.task, config.genome);
 
         let env = Self::environment::<T>();
 

@@ -5,8 +5,10 @@ use crate::models::stochastic::StochasticGenomeConfig;
 use crate::phenotype::{EvolvableGenome, Phenotype};
 
 use model::network::SpikingNetwork;
+use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
+use model::network::builder::NetworkBuilder;
 use model::neuron::NeuronModel;
-use model::neuron::izhikevich::Izhikevich;
+use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
 use model::synapse::BaseSynapse;
 use model::synapse::representation::MatrixRepresentation;
 
@@ -16,12 +18,13 @@ use evolution::genome::representation::MatrixGene;
 
 use utils::random;
 
-use ndarray::{Array, Array2};
+use ndarray::{Array, Array1, Array2};
 use ndarray_rand::rand_distr::Uniform;
 
 
 pub struct BaseStochasticGenome {
-    pub connection_probability: MatrixGene
+    pub connection_probability: MatrixGene,
+    pub neurons: Array1<NeuronDescription<Izhikevich>>
 }
 
 impl Genome for BaseStochasticGenome {
@@ -30,10 +33,29 @@ impl Genome for BaseStochasticGenome {
     fn new(env: &EvolutionEnvironment, config: &Self::Config) -> Self {
         assert!(config.max_neurons >= (env.inputs + env.outputs));
 
+        // Create neurons
+        let mut nvec = Vec::new();
+        let params = IzhikevichParameters::default();
+
+        for i in 0..config.max_neurons {
+            let role: NeuronRole;
+
+            if i < env.outputs {
+                role = NeuronRole::Output;
+            } else if i < (config.max_neurons - env.inputs) {
+                role = NeuronRole::Network;
+            } else {
+                role = NeuronRole::Input;
+            }
+
+            nvec.push(NeuronDescription::new(i as u32, params, false, role));
+        }
+
         let cpm = random::random_matrix((config.max_neurons, config.max_neurons), Uniform::new(0.0, 1.0));
 
         BaseStochasticGenome {
-            connection_probability: MatrixGene { data: cpm }
+            connection_probability: MatrixGene { data: cpm },
+            neurons: Array::from_vec(nvec)
         }
     }
 
@@ -42,8 +64,11 @@ impl Genome for BaseStochasticGenome {
     }
 
     fn crossover(&self, other: &Self) -> Self {
+        // TODO: Implement proper crossover of neurons
+
         BaseStochasticGenome {
-            connection_probability: self.connection_probability.point_crossover(&other.connection_probability)
+            connection_probability: self.connection_probability.point_crossover(&other.connection_probability),
+            neurons: self.neurons.clone()
         }
     }
 }
@@ -52,20 +77,12 @@ impl EvolvableGenome for BaseStochasticGenome {
     type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
 
     fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
-        let n = self.connection_probability.data.shape()[0];
-
         let connection_mask = sample_connection_probability_matrix(&self.connection_probability.data);
+        let weights: Array2<f32> = connection_mask.mapv(|v| v as f32);
 
-        let synapse_matrix: Array2<f32> = connection_mask.mapv(|v| v as f32);
+        let description = NetworkDescription::new(self.neurons.clone(), connection_mask, weights, env.inputs, env.outputs);
+        let network = NetworkBuilder::build(description);
 
-        let neuron_types = Array::ones(n).mapv(|_: f32| 1.0);
-
-        let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
-        let synapse = BaseSynapse::new(synapse_representation);
-
-        let model = Izhikevich::n_default(n);
-
-        let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
         Phenotype::new(network, env.clone())
     }
 }
@@ -84,12 +101,6 @@ pub fn sample_connection_probability_matrix(probability_matrix: &Array2<f32>) ->
         .for_each(|c, p, s| *c = if s <= p {1} else {0} );
 
     connection_mask
-}
-
-enum NeuronType {
-    Input,
-    Network,
-    Output,
 }
 
 #[test]
