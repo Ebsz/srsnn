@@ -25,7 +25,6 @@ impl<N: NeuronModel> NetworkDescription<N> {
         -> NetworkDescription<N>
     {
         assert!(neurons.shape()[0] == connection_mask.shape()[0]);
-
         assert!(weights.shape()[0] == connection_mask.shape()[0]);
 
         NetworkDescription {
@@ -37,16 +36,6 @@ impl<N: NeuronModel> NetworkDescription<N> {
             outputs
         }
     }
-
-    // TODO: Implement
-    // pub fn validate(desc: &NetworkDescription<N>) {
-
-    // }
-
-    // // TODO: Implement this + generic representation of connections
-    // pub fn from_matrix() {
-
-    // }
 }
 
 #[derive(Copy, Debug)]
@@ -80,7 +69,7 @@ impl<N: NeuronModel> Clone for NeuronDescription<N> {
 }
 
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum NeuronRole {
     Input,
     Output,

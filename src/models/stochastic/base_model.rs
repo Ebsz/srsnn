@@ -73,14 +73,21 @@ impl Genome for BaseStochasticGenome {
     }
 }
 
+impl BaseStochasticGenome {
+    pub fn sample(&self, env: &EvolutionEnvironment) -> NetworkDescription<Izhikevich> {
+        let connection_mask = sample_connection_probability_matrix(&self.connection_probability.data);
+        let weights: Array2<f32> = connection_mask.mapv(|v| v as f32);
+
+        NetworkDescription::new(self.neurons.clone(), connection_mask, weights, env.inputs, env.outputs)
+    }
+}
+
+
 impl EvolvableGenome for BaseStochasticGenome {
     type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
 
     fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
-        let connection_mask = sample_connection_probability_matrix(&self.connection_probability.data);
-        let weights: Array2<f32> = connection_mask.mapv(|v| v as f32);
-
-        let description = NetworkDescription::new(self.neurons.clone(), connection_mask, weights, env.inputs, env.outputs);
+        let description = self.sample(env);
         let network = NetworkBuilder::build(description);
 
         Phenotype::new(network, env.clone())

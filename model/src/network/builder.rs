@@ -3,13 +3,14 @@
 //! Builds a SpikingNetwork from a NetworkDescription,
 
 use crate::network::SpikingNetwork;
-use crate::network::description::NetworkDescription;
+use crate::network::description::{NetworkDescription, NeuronRole};
 use crate::neuron::NeuronModel;
 use crate::synapse::BaseSynapse;
 
 use crate::synapse::representation::{NeuronType, MatrixRepresentation};
 
 use ndarray::{Array, Array1};
+
 
 pub struct NetworkBuilder;
 
@@ -19,7 +20,9 @@ impl NetworkBuilder {
         let neuron_params = Self::parse_neuron_params(&desc);
         let neuron_types = Self::parse_neuron_types(&desc);
 
-        let model = N::new(desc.n, neuron_params);
+        let n_network_neurons = desc.n - desc.inputs;
+
+        let model = N::new(n_network_neurons, neuron_params);
 
         let synapse_matrix = &(desc.connection_mask.mapv(|v| v as f32)) * &desc.weights;
         let representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
@@ -33,6 +36,6 @@ impl NetworkBuilder {
     }
 
     fn parse_neuron_params<N: NeuronModel> (desc: &NetworkDescription<N>) -> Vec<N::Parameters> {
-        desc.neurons.map(|n| n.params).to_vec()
+        desc.neurons.iter().filter_map(|n| if n.role != NeuronRole::Input {Some(n.params)} else { None }).collect()
     }
 }
