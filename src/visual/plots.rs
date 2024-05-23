@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 
-use visual::plots::plot_single_variable;
+use visual::plots::{plot_single_variable, plot_multiple_series};
 
 use ndarray::{s, Array, Array1, Array2};
 use model::record::{Record, RecordType, RecordDataType};
@@ -47,6 +47,22 @@ pub fn generate_plots(record: &Record) {
     //plot_firing_rates(psth);
 }
 
+pub fn plot_all_potentials(record: &Record) {
+    let mut pots: Vec<Vec<f32>> = Vec::new();
+    let potentials = record.get_potentials();
+
+    for i in 0..potentials[0].shape()[0] {
+        pots.push(potentials.iter().map(|x| x[i]).collect());
+    }
+
+    let plot_ok = plot_multiple_series(pots, "Potential", "Potentials", "allpots.png");
+
+    match plot_ok {
+        Ok(_) => (),
+        Err(e) => println!("Error creating plot: {:?}", e),
+    }
+}
+
 pub fn plot_evolution_stats(stats: &EvolutionStatistics) {
     log::info!("Plotting evolution stats");
 
@@ -61,7 +77,6 @@ pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::E
 pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {
     plot_single_variable(potentials, "Potential", "Potentials", "pots.png", &BLACK)
 }
-
 
 pub fn plot_firing_rates(data: Array2<f32>) -> Result<(), Box<dyn std::error::Error>> {
     let filename = "firing_rates.png";
