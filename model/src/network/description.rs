@@ -5,9 +5,9 @@ use crate::neuron::NeuronModel;
 use ndarray::{Array1, Array2};
 
 
-pub struct NetworkDescription<N: NeuronModel> {
+pub struct NetworkDescription<N> {
     pub n: usize,
-    pub neurons: Array1<NeuronDescription<N>>,
+    pub neurons: Array1<N>,
 
     pub connection_mask: Array2<u32>,
     pub weights: Array2<f32>,
@@ -16,8 +16,8 @@ pub struct NetworkDescription<N: NeuronModel> {
     pub outputs: usize,
 }
 
-impl<N: NeuronModel> NetworkDescription<N> {
-    pub fn new(neurons: Array1<NeuronDescription<N>>,
+impl<N> NetworkDescription<N> {
+    pub fn new(neurons: Array1<N>,
         connection_mask: Array2<u32>,
         weights: Array2<f32>,
         inputs: usize,

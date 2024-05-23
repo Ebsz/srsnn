@@ -22,6 +22,9 @@ pub trait Network {
     fn step(&mut self, input: Spikes) -> Spikes;
 }
 
+/// Runnable Recurrent Spiking Neural Network (RSNN)
+///
+/// A network of size n has (n - n_inputs) network neurons
 pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
     pub neurons: N,
     pub synapse: S,
