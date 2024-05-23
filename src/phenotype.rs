@@ -51,7 +51,7 @@ impl<N: Network> Phenotype<N> {
             // TODO: unnecessary cast; make phenotype.outputs be usize
             // If the neurons assigned to be output fire, add the corresponding input
             if network_state.data[i as usize] {
-                task_inputs.push(TaskInput { input_id: i as i32});
+                task_inputs.push(TaskInput { input_id: i as u32});
             }
         }
 

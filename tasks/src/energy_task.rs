@@ -8,8 +8,11 @@ use ndarray_rand::rand_distr::Uniform;
 const DEFAULT_MAX_TIMEOUT: u32 = 10;
 const DEFAULT_INPUT_DURATION: u32 =  100;
 
+const MAX_T: u32 = 10000;
+
 const AGENT_INPUTS: usize = 5;
 const AGENT_OUTPUTS: usize = 5;
+
 
 #[derive(Copy, Clone)]
 pub struct EnergyTaskSetup {
@@ -45,7 +48,7 @@ impl Task for EnergyTask {
             self.last_spike = self.ticks;
         }
 
-        if self.ticks - self.last_spike > self.setup.max_timeout {
+        if self.ticks - self.last_spike > self.setup.max_timeout || self.ticks >= MAX_T {
             return TaskState {
                 output: TaskOutput { data: Array::zeros(AGENT_INPUTS) },
                 result: Some(EnergyTaskResult {t: self.last_spike })

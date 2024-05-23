@@ -21,7 +21,6 @@ const N_SENSORS: usize = 5;
 const SENSOR_SPREAD: f32 = PI / 4.0; // Angle between the first and last sensor
 const SENSOR_LEN: f32 = 500.0;
 
-const FOOD_SPAWN_RATE: u32 = 200;
 const ENERGY_DRAIN_RATE: f32 = 0.1; // How much energy is lost each tick
 
 
@@ -29,9 +28,15 @@ pub struct SurvivalTask {
     agent: Agent,
     food: Vec<Food>,
     ticks: u32,
+
+    setup: SurvivalTaskSetup
 }
 
-pub struct SurvivalTaskSetup;
+#[derive(Copy, Clone)]
+pub struct SurvivalTaskSetup {
+    pub food_spawn_rate: u32
+}
+
 pub struct SurvivalTaskResult {
     pub time: u32
 }
@@ -41,7 +46,7 @@ impl Task for SurvivalTask {
     type Setup = SurvivalTaskSetup;
     type Result = SurvivalTaskResult;
 
-    fn new(_setup: &SurvivalTaskSetup) -> SurvivalTask {
+    fn new(setup: &SurvivalTaskSetup) -> SurvivalTask {
         let mut food: Vec<Food> = vec![];
 
         food.push(Food::new(Agent::START_POS.0 as f32, (Agent::START_POS.1 - 100) as f32));
@@ -55,6 +60,7 @@ impl Task for SurvivalTask {
             agent: Agent::new(),
             food,
             ticks: 0,
+            setup: *setup
         }
     }
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<SurvivalTaskResult> {
@@ -62,7 +68,7 @@ impl Task for SurvivalTask {
             return self.end_state();
         }
 
-        if self.ticks % FOOD_SPAWN_RATE == 0 {
+        if self.ticks % self.setup.food_spawn_rate == 0 {
             self.spawn_food();
         }
 
@@ -94,7 +100,7 @@ impl Task for SurvivalTask {
 }
 
 impl SurvivalTask {
-    pub const MAX_T: u32 = 10000;
+    pub const MAX_T: u32 = 2000;
 
     fn parse_input(&mut self, input: &Vec<TaskInput>) {
         for i in input {
@@ -259,7 +265,10 @@ impl Food {
 
 impl TaskEval for SurvivalTask {
     fn eval_setups() -> Vec<SurvivalTaskSetup> {
-        vec![SurvivalTaskSetup{}]
+        vec![SurvivalTaskSetup{ food_spawn_rate: 100 },
+             SurvivalTaskSetup{ food_spawn_rate: 200 },
+             SurvivalTaskSetup{ food_spawn_rate: 300 }
+        ]
     }
 
     fn fitness(results: Vec<SurvivalTaskResult>) -> f32 {

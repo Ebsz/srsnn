@@ -21,7 +21,7 @@ use std::time::Instant;
 fn main () {
     const TASKNAME: &str  = "catching";
 
-    let mut input_map: HashMap<Keycode, i32> = HashMap::new();
+    let mut input_map: HashMap<Keycode, u32> = HashMap::new();
 
     match TASKNAME {
         "movement" => {
@@ -57,7 +57,7 @@ fn main () {
             input_map.insert(Keycode::W, 2);
             input_map.insert(Keycode::S, 3);
 
-            let task = SurvivalTask::new(&SurvivalTaskSetup {});
+            let task = SurvivalTask::new(&SurvivalTaskSetup {food_spawn_rate: 30});
 
             let mut t = TaskTester::new(task, input_map);
             t.run();
@@ -73,7 +73,7 @@ pub struct TaskTester<T: Task + TaskRenderer>
     canvas: WindowCanvas,
     context: Sdl,
     task: T,
-    input_map: HashMap<Keycode, i32>,
+    input_map: HashMap<Keycode, u32>,
     finished: bool,
 }
 
@@ -82,7 +82,7 @@ impl<T: Task + TaskRenderer> TaskTester<T>
 {
     const TARGET_FPS: u128 = 60;
 
-    pub fn new(task: T, input_map: HashMap<Keycode, i32>) -> TaskTester<T> {
+    pub fn new(task: T, input_map: HashMap<Keycode, u32>) -> TaskTester<T> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
@@ -153,7 +153,7 @@ impl<T: Task + TaskRenderer> TaskTester<T>
                     },
                     Event::KeyDown {keycode, ..} => {
                         match self.input_map.get(&keycode.unwrap()) {
-                            Some(id) => { task_input.push(TaskInput {input_id: *id}); },
+                            Some(id) => { task_input.push(TaskInput { input_id: *id }); },
                             None => {}
                         }
                     }

@@ -10,12 +10,12 @@ pub mod xor_task;
 use ndarray::Array1;
 use sdl2::render::WindowCanvas;
 
-// Input to the task, from the agent
+/// Input to the task, from the agent
 pub struct TaskInput {
-    pub input_id: i32
+    pub input_id: u32
 }
 
-// Output from the task, to the agent
+/// Output from the task, to the agent
 #[derive(Debug)]
 pub struct TaskOutput {
     pub data: Array1<f32>
@@ -49,11 +49,9 @@ pub trait TaskEval: Task {
     fn fitness(results: Vec<Self::Result>) -> f32;
 }
 
-/// The TaskRenderer trait is implemented by a Task in order
-/// to define its visual representation.
+/// Implemented by a Task in order to define its visual representation.
 pub trait TaskRenderer {
     fn render(&self, canvas: &mut WindowCanvas);
 
-    /// Returns the size of the 'arena' that the task operates in
     fn render_size() -> (i32, i32);
 }
