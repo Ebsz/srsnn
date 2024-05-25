@@ -10,6 +10,7 @@ pub mod xor_task;
 use ndarray::Array1;
 use sdl2::render::WindowCanvas;
 
+
 /// Input to the task, from the agent
 pub struct TaskInput {
     pub input_id: u32

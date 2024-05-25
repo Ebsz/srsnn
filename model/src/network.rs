@@ -24,7 +24,11 @@ pub trait Network {
 
 /// Runnable Recurrent Spiking Neural Network (RSNN)
 ///
-/// A network of size n has (n - n_inputs) network neurons
+/// A network consists of a NeuronModel of (n - n_inputs) neurons,
+/// and a Synapse of n neurons.
+///
+/// In the synapse, output neurons are the first 0..n_output neurons,
+/// and input neurons are the last (n - n_inputs)..n neurons.
 pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
     pub neurons: N,
     pub synapse: S,

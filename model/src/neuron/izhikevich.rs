@@ -29,10 +29,10 @@ pub struct Izhikevich {
 
 #[derive(Copy, Clone, Debug)]
 pub struct IzhikevichParameters {
-    a: f32,
-    b: f32,
-    c: f32,
-    d: f32,
+    pub a: f32,
+    pub b: f32,
+    pub c: f32,
+    pub d: f32,
 }
 
 impl Default for IzhikevichParameters {
@@ -52,7 +52,7 @@ impl NeuronModel for Izhikevich {
     type Parameters = IzhikevichParameters;
 
     fn new(n: usize, params: Vec<IzhikevichParameters>) -> Izhikevich {
-        assert!(params.len() == n);
+        assert!(params.len() == n, "expected {n} params, got {:?}", params.len());
 
         let a: Array1<f32> = params.iter().map(|p| p.a).collect();
         let b: Array1<f32> = params.iter().map(|p| p.b).collect();

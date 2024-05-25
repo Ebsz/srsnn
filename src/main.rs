@@ -6,6 +6,8 @@ use luna::phenotype::EvolvableGenome;
 use luna::visual::plots::{plot_evolution_stats};
 use luna::config::{get_config, genome_config, MainConfig};
 
+
+use luna::models::stochastic::main_model::MainStochasticModel;
 use luna::models::stochastic::random_model::RandomGenome;
 use luna::models::stochastic::base_model::BaseStochasticGenome;
 use luna::models::matrix::MatrixGenome;
@@ -34,10 +36,11 @@ trait Process {
 
     fn init(config: MainConfig) {
         match config.genome.as_str() {
+            "main" => { Self::resolve_t::<MainStochasticModel>(config); },
             "matrix" => { Self::resolve_t::<MatrixGenome>(config); },
             "random" => { Self::resolve_t::<RandomGenome>(config); },
             "base_stochastic" => { Self::resolve_t::<BaseStochasticGenome>(config); },
-            _ => {panic!("Unknown genome: {}", config.genome);}
+            _ => { println!("Unknown genome: {}", config.genome); }
         }
     }
 
@@ -48,7 +51,7 @@ trait Process {
             "survival" => { Self::run::<G, SurvivalTask>(config); },
             "energy"   => { Self::run::<G, EnergyTask>(config); },
             "xor"      => { Self::run::<G, XORTask>(config); },
-            _ => { panic!("Unknown task: {}", config.task); }
+            _ => { println!("Unknown task: {}", config.task); }
         }
     }
 
@@ -152,7 +155,6 @@ fn parse_config_name_from_args() -> Option<String> {
 
     None
 }
-
 
 fn main() {
     let config_name = parse_config_name_from_args();

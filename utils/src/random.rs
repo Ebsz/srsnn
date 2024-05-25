@@ -26,7 +26,7 @@ pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> 
 
 
 /// Generate a random matrix
-pub fn random_matrix<D: Distribution<f32>>(shape: (usize, usize), dist: D) -> Array2<f32>{
+pub fn random_matrix<T, D: Distribution<T>>(shape: (usize, usize), dist: D) -> Array2<T>{
     RNG.with(|rng| {
         Array::random_using(shape, dist, &mut (*rng.borrow_mut()))
     })

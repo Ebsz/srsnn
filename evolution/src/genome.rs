@@ -20,15 +20,15 @@ pub trait Genome {
     fn crossover(&self, other: &Self) -> Self;
 }
 
+
 pub mod representation {
     //! Generic containers for different data structures
     //! with functions for performing mutation and crossover
 
-    use ndarray::{s, Array, Array2};
-
-    use ndarray_rand::rand_distr::StandardNormal;
-
     use utils::random;
+
+    use ndarray::{s, Array, Array2};
+    use ndarray_rand::rand_distr::{StandardNormal, Uniform};
 
     /// Generic matrix representation for arbitrary kinds of data,
     #[derive(Clone, Debug)]
@@ -37,6 +37,13 @@ pub mod representation {
     }
 
     impl MatrixGene {
+        pub fn init_random(n: usize, range: (f32, f32)) -> MatrixGene {
+            MatrixGene {
+                data: random::random_matrix((n, n), Uniform::new(0.0, 1.0))
+            }
+        }
+
+
         /// Adds random gaussian noise multiplied by a weight to a random entry,
         /// simultaneously ensuring that the value is within the set bounds
         pub fn mutate_single_value(&mut self, w: f32, bounds: (f32, f32)) {

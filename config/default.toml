@@ -2,11 +2,11 @@ task = "catching"
 genome = "matrix"
 
 [evolution]
-population_size =  50
-parent_fraction =  0.3
+population_size = 50
+parent_fraction = 0.3
 elites = 2
 fitness_goal = 999999.0
-max_generations =  50
+max_generations = 50
 
 n_stale_before_reset = 0 # =0 disables resetting
 
