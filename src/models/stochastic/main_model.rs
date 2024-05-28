@@ -9,8 +9,8 @@
 //! not ideal.
 //!
 
+use crate::models::Model;
 use crate::gen::stochastic;
-use crate::phenotype::{EvolvableGenome, Phenotype};
 
 use model::network::SpikingNetwork;
 use model::network::builder::NetworkBuilder;
@@ -44,7 +44,9 @@ pub struct MainModelConfig {
 
     pub mutate_type_cpm_probability: f32,
     pub mutate_params_probability: f32,
-    pub mutate_type_ratio_probability: f32
+    pub mutate_type_ratio_probability: f32,
+
+    pub initial_probability_range: (f32, f32)
 }
 
 impl ConfigSection for MainModelConfig {
@@ -60,6 +62,7 @@ impl ConfigSection for MainModelConfig {
 pub struct MainStochasticModel {
     pub n: usize, // NOTE: does not include inputs
     pub inputs: usize,
+    pub outputs: usize,
 
     pub types: HashMap<u32, NeuronType>,
     pub type_connection_probabilities: MatrixGene,
@@ -78,8 +81,9 @@ impl Genome for MainStochasticModel {
         MainStochasticModel {
             n: config.n,
             inputs: env.inputs,
+            outputs: env.outputs,
             types,
-            type_connection_probabilities: MatrixGene::init_random(total_num_types, (0.0, 1.0))
+            type_connection_probabilities: MatrixGene::init_random(total_num_types, config.initial_probability_range)
         }
     }
 
@@ -103,6 +107,7 @@ impl Genome for MainStochasticModel {
         MainStochasticModel {
             n: self.n,
             inputs: self.inputs,
+            outputs: self.outputs,
             types: self.types.clone(),
             type_connection_probabilities: self.type_connection_probabilities.clone()
         }
@@ -152,44 +157,44 @@ impl MainStochasticModel {
         // TODO: Implement
     }
 
-    pub fn sample(&self, env: &EvolutionEnvironment) -> NetworkDescription<NeuronDescription<Izhikevich>> {
+    pub fn sample(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
         // Number of neurons for each neuron type.
-        let mut ndist = self.get_neuron_distribution(env);
+        let mut ndist = self.get_neuron_distribution();
 
-        assert!(ndist.iter().sum::<usize>() == self.n + env.inputs);
+        assert!(ndist.iter().sum::<usize>() == self.n + self.inputs);
 
-        let neurons = self.generate_neurons(env, &ndist);
+        let neurons = self.generate_neurons(&ndist);
 
-        let cpm = self.generate_connection_probability_matrix(env, &ndist);
+        let cpm = self.generate_connection_probability_matrix(&ndist);
         let mut theta: Array2<u32> = stochastic::sample_connection_probability_matrix(&cpm);
 
         // Remove incoming connections to input neurons
-        theta.slice_mut(s![self.n..(self.n+env.inputs),..]).fill(0);
+        theta.slice_mut(s![self.n..(self.n + self.inputs),..]).fill(0);
 
         let weights: Array2<f32> = theta.mapv(|v| v as f32);
 
         //println!("cpm size: {:?}", cpm.shape()[0]);
         //println!("neurons size: {:?}", neurons.shape()[0]);
 
-        assert!(neurons.shape()[0] == self.n + env.inputs);
+        assert!(neurons.shape()[0] == self.n + self.inputs);
 
-        NetworkDescription::new(neurons, theta, weights, env.inputs, env.outputs)
+        NetworkDescription::new(neurons, theta, weights, self.inputs, self.outputs)
     }
 
-    fn get_neuron_distribution(&self, env: &EvolutionEnvironment) -> Array1<usize> {
+    fn get_neuron_distribution(&self) -> Array1<usize> {
         let prevalences: Vec<f32> = self.types.iter().map(|(_, t)| t.prevalence).collect();
 
-        let mut dist = math::distribute(self.n - env.outputs, &prevalences);
+        let mut dist = math::distribute(self.n - self.outputs, &prevalences);
 
         // Add output neurons to the first type i.e. the output type
-        dist[0] += env.outputs;
+        dist[0] += self.outputs;
 
-        dist.push(env.inputs);
+        dist.push(self.inputs);
 
         Array::from_vec(dist)
     }
 
-    fn generate_neurons(&self, env: &EvolutionEnvironment, ndist: &Array1<usize>) -> Array1<NeuronDescription<Izhikevich>> {
+    fn generate_neurons(&self, ndist: &Array1<usize>) -> Array1<NeuronDescription<Izhikevich>> {
         let mut neurons = Vec::new();
 
         let mut id = 0;
@@ -212,7 +217,7 @@ impl MainStochasticModel {
         }
 
         // Add input neurons
-        for _ in 0..env.inputs {
+        for _ in 0..self.inputs {
             neurons.push(NeuronDescription::new(id, None, false, NeuronRole::Input));
         }
 
@@ -220,8 +225,8 @@ impl MainStochasticModel {
     }
 
 
-    fn generate_connection_probability_matrix(&self, env: &EvolutionEnvironment, ndist: &Array1<usize>) -> Array2<f32> {
-        let n = self.n + env.inputs;
+    fn generate_connection_probability_matrix(&self, ndist: &Array1<usize>) -> Array2<f32> {
+        let n = self.n + self.inputs;
         let mut cpm = Array::ones((n,n));
 
         let p = &self.type_connection_probabilities.data;
@@ -248,14 +253,9 @@ impl MainStochasticModel {
     }
 }
 
-impl EvolvableGenome for MainStochasticModel {
-    type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
-
-    fn to_phenotype(&self, env: &EvolutionEnvironment,) -> Self::Phenotype {
-        let description = self.sample(env);
-        let network = NetworkBuilder::build(description);
-
-        Phenotype::new(network, env.clone())
+impl Model for MainStochasticModel {
+    fn develop(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
+        self.sample()
     }
 }
 

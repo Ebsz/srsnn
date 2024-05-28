@@ -2,12 +2,12 @@ use crate::EvolutionEnvironment;
 
 use utils::config::ConfigSection;
 
+
 pub trait EvolvableGenome {
     type Phenotype;
 
     fn to_phenotype(&self) -> Self::Phenotype;
 }
-
 
 pub trait Genome {
     type Config: ConfigSection;
@@ -19,7 +19,6 @@ pub trait Genome {
     /// This is called on the genome with greater or equal fitness
     fn crossover(&self, other: &Self) -> Self;
 }
-
 
 pub mod representation {
     //! Generic containers for different data structures
@@ -39,7 +38,7 @@ pub mod representation {
     impl MatrixGene {
         pub fn init_random(n: usize, range: (f32, f32)) -> MatrixGene {
             MatrixGene {
-                data: random::random_matrix((n, n), Uniform::new(0.0, 1.0))
+                data: random::random_matrix((n, n), Uniform::new(range.0, range.1))
             }
         }
 

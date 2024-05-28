@@ -5,7 +5,6 @@
 //! over the connectivity space
 
 use crate::gen;
-use crate::phenotype::{EvolvableGenome, Phenotype};
 
 use model::network::SpikingNetwork;
 use model::neuron::NeuronModel;
@@ -57,19 +56,19 @@ impl Genome for RandomGenome {
     }
 }
 
-impl EvolvableGenome for RandomGenome {
-    type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
-
-    fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
-        //log::info!("n: {:?}", self.n);
-
-        let model = Izhikevich::n_default(self.n);
-        let synapse = gen::synapse_gen::from_probability(self.n, 0.1, Array::ones(self.n).mapv(|_: f32| false));
-
-        let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
-        Phenotype::new(network, env.clone())
-    }
-}
+//impl Phenotypeable for RandomGenome {
+//    type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
+//
+//    fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
+//        //log::info!("n: {:?}", self.n);
+//
+//        let model = Izhikevich::n_default(self.n);
+//        let synapse = gen::synapse_gen::from_probability(self.n, 0.1, Array::ones(self.n).mapv(|_: f32| false));
+//
+//        let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
+//        Phenotype::new(network, env.clone())
+//    }
+//}
 
 #[derive(Deserialize)]
 pub struct RandomGenomeConfig {

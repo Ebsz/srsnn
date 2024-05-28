@@ -15,12 +15,12 @@ use std::sync::Arc;
 
 const STALE_THRESHOLD: f32 = 0.1;
 
-pub struct Population<E: Evaluate<G>, G: Genome> {
+pub struct Population<E: Evaluate<G, P>, G: Genome, P> {
     pub generation: u32,
     pub stop_signal: Arc<AtomicBool>,
     pub stats: EvolutionStatistics,
 
-    population: Vec<Individual<G>>,
+    population: Vec<Individual<G, P>>,
 
     environment: EvolutionEnvironment,
     config: EvolutionConfig,
@@ -31,8 +31,8 @@ pub struct Population<E: Evaluate<G>, G: Genome> {
     evaluator: E, // TODO: Figure out if this should just be injected instead.
 }
 
-impl<E: Evaluate<G>, G: Genome> Population<E, G> {
-    pub fn new(env: EvolutionEnvironment, config: EvolutionConfig, genome_config: G::Config, evaluator: E) -> Population<E, G> {
+impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
+    pub fn new(env: EvolutionEnvironment, config: EvolutionConfig, genome_config: G::Config, evaluator: E) -> Population<E, G, P> {
         assert!(env.inputs > 0 && env.outputs > 0);
         assert!(config.population_size >= 2);
 
@@ -123,7 +123,6 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
         }
     }
 
-
     /// Evaluate the fitness of each genome
     fn evaluate(&mut self) {
         log::debug!("Evaluating population");
@@ -131,7 +130,9 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
         let start_time = Instant::now();
         for g in &mut self.population {
             if g.fitness == None {
-                g.fitness = Some(self.evaluator.eval(&g.genome));
+                let eval = self.evaluator.eval(&g.genome);
+                g.fitness = Some(eval.0);
+                g.phenotype = Some(eval.1);
             }
         }
         let eval_time = start_time.elapsed().as_secs_f32();
@@ -238,18 +239,20 @@ impl<E: Evaluate<G>, G: Genome> Population<E, G> {
 }
 
 /// Represents a member of the population
-pub struct Individual<G: Genome> {
+pub struct Individual<G: Genome, P> {
     genome: G,
     id: u32,
-    fitness: Option<f32>
+    fitness: Option<f32>,
+    phenotype: Option<P>
 }
 
-impl<G: Genome> Individual<G> {
-    fn new(genome: G, id: u32) -> Individual<G> {
+impl<G: Genome, P> Individual<G, P> {
+    fn new(genome: G, id: u32) -> Individual<G, P> {
         Individual {
             genome,
             id,
-            fitness: None
+            fitness: None,
+            phenotype: None
         }
     }
 }

@@ -6,8 +6,8 @@ pub mod stats;
 use genome::Genome;
 
 
-pub trait Evaluate<G> {
-    fn eval(&self, g: &G) -> f32;
+pub trait Evaluate<G, P> {
+    fn eval(&self, g: &G) -> (f32, P);
 }
 
 #[derive(Debug, Clone)]

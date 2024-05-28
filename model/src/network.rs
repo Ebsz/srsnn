@@ -13,7 +13,7 @@ use ndarray::{s, Array1};
 use rand::distributions::Uniform;
 
 
-// Output of a neuron is multiplied by this; determines the impact of a single spike.
+/// Output of a neuron is multiplied by this; determines the impact of a single spike.
 const SYNAPTIC_INPUT_SCALING: f32 = 18.0; // 15.0;
 
 const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
@@ -22,7 +22,8 @@ pub trait Network {
     fn step(&mut self, input: Spikes) -> Spikes;
 }
 
-/// Runnable Recurrent Spiking Neural Network (RSNN)
+
+/// A runnable RSNN.
 ///
 /// A network consists of a NeuronModel of (n - n_inputs) neurons,
 /// and a Synapse of n neurons.

@@ -3,12 +3,12 @@ pub mod matrix;
 
 use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
-use model::network::description::NetworkDescription;
+use model::network::description::{NetworkDescription, NeuronDescription};
 
-use evolution::genome::EvolvableGenome;
+use evolution::genome::{Genome, EvolvableGenome};
 
 
-pub trait Model<N=Izhikevich> {
+pub trait Model<N=NeuronDescription<Izhikevich>>: Genome {
     fn develop(&self) -> NetworkDescription<N>;
 }
 

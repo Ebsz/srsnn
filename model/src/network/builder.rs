@@ -15,10 +15,10 @@ use ndarray::{Array, Array1};
 pub struct NetworkBuilder;
 
 impl NetworkBuilder {
-    pub fn build<N: NeuronModel>(desc: NetworkDescription<NeuronDescription<N>>)
+    pub fn build<N: NeuronModel>(desc: &NetworkDescription<NeuronDescription<N>>)
         -> SpikingNetwork<N, BaseSynapse<MatrixRepresentation>> {
-        let neuron_params = Self::parse_neuron_params(&desc);
-        let neuron_types = Self::parse_neuron_types(&desc);
+        let neuron_params = Self::parse_neuron_params(desc);
+        let neuron_types = Self::parse_neuron_types(desc);
 
         let n_network_neurons = desc.n - desc.inputs;
 

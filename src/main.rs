@@ -1,16 +1,19 @@
 //! luna/src/main.rs
 
-use luna::eval::TaskEvaluator;
-use luna::phenotype::EvolvableGenome;
+use luna::eval;
 
 use luna::visual::plots::{plot_evolution_stats};
 use luna::config::{get_config, genome_config, MainConfig};
 
-
+use luna::models::Model;
 use luna::models::stochastic::main_model::MainStochasticModel;
 use luna::models::stochastic::random_model::RandomGenome;
 use luna::models::stochastic::base_model::BaseStochasticGenome;
 use luna::models::matrix::MatrixGenome;
+
+
+use model::neuron::izhikevich::Izhikevich;
+use model::network::description::{NetworkDescription, NeuronDescription};
 
 use evolution::EvolutionEnvironment;
 use evolution::population::Population;
@@ -32,19 +35,19 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 
 trait Process {
-    fn run<G: EvolvableGenome, T: Task + TaskEval>(conf: MainConfig);
+    fn run<G: Model, T: Task + TaskEval>(conf: MainConfig);
 
     fn init(config: MainConfig) {
         match config.genome.as_str() {
             "main" => { Self::resolve_t::<MainStochasticModel>(config); },
             "matrix" => { Self::resolve_t::<MatrixGenome>(config); },
-            "random" => { Self::resolve_t::<RandomGenome>(config); },
+            //"random" => { Self::resolve_t::<RandomGenome>(config); }, //TODO: Impl Model
             "base_stochastic" => { Self::resolve_t::<BaseStochasticGenome>(config); },
             _ => { println!("Unknown genome: {}", config.genome); }
         }
     }
 
-    fn resolve_t<G: EvolvableGenome>(config: MainConfig) {
+    fn resolve_t<G: Model>(config: MainConfig) {
         match config.task.as_str() {
             "catching" => { Self::run::<G, CatchingTask>(config); },
             "movement" => { Self::run::<G, MovementTask>(config); },
@@ -68,16 +71,17 @@ trait Process {
 struct EvolutionProcess;
 
 impl Process for EvolutionProcess {
-    fn run<G: EvolvableGenome, T: Task + TaskEval>(config: MainConfig) {
+    fn run<G: Model, T: Task + TaskEval>(config: MainConfig) {
         log::info!("EvolutionProcess - task: {}, genome: {}", config.task, config.genome);
 
         let env = Self::environment::<T>();
 
-        let evaluator = TaskEvaluator::<T, G>::new(env.clone());
+        let evaluator = eval::ModelEvaluator::new(env.clone());
 
         let genome_config = genome_config::<G>();
 
-        let mut population = Population::new(env.clone(), config.evolution, genome_config, evaluator);
+        let mut population = Population::<eval::ModelEvaluator<T>, G, NetworkDescription<NeuronDescription<Izhikevich>>>
+            ::new(env.clone(), config.evolution, genome_config, evaluator);
 
         init_ctrl_c_handler(population.stop_signal.clone());
 
@@ -90,25 +94,25 @@ impl Process for EvolutionProcess {
     }
 }
 
-struct AnalysisProcess;
-
-impl Process for AnalysisProcess {
-    fn run<G: EvolvableGenome, T: Task + TaskEval>(config: MainConfig) {
-        log::info!("Running analysis");
-
-        let genome_config = genome_config::<G>();
-        let env = Self::environment::<T>();
-
-        let genome = G::new(&env, &genome_config);
-        let setups = T::eval_setups();
-
-        let task = T::new(&setups[0]);
-
-        let mut p = genome.to_phenotype(&env);
-        let mut runner = TaskRunner::new(task, &mut p);
-        runner.run();
-    }
-}
+//struct AnalysisProcess;
+//
+//impl Process for AnalysisProcess {
+//    fn run<G: Model, T: Task + TaskEval>(config: MainConfig) {
+//        log::info!("Running analysis");
+//
+//        let genome_config = genome_config::<G>();
+//        let env = Self::environment::<T>();
+//
+//        let genome = G::new(&env, &genome_config);
+//        let setups = T::eval_setups();
+//
+//        let task = T::new(&setups[0]);
+//
+//        let mut p = genome.to_phenotype(&env);
+//        let mut runner = TaskRunner::new(task, &mut p);
+//        runner.run();
+//    }
+//}
 
 ///// Analyzes a genome resulting from an evolutionary process
 //#[allow(dead_code)]

@@ -1,8 +1,9 @@
-use crate::phenotype::{Phenotype, EvolvableGenome};
+use crate::models::Model;
+use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
 
 use model::network::SpikingNetwork;
 use model::neuron::NeuronModel;
-use model::neuron::izhikevich::Izhikevich;
+use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
 use model::synapse::BaseSynapse;
 use model::synapse::representation::MatrixRepresentation;
 
@@ -16,6 +17,7 @@ use ndarray::{s, Array, Array1, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
 use serde::Deserialize;
 
+
 /// The connections matrix is stored as [to, from], and
 /// has dim [N, (N + M)], where N is the number of neurons,
 /// M is the number of inputs.
@@ -25,6 +27,8 @@ use serde::Deserialize;
 pub struct MatrixGenome {
     pub neurons: Vec<NeuronGene>,
     pub connections: Array2<(bool, f32)>,
+    inputs: usize,
+    outputs: usize,
 }
 
 impl Genome for MatrixGenome {
@@ -95,6 +99,8 @@ impl Genome for MatrixGenome {
         MatrixGenome {
             neurons,
             connections,
+            inputs: env.inputs,
+            outputs: env.outputs
         }
     }
 
@@ -183,6 +189,7 @@ impl Genome for MatrixGenome {
         MatrixGenome {
             neurons,
             connections: connection_matrix,
+            ..*self
         }
     }
 }
@@ -292,6 +299,18 @@ impl MatrixGenome {
 
         Some(*random_choice(&enabled_connections))
     }
+
+    fn get_neuron_description(&self) -> Vec<NeuronDescription<Izhikevich>> {
+        let mut neurons: Vec<NeuronDescription<Izhikevich>> = self.neurons.iter().map( |n| n.to_description() ).collect();
+
+        let mut input_neurons = (0..self.inputs).map(|i: usize| {
+            NeuronDescription::<Izhikevich>::new((self.network_size() + i) as u32, None, false, NeuronRole::Input)
+        }).collect();
+
+        neurons.append(&mut input_neurons);
+
+        neurons
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -301,36 +320,45 @@ pub struct NeuronGene {
     pub inhibitory: bool
 }
 
+impl NeuronGene {
+    fn to_description(&self) -> NeuronDescription<Izhikevich> {
+        let role = match self.ntype {
+            NeuronType::Network => NeuronRole::Network,
+            NeuronType::Output => NeuronRole::Output
+        };
+
+        NeuronDescription::new(self.id, Some(IzhikevichParameters::default()), self.inhibitory, role)
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum NeuronType {
     Network,
     Output,
 }
 
-impl EvolvableGenome for MatrixGenome {
-    type Phenotype = Phenotype<SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>>;
+impl Model for MatrixGenome {
+    fn develop(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
+        let neurons = self.get_neuron_description();
 
-    fn to_phenotype(&self, env: &EvolutionEnvironment) -> Self::Phenotype {
+        // Pack the connections matrix, which is sized after the max # of neurons, to the correct size.
         let network_size = self.network_size();
+        let new_size = network_size + self.inputs;
 
-        let synapse_matrix: Array2<f32> = self.connections.mapv(|(e, w)| if e {w} else {0.0});
+        // Take network connections
+        let mut new_connections = self.connections.slice(s![..new_size, ..new_size]).to_owned();
 
-        let mut neuron_types: Array1<f32> = Array::ones(synapse_matrix.shape()[0]);
+        // Assign the input connections
+        let input_connections = self.connections.slice(s![..network_size, (self.connections.shape()[0] - self.inputs)..]);
+        new_connections.slice_mut(s![..network_size, network_size..])
+            .assign(&input_connections);
 
-        for n in &self.neurons {
-            neuron_types[n.id as usize] = if n.inhibitory { -1.0  } else { 1.0 };
-        }
+        let connection_mask: Array2<u32> = new_connections.map(|c| if c.0 { 1 } else { 0 } );
+        let weights: Array2<f32> = new_connections.map(|c| c.1);
 
-        let synapse_representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
-        let synapse = BaseSynapse::new(synapse_representation);
-
-        let model = Izhikevich::n_default(network_size);
-
-        let network = SpikingNetwork::new(model, synapse, env.inputs, env.outputs);
-        Phenotype::new(network, env.clone())
+        NetworkDescription::new(Array::from_vec(neurons), connection_mask, weights, self.inputs, self.outputs)
     }
 }
-
 
 #[derive(Clone, Copy, Debug, Deserialize)]
 pub struct MatrixGenomeConfig {

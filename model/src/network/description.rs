@@ -24,8 +24,16 @@ impl<N> NetworkDescription<N> {
         outputs: usize)
         -> NetworkDescription<N>
     {
-        assert!(neurons.shape()[0] == connection_mask.shape()[0]);
-        assert!(weights.shape()[0] == connection_mask.shape()[0]);
+
+        // TODO: Implement using non-square matrices and use this
+        //let network_neurons = neurons.shape()[0] - inputs;
+        //assert!(connection_mask.shape()[0] == network_neurons,
+        //    "connection mask dim 1 was {:?}, expected {network_neurons}", connection_mask.shape()[0]);
+
+        assert!(neurons.shape()[0] == connection_mask.shape()[0],
+            "# neurons ({:?}) != matrix size ({:?})", neurons.shape()[0], connection_mask.shape());
+        assert!(weights.shape()[0] == connection_mask.shape()[0],
+            "neurons: {:?}, matrix: {:?}", weights.shape()[0], connection_mask.shape()[0]);
 
         NetworkDescription {
             n: neurons.shape()[0],
@@ -35,6 +43,21 @@ impl<N> NetworkDescription<N> {
             inputs,
             outputs
         }
+    }
+
+    pub fn edges(&self) -> Vec<(u32, u32)> {
+        let mut edges = Vec::new();
+
+        for (i, d) in self.connection_mask.iter().enumerate() {
+            let x = i / self.n;
+            let y = i % self.n;
+
+            if *d == 1 {
+                edges.push((x as u32, y as u32));
+            }
+        }
+
+        edges
     }
 }
 

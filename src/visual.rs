@@ -1,8 +1,10 @@
 pub mod plots;
 
-use crate::phenotype::EvolvableGenome;
+use crate::runnable::RunnableNetwork;
 
-use model::network::description::NetworkDescription;
+use model::neuron::NeuronModel;
+use model::network::description::{NetworkDescription, NeuronDescription};
+use model::network::builder::NetworkBuilder;
 
 use visual::fg::ForceGraphComponent;
 use visual::window::{Window, WindowComponent};
@@ -26,12 +28,17 @@ pub fn visualize_network<N>(desc: NetworkDescription<N>) {
     w.run();
 }
 
-pub fn visualize_genome_on_task<G: EvolvableGenome, T: Task + TaskRenderer>(task: T, g: &G, env: &EvolutionEnvironment) {
+pub fn visualize_network_on_task<N: NeuronModel, T: Task + TaskRenderer>(task: T, desc: &NetworkDescription<NeuronDescription<N>>) {
     log::info!("Visualizing genome behavior on task");
 
-    let mut phenotype = g.to_phenotype(env);
+    let network = NetworkBuilder::build(desc);
+    let mut runnable = RunnableNetwork {
+        network,
+        inputs: desc.inputs,
+        outputs: desc.outputs
+    };
 
-    let runner = TaskRunner::new(task, &mut phenotype);
+    let runner = TaskRunner::new(task, &mut runnable);
 
     let mut window = TaskWindow::new(runner);
     window.run();
