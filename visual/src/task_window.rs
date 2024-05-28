@@ -2,46 +2,43 @@ use sdl2::Sdl;
 use sdl2::event::Event;
 use sdl2::render::WindowCanvas;
 
-use sdl2::gfx::primitives::DrawRenderer;
-
 use sdl2::pixels::Color;
 use sdl2::keyboard::Keycode;
 
 use std::time::Instant;
 
+use tasks::{Task, TaskRenderer};
+use tasks::task_runner::{ExecutionState, TaskRunner, Runnable};
+
+
 const TARGET_FPS: u128 = 60;
 
-const CLEAR_COLOR: Color = Color::RGB(60, 65, 70);
-
-
-pub struct Window {
-    components: Vec<Box<dyn WindowComponent>>,
-
+pub struct TaskWindow<'a, T: Task + TaskRenderer, R: Runnable>
+{
+    runner: TaskRunner<'a, T, R>,
     canvas: WindowCanvas,
-    context: Sdl,
-
-    size: (u32, u32)
+    context: Sdl
 }
 
-impl Window {
-    pub const DEFAULT_WINDOW_SIZE: (u32, u32) = (1200, 800);
-
-    pub fn new(size: (u32, u32), components: Vec<Box<dyn WindowComponent>>) -> Window {
+impl<'a, T: Task + TaskRenderer, R: Runnable> TaskWindow<'a, T, R>
+{
+    pub fn new(runner: TaskRunner<T, R>) -> TaskWindow<T, R> {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
-        let window = video_subsystem.window("window", size.0, size.1)
+        let size = T::render_size();
+
+        let window = video_subsystem.window("window", size.0 as u32, size.1 as u32)
             .position_centered()
             .build()
             .unwrap();
 
         let canvas = window.into_canvas().build().unwrap();
 
-        Window {
-            components: components,
-            canvas,
+        TaskWindow {
             context: sdl_context,
-            size
+            canvas,
+            runner,
         }
     }
 
@@ -88,6 +85,10 @@ impl Window {
                     Event::KeyDown {keycode: Some(Keycode::Escape), ..} => {
                         running = false;
                     },
+                    Event::KeyDown {keycode: Some(Keycode::R), ..} => {
+                        self.runner.reset()
+
+                    }
                     _ => {}
                 }
             }
@@ -98,39 +99,15 @@ impl Window {
     }
 
     fn update(&mut self) {
-        for c in &mut self.components {
-            c.update();
+        if self.runner.state != ExecutionState::FINISHED {
+            self.runner.step();
         }
     }
 
     fn render(&mut self) {
-        self.canvas.set_draw_color(CLEAR_COLOR);
+        self.canvas.set_draw_color(Color::RGB(255, 255, 255));
         self.canvas.clear();
 
-        for c in &self.components {
-            c.render( &mut DrawContext { size: self.size, canvas: &self.canvas });
-        }
+        self.runner.task.render(&mut self.canvas);
     }
-}
-
-// TODO: Draw on surfaces instead and put them together
-pub struct DrawContext<'a> {
-    pub size: (u32, u32),
-    pub canvas: &'a WindowCanvas
-}
-
-impl DrawContext<'_> {
-    pub fn draw_circle(&mut self, x: i16, y: i16, r: i16, color: Color) {
-        self.canvas.aa_circle(x, y, r, color);
-        self.canvas.filled_circle(x, y, r, color);
-    }
-
-    pub fn draw_line(&mut self, p1: (i16, i16), p2: (i16, i16), width: u8, color: Color) {
-        self.canvas.thick_line(p1.0, p1.1, p2.0, p2.1, width, color);
-    }
-}
-
-pub trait WindowComponent {
-    fn update(&mut self);
-    fn render(&self, context: &mut DrawContext);
 }

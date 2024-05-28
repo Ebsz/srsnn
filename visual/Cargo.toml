@@ -12,6 +12,7 @@ log = "0.4.21"
 model = { path = "../model" }
 tasks = { path = "../tasks" }
 utils = { path = "../utils" }
+force_graph = "0.3.2"
 
 [dependencies.sdl2]
 version = "0.36"
