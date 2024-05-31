@@ -12,7 +12,7 @@
 use crate::models::Model;
 use crate::gen::stochastic;
 
-use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
+use model::network::representation::{NetworkRepresentation, NeuronDescription, NeuronRole};
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
 
 use evolution::EvolutionEnvironment;
@@ -145,7 +145,7 @@ impl MainStochasticModel {
         types
     }
 
-    pub fn sample(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
+    pub fn sample(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         // Number of neurons for each neuron type.
         let ndist = self.get_neuron_distribution();
 
@@ -166,7 +166,7 @@ impl MainStochasticModel {
 
         assert!(neurons.shape()[0] == self.n + self.inputs);
 
-        NetworkDescription::new(neurons, theta, weights, self.inputs, self.outputs)
+        NetworkRepresentation::new(neurons, theta, weights, self.inputs, self.outputs)
     }
 
     fn get_neuron_distribution(&self) -> Array1<usize> {
@@ -241,7 +241,7 @@ impl MainStochasticModel {
 }
 
 impl Model for MainStochasticModel {
-    fn develop(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
+    fn develop(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         self.sample()
     }
 }

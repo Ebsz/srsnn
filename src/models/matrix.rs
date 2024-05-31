@@ -1,5 +1,5 @@
 use crate::models::Model;
-use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
+use model::network::representation::{NetworkRepresentation, NeuronDescription, NeuronRole};
 
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
 
@@ -334,7 +334,7 @@ pub enum NeuronType {
 }
 
 impl Model for MatrixGenome {
-    fn develop(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
+    fn develop(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         let neurons = self.get_neuron_description();
 
         // Pack the connections matrix, which is sized after the max # of neurons, to the correct size.
@@ -352,7 +352,7 @@ impl Model for MatrixGenome {
         let connection_mask: Array2<u32> = new_connections.map(|c| if c.0 { 1 } else { 0 } );
         let weights: Array2<f32> = new_connections.map(|c| c.1);
 
-        NetworkDescription::new(Array::from_vec(neurons), connection_mask, weights, self.inputs, self.outputs)
+        NetworkRepresentation::new(Array::from_vec(neurons), connection_mask, weights, self.inputs, self.outputs)
     }
 }
 

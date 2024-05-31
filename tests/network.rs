@@ -1,17 +1,17 @@
-//! Tests building SpikingNetwork from NetworkDescription, and running the result
+//! Tests building SpikingNetwork from NetworkRepresentation, and running the result
 
 use model::network::builder::NetworkBuilder;
 use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
-use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
+use model::network::representation::{NetworkRepresentation, NeuronDescription, NeuronRole};
 
 use utils::random;
 
 use ndarray::{Array, Array2};
 use ndarray_rand::rand_distr::Uniform;
 
-fn test_description<N: NeuronModel>(n: usize, n_inputs: usize, n_outputs: usize)
--> NetworkDescription<NeuronDescription<N>> {
+fn test_representation<N: NeuronModel>(n: usize, n_inputs: usize, n_outputs: usize)
+-> NetworkRepresentation<NeuronDescription<N>> {
     let mut nvec: Vec<NeuronDescription<N>> = Vec::new();
 
     for i in 0..n_outputs {
@@ -33,13 +33,13 @@ fn test_description<N: NeuronModel>(n: usize, n_inputs: usize, n_outputs: usize)
     //let connection_mask: Array2<u32> = array![[0,1, 0],[0, 0, 1], [1,0,0]];
     let weights: Array2<f32> = connection_mask.map(|x| *x as f32);
 
-    NetworkDescription::new(neurons, connection_mask, weights, n_inputs, n_outputs)
+    NetworkRepresentation::new(neurons, connection_mask, weights, n_inputs, n_outputs)
 }
 
 
 #[test]
-fn can_build_network_from_description() {
-    let desc = test_description::<Izhikevich>(100, 10,10);
+fn can_build_network_from_representation() {
+    let desc = test_representation::<Izhikevich>(100, 10,10);
 
     let _network = NetworkBuilder::build(&desc);
 }

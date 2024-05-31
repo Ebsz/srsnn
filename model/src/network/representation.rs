@@ -5,7 +5,7 @@ use crate::neuron::NeuronModel;
 use ndarray::{Array1, Array2};
 
 
-pub struct NetworkDescription<N> {
+pub struct NetworkRepresentation<N> {
     pub n: usize,
     pub neurons: Array1<N>,
 
@@ -16,13 +16,13 @@ pub struct NetworkDescription<N> {
     pub outputs: usize,
 }
 
-impl<N> NetworkDescription<N> {
+impl<N> NetworkRepresentation<N> {
     pub fn new(neurons: Array1<N>,
         connection_mask: Array2<u32>,
         weights: Array2<f32>,
         inputs: usize,
         outputs: usize)
-        -> NetworkDescription<N>
+        -> NetworkRepresentation<N>
     {
 
         // TODO: Implement using non-square matrices and use this
@@ -35,7 +35,7 @@ impl<N> NetworkDescription<N> {
         assert!(weights.shape()[0] == connection_mask.shape()[0],
             "neurons: {:?}, matrix: {:?}", weights.shape()[0], connection_mask.shape()[0]);
 
-        NetworkDescription {
+        NetworkRepresentation {
             n: neurons.shape()[0],
             neurons,
             connection_mask,
@@ -90,7 +90,6 @@ impl<N: NeuronModel> Clone for NeuronDescription<N> {
         }
     }
 }
-
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum NeuronRole {

@@ -7,7 +7,7 @@ use tasks::task_runner::{TaskRunner, Runnable};
 use evolution::{Evaluate, EvolutionEnvironment};
 
 use model::neuron::izhikevich::Izhikevich;
-use model::network::description::{NetworkDescription, NeuronDescription};
+use model::network::representation::{NetworkRepresentation, NeuronDescription};
 use model::network::builder::NetworkBuilder;
 
 
@@ -16,12 +16,12 @@ pub struct ModelEvaluator<T: Task + TaskEval> {
     env: EvolutionEnvironment
 }
 
-impl<M, T> Evaluate<M, NetworkDescription<NeuronDescription<Izhikevich>>> for ModelEvaluator<T>
+impl<M, T> Evaluate<M, NetworkRepresentation<NeuronDescription<Izhikevich>>> for ModelEvaluator<T>
 where
     T: Task + TaskEval,
     M: Model,
 {
-    fn eval(&self, m: &M) -> (f32, NetworkDescription<NeuronDescription<Izhikevich>>) {
+    fn eval(&self, m: &M) -> (f32, NetworkRepresentation<NeuronDescription<Izhikevich>>) {
         let desc = m.develop();
 
         let network = NetworkBuilder::build(&desc);

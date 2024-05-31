@@ -1,9 +1,9 @@
 //! Creates a runnable instance from an abstract representation.
 //!
-//! Builds a SpikingNetwork from a NetworkDescription,
+//! Builds a SpikingNetwork from a NetworkRepresentation,
 
 use crate::network::SpikingNetwork;
-use crate::network::description::{NetworkDescription, NeuronDescription};
+use crate::network::representation::{NetworkRepresentation, NeuronDescription};
 use crate::neuron::NeuronModel;
 use crate::synapse::BaseSynapse;
 
@@ -13,7 +13,7 @@ use crate::synapse::representation::{NeuronType, MatrixRepresentation};
 pub struct NetworkBuilder;
 
 impl NetworkBuilder {
-    pub fn build<N: NeuronModel>(desc: &NetworkDescription<NeuronDescription<N>>)
+    pub fn build<N: NeuronModel>(desc: &NetworkRepresentation<NeuronDescription<N>>)
         -> SpikingNetwork<N, BaseSynapse<MatrixRepresentation>> {
         let neuron_params = Self::parse_neuron_params(desc);
         let neuron_types = Self::parse_neuron_types(desc);
@@ -29,11 +29,11 @@ impl NetworkBuilder {
         SpikingNetwork::new(model, synapse, desc.inputs, desc.outputs)
     }
 
-    fn parse_neuron_types<N: NeuronModel> (desc: &NetworkDescription<NeuronDescription<N>>) -> NeuronType {
+    fn parse_neuron_types<N: NeuronModel> (desc: &NetworkRepresentation<NeuronDescription<N>>) -> NeuronType {
         desc.neurons.map(|n| if n.inhibitory {-1.0} else { 1.0 })
     }
 
-    fn parse_neuron_params<N: NeuronModel> (desc: &NetworkDescription<NeuronDescription<N>>) -> Vec<N::Parameters> {
+    fn parse_neuron_params<N: NeuronModel> (desc: &NetworkRepresentation<NeuronDescription<N>>) -> Vec<N::Parameters> {
         desc.neurons.iter().filter_map(|n| n.params).collect()
     }
 }

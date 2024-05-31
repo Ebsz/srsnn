@@ -5,7 +5,7 @@ use crate::models::Model;
 use crate::models::stochastic::StochasticGenomeConfig;
 use crate::gen::stochastic::sample_connection_probability_matrix;
 
-use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
+use model::network::representation::{NetworkRepresentation, NeuronDescription, NeuronRole};
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
 
 use evolution::EvolutionEnvironment;
@@ -76,16 +76,16 @@ impl Genome for BaseStochasticGenome {
 }
 
 impl BaseStochasticGenome {
-    pub fn sample(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
+    pub fn sample(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         let connection_mask = sample_connection_probability_matrix(&self.connection_probability.data);
         let weights: Array2<f32> = connection_mask.mapv(|v| v as f32);
 
-        NetworkDescription::new(self.neurons.clone(), connection_mask, weights, self.inputs, self.outputs)
+        NetworkRepresentation::new(self.neurons.clone(), connection_mask, weights, self.inputs, self.outputs)
     }
 }
 
 impl Model for BaseStochasticGenome {
-    fn develop(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
+    fn develop(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         self.sample()
     }
 }
