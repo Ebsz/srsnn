@@ -7,8 +7,8 @@ use luna::config::{get_config, genome_config, MainConfig};
 
 use luna::models::Model;
 use luna::models::stochastic::main_model::MainStochasticModel;
-use luna::models::stochastic::base_model::BaseStochasticGenome;
-use luna::models::matrix::MatrixGenome;
+use luna::models::stochastic::base_model::BaseStochasticModel;
+use luna::models::matrix::MatrixModel;
 
 use model::neuron::izhikevich::Izhikevich;
 use model::network::representation::{NetworkRepresentation, NeuronDescription};
@@ -35,11 +35,11 @@ trait Process {
     fn run<G: Model, T: Task + TaskEval>(conf: MainConfig);
 
     fn init(config: MainConfig) {
-        match config.genome.as_str() {
+        match config.model.as_str() {
             "main" => { Self::resolve_t::<MainStochasticModel>(config); },
-            "matrix" => { Self::resolve_t::<MatrixGenome>(config); },
-            "base_stochastic" => { Self::resolve_t::<BaseStochasticGenome>(config); },
-            _ => { println!("Unknown genome: {}", config.genome); }
+            "matrix" => { Self::resolve_t::<MatrixModel>(config); },
+            "base_stochastic" => { Self::resolve_t::<BaseStochasticModel>(config); },
+            _ => { println!("Unknown model: {}", config.model); }
         }
     }
 
@@ -68,7 +68,7 @@ struct EvolutionProcess;
 
 impl Process for EvolutionProcess {
     fn run<G: Model, T: Task + TaskEval>(config: MainConfig) {
-        log::info!("EvolutionProcess - task: {}, genome: {}", config.task, config.genome);
+        log::info!("EvolutionProcess - model: {}, task: {}", config.model, config.task);
 
         let env = Self::environment::<T>();
 

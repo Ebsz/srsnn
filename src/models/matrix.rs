@@ -20,17 +20,17 @@ use serde::Deserialize;
 ///
 /// Network neurons have id's [0..MAX_NEURONS]; inputs have ID's [MAX_NEURONS..size].
 #[derive(Clone, Debug)]
-pub struct MatrixGenome {
+pub struct MatrixModel {
     pub neurons: Vec<NeuronGene>,
     pub connections: Array2<(bool, f32)>,
     inputs: usize,
     outputs: usize,
 }
 
-impl Genome for MatrixGenome {
-    type Config = MatrixGenomeConfig;
+impl Genome for MatrixModel {
+    type Config = MatrixModelConfig;
 
-    fn new(env: &EvolutionEnvironment, config: &MatrixGenomeConfig) -> MatrixGenome {
+    fn new(env: &EvolutionEnvironment, config: &MatrixModelConfig) -> MatrixModel {
         let mut neurons: Vec<NeuronGene> = vec![];
 
         let size: usize = config.max_neurons + env.inputs;
@@ -92,7 +92,7 @@ impl Genome for MatrixGenome {
 
         assert!(connections.shape() == [(config.max_neurons + env.inputs), (config.max_neurons + env.inputs)]);
 
-        MatrixGenome {
+        MatrixModel {
             neurons,
             connections,
             inputs: env.inputs,
@@ -102,7 +102,7 @@ impl Genome for MatrixGenome {
 
 
     /// Perform one of a set of different mutations on the genome
-    fn mutate(&mut self, config: &MatrixGenomeConfig) {
+    fn mutate(&mut self, config: &MatrixModelConfig) {
         for _ in 0..config.n_mutations {
             if random_range((0.0, 1.0)) <  config.mutate_connection_probability {
                 self.mutate_connection(&config);
@@ -124,9 +124,7 @@ impl Genome for MatrixGenome {
 
     /// The genome is created by iterating over each neuron and selecting
     /// its input connections from one of the genomes at random.
-    ///
-    /// let g = Genome::new();
-    fn crossover(&self, other: &MatrixGenome) -> MatrixGenome{
+    fn crossover(&self, other: &MatrixModel) -> MatrixModel{
         /*
          * Create connection matrix by randomly selecting rows
          * from each of the genomes
@@ -182,7 +180,7 @@ impl Genome for MatrixGenome {
 
         assert!(neurons.len() == larger.len());
 
-        MatrixGenome {
+        MatrixModel {
             neurons,
             connections: connection_matrix,
             ..*self
@@ -190,13 +188,13 @@ impl Genome for MatrixGenome {
     }
 }
 
-impl MatrixGenome {
+impl MatrixModel {
     pub fn network_size(&self) -> usize {
         self.neurons.len()
     }
 
     /// Selects a random connection and makes a small change
-    fn mutate_connection(&mut self, _config: &MatrixGenomeConfig) {
+    fn mutate_connection(&mut self, _config: &MatrixModelConfig) {
         const MUTATION_STRENGTH: f32 = 0.5;
 
         let connection = self.get_random_connection();
@@ -209,7 +207,7 @@ impl MatrixGenome {
     }
 
     /// Selects a random existing connection and flips its enable flag
-    fn mutate_toggle_connection(&mut self, _config: &MatrixGenomeConfig) {
+    fn mutate_toggle_connection(&mut self, _config: &MatrixModelConfig) {
         let connection = self.get_random_connection();
 
         if let Some(c) = connection {
@@ -218,7 +216,7 @@ impl MatrixGenome {
     }
 
     /// Add new neuron to the genome
-    fn mutate_add_neuron(&mut self, config: &MatrixGenomeConfig) {
+    fn mutate_add_neuron(&mut self, config: &MatrixModelConfig) {
         //NOTE: This only adds connections within the network,
         //      ie. not from input. Should this be allowed?
 
@@ -259,7 +257,7 @@ impl MatrixGenome {
 
     /// Mutate the genome by adding a new non-existing connection
     /// between two neurons
-    fn mutate_add_connection(&mut self, _config: &MatrixGenomeConfig) {
+    fn mutate_add_connection(&mut self, _config: &MatrixModelConfig) {
         //NOTE: This only adds connections within the network,
         //      ie. not from input. Should this be allowed?
 
@@ -333,7 +331,7 @@ pub enum NeuronType {
     Output,
 }
 
-impl Model for MatrixGenome {
+impl Model for MatrixModel {
     fn develop(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         let neurons = self.get_neuron_description();
 
@@ -357,7 +355,7 @@ impl Model for MatrixGenome {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize)]
-pub struct MatrixGenomeConfig {
+pub struct MatrixModelConfig {
     pub max_neurons: usize,
 
     pub initial_neuron_count_range: (usize, usize),
@@ -373,7 +371,7 @@ pub struct MatrixGenomeConfig {
     pub inhibitory_probability: f32
 }
 
-impl ConfigSection for MatrixGenomeConfig {
+impl ConfigSection for MatrixModelConfig {
     fn name() -> String {
         "matrix_genome".to_string()
     }
@@ -383,8 +381,8 @@ impl ConfigSection for MatrixGenomeConfig {
 mod tests {
     use super::*;
 
-    fn conf() -> MatrixGenomeConfig {
-        MatrixGenomeConfig {
+    fn conf() -> MatrixModelConfig {
+        MatrixModelConfig {
             max_neurons: 50,
             initial_neuron_count_range: (2, 5),
             initial_connection_count_range: (3, 4),
@@ -406,8 +404,8 @@ mod tests {
 
         let conf = conf();
 
-        let g1 = MatrixGenome::new(&env, &conf);
-        let g2 = MatrixGenome::new(&env, &conf);
+        let g1 = MatrixModel::new(&env, &conf);
+        let g2 = MatrixModel::new(&env, &conf);
         let gc = g1.crossover(&g2);
 
         if g1.network_size() > g2.network_size() {

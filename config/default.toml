@@ -1,5 +1,5 @@
+model = "matrix"
 task = "catching"
-genome = "matrix"
 
 [evolution]
 population_size = 50

@@ -18,14 +18,14 @@ use ndarray::{Array, Array1, Array2};
 use ndarray_rand::rand_distr::Uniform;
 
 
-pub struct BaseStochasticGenome {
+pub struct BaseStochasticModel {
     pub connection_probability: MatrixGene,
     pub neurons: Array1<NeuronDescription<Izhikevich>>,
     pub inputs: usize,
     pub outputs: usize,
 }
 
-impl Genome for BaseStochasticGenome {
+impl Genome for BaseStochasticModel {
     type Config = StochasticGenomeConfig;
 
     fn new(env: &EvolutionEnvironment, config: &Self::Config) -> Self {
@@ -52,7 +52,7 @@ impl Genome for BaseStochasticGenome {
 
         let cpm = random::random_matrix((config.max_neurons, config.max_neurons), Uniform::new(0.0, 1.0));
 
-        BaseStochasticGenome {
+        BaseStochasticModel {
             connection_probability: MatrixGene { data: cpm },
             neurons: Array::from_vec(nvec),
             inputs: env.inputs,
@@ -67,7 +67,7 @@ impl Genome for BaseStochasticGenome {
     fn crossover(&self, other: &Self) -> Self {
         // TODO: Implement proper crossover of neurons
 
-        BaseStochasticGenome {
+        BaseStochasticModel {
             connection_probability: self.connection_probability.point_crossover(&other.connection_probability),
             neurons: self.neurons.clone(),
             ..*self
@@ -75,7 +75,7 @@ impl Genome for BaseStochasticGenome {
     }
 }
 
-impl BaseStochasticGenome {
+impl BaseStochasticModel {
     pub fn sample(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         let connection_mask = sample_connection_probability_matrix(&self.connection_probability.data);
         let weights: Array2<f32> = connection_mask.mapv(|v| v as f32);
@@ -84,7 +84,7 @@ impl BaseStochasticGenome {
     }
 }
 
-impl Model for BaseStochasticGenome {
+impl Model for BaseStochasticModel {
     fn develop(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         self.sample()
     }

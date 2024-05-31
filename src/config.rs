@@ -19,7 +19,7 @@ thread_local! {
 #[derive(Debug, Deserialize)]
 pub struct MainConfig {
     pub task: String,
-    pub genome: String,
+    pub model: String,
     pub log_level: Option<String>,
     pub evolution: EvolutionConfig
 }
