@@ -121,12 +121,12 @@ pub struct DrawContext<'a> {
 
 impl DrawContext<'_> {
     pub fn draw_circle(&mut self, x: i16, y: i16, r: i16, color: Color) {
-        self.canvas.aa_circle(x, y, r, color);
-        self.canvas.filled_circle(x, y, r, color);
+        let _ = self.canvas.aa_circle(x, y, r, color);
+        let _ = self.canvas.filled_circle(x, y, r, color);
     }
 
     pub fn draw_line(&mut self, p1: (i16, i16), p2: (i16, i16), width: u8, color: Color) {
-        self.canvas.thick_line(p1.0, p1.1, p2.0, p2.1, width, color);
+        let _ = self.canvas.thick_line(p1.0, p1.1, p2.0, p2.1, width, color);
     }
 }
 

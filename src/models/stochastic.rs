@@ -2,7 +2,6 @@
 
 pub mod base_model;
 pub mod main_model;
-pub mod random_model;
 
 use crate::models::Model;
 

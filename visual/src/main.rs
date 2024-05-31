@@ -1,4 +1,4 @@
-use visual::window::{DrawContext, Window};
+use visual::window::Window;
 use visual::window::WindowComponent;
 
 use visual::fg::ForceGraphComponent;

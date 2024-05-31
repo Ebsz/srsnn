@@ -10,8 +10,6 @@ use visual::fg::ForceGraphComponent;
 use visual::window::{Window, WindowComponent};
 use visual::task_window::TaskWindow;
 
-use evolution::EvolutionEnvironment;
-
 use tasks::{Task, TaskRenderer};
 use tasks::task_runner::TaskRunner;
 

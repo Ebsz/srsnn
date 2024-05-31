@@ -24,7 +24,7 @@ pub fn distribute(n: usize, p: &Vec<f32>) -> Vec<usize> {
 
     // Assign the remaining items by minimizing the distance between desired and actual fractions
     for _ in 0..remainder {
-        let mut dist: HashMap<usize, f32> = buckets.iter().enumerate().zip(p).map(|((i, b), p)| (i, p - (*b as f32 / n as f32))).collect();
+        let dist: HashMap<usize, f32> = buckets.iter().enumerate().zip(p).map(|((i, b), p)| (i, p - (*b as f32 / n as f32))).collect();
         let max_idx: usize = *dist.iter().max_by(|a, b| a.1.partial_cmp(b.1).expect("")).map(|(k, _)| k).unwrap();
 
         buckets[max_idx] += 1;
@@ -50,8 +50,6 @@ mod tests {
 
     #[test]
     fn test_distribute() {
-        let n: usize = 128;
-
         let k = vec![0.21, 0.29, 0.14, 0.36];
 
         for n in [4, 10, 128, 199, 256, 421] {

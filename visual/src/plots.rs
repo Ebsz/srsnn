@@ -68,7 +68,7 @@ pub fn plot_multiple_series(data: Vec<Vec<f32>>, description: &str, caption: &st
 
     //let colors: Vec<RGBColor> = (0..data.len()).map(|i| RGBColor((0 + i * 20) as u8, 0 , (255 - i * 20) as u8)).collect();
 
-    for (i, d) in data.iter().enumerate() {
+    for d in data.iter() {
         let series = LineSeries::new(
             d.iter().enumerate().map(|(i, x)| (i as f32, *x)),
             &RED,

@@ -1,11 +1,7 @@
 use crate::models::Model;
 use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
 
-use model::network::SpikingNetwork;
-use model::neuron::NeuronModel;
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
-use model::synapse::BaseSynapse;
-use model::synapse::representation::MatrixRepresentation;
 
 use evolution::genome::Genome;
 use evolution::EvolutionEnvironment;
@@ -13,7 +9,7 @@ use evolution::EvolutionEnvironment;
 use utils::random::{random_range, random_sample, random_choice};
 use utils::config::ConfigSection;
 
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{s, Array, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
 use serde::Deserialize;
 

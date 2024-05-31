@@ -12,12 +12,8 @@
 use crate::models::Model;
 use crate::gen::stochastic;
 
-use model::network::SpikingNetwork;
-use model::network::builder::NetworkBuilder;
 use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
-use model::synapse::BaseSynapse;
-use model::synapse::representation::MatrixRepresentation;
 
 use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
@@ -101,7 +97,7 @@ impl Genome for MainStochasticModel {
         }
     }
 
-    fn crossover(&self, other: &Self) -> Self {
+    fn crossover(&self, _other: &Self) -> Self {
         // TODO: implement for real
 
         MainStochasticModel {
@@ -115,16 +111,14 @@ impl Genome for MainStochasticModel {
 }
 
 impl MainStochasticModel {
-
-    fn mutate_type_ratio(&mut self, config: &MainModelConfig) {
+    fn mutate_type_ratio(&mut self, _config: &MainModelConfig) {
         // TODO: Implement
 
     }
-    fn mutate_type_params(&mut self, config: &MainModelConfig) {
+    fn mutate_type_params(&mut self, _config: &MainModelConfig) {
         // TODO: Implement
 
     }
-
 
     fn init_neuron_types(config: &MainModelConfig) -> HashMap<u32, NeuronType> {
         // Create types
@@ -138,14 +132,12 @@ impl MainStochasticModel {
         }
 
         // Normalize type prevalances
-        let p_sum: f32 = types.iter().map(|(k, t)| t.prevalence).sum();
-        for (k, t) in &mut types {
+        let p_sum: f32 = types.iter().map(|(_, t)| t.prevalence).sum();
+        for (_, t) in &mut types {
             t.prevalence = t.prevalence / p_sum;
         }
 
-        let prevalences: Vec<f32> = types.iter().map(|(k, t)| t.prevalence).collect();
-
-        let total_prevalence = types.iter().fold(0.0f32, |acc, (k, t)| acc + t.prevalence);
+        let total_prevalence = types.iter().fold(0.0f32, |acc, (_, t)| acc + t.prevalence);
 
         // We allow a tiny bit of fault because floating numbers and whatnot
         assert!((total_prevalence <= math::P_TOLERANCE), "total prevalence: {total_prevalence}");
@@ -153,13 +145,9 @@ impl MainStochasticModel {
         types
     }
 
-    fn normalize_type_prevalences(types: HashMap<u32, NeuronType>) {
-        // TODO: Implement
-    }
-
     pub fn sample(&self) -> NetworkDescription<NeuronDescription<Izhikevich>> {
         // Number of neurons for each neuron type.
-        let mut ndist = self.get_neuron_distribution();
+        let ndist = self.get_neuron_distribution();
 
         assert!(ndist.iter().sum::<usize>() == self.n + self.inputs);
 
@@ -223,7 +211,6 @@ impl MainStochasticModel {
 
         Array::from_vec(neurons)
     }
-
 
     fn generate_connection_probability_matrix(&self, ndist: &Array1<usize>) -> Array2<f32> {
         let n = self.n + self.inputs;

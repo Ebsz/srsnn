@@ -1,16 +1,13 @@
 //! Tests building SpikingNetwork from NetworkDescription, and running the result
 
-use luna::gen;
-
 use model::network::builder::NetworkBuilder;
-use model::network::SpikingNetwork;
 use model::neuron::NeuronModel;
 use model::neuron::izhikevich::Izhikevich;
 use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
 
 use utils::random;
 
-use ndarray::{s, array, Array, Array1, Array2};
+use ndarray::{Array, Array2};
 use ndarray_rand::rand_distr::Uniform;
 
 fn test_description<N: NeuronModel>(n: usize, n_inputs: usize, n_outputs: usize)
@@ -29,7 +26,7 @@ fn test_description<N: NeuronModel>(n: usize, n_inputs: usize, n_outputs: usize)
         nvec.push(NeuronDescription::new(i as u32, None, false, NeuronRole::Input));
     }
 
-    let mut neurons = Array::from_vec(nvec);
+    let neurons = Array::from_vec(nvec);
 
     let connection_mask: Array2<u32> = random::random_matrix((n, n), Uniform::new(0, 2));
 
@@ -42,8 +39,7 @@ fn test_description<N: NeuronModel>(n: usize, n_inputs: usize, n_outputs: usize)
 
 #[test]
 fn can_build_network_from_description() {
-
     let desc = test_description::<Izhikevich>(100, 10,10);
 
-    let network = NetworkBuilder::build(&desc);
+    let _network = NetworkBuilder::build(&desc);
 }

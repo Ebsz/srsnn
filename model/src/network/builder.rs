@@ -3,13 +3,11 @@
 //! Builds a SpikingNetwork from a NetworkDescription,
 
 use crate::network::SpikingNetwork;
-use crate::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
+use crate::network::description::{NetworkDescription, NeuronDescription};
 use crate::neuron::NeuronModel;
 use crate::synapse::BaseSynapse;
 
 use crate::synapse::representation::{NeuronType, MatrixRepresentation};
-
-use ndarray::{Array, Array1};
 
 
 pub struct NetworkBuilder;

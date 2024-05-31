@@ -3,12 +3,6 @@ use crate::EvolutionEnvironment;
 use utils::config::ConfigSection;
 
 
-pub trait EvolvableGenome {
-    type Phenotype;
-
-    fn to_phenotype(&self) -> Self::Phenotype;
-}
-
 pub trait Genome {
     type Config: ConfigSection;
 

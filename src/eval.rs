@@ -7,7 +7,6 @@ use tasks::task_runner::{TaskRunner, Runnable};
 use evolution::{Evaluate, EvolutionEnvironment};
 
 use model::neuron::izhikevich::Izhikevich;
-use model::network::Network;
 use model::network::description::{NetworkDescription, NeuronDescription};
 use model::network::builder::NetworkBuilder;
 

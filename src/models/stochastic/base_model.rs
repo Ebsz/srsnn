@@ -5,13 +5,8 @@ use crate::models::Model;
 use crate::models::stochastic::StochasticGenomeConfig;
 use crate::gen::stochastic::sample_connection_probability_matrix;
 
-use model::network::SpikingNetwork;
 use model::network::description::{NetworkDescription, NeuronDescription, NeuronRole};
-use model::network::builder::NetworkBuilder;
-use model::neuron::NeuronModel;
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
-use model::synapse::BaseSynapse;
-use model::synapse::representation::MatrixRepresentation;
 
 use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;

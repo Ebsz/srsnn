@@ -2,11 +2,9 @@ use crate::window::{DrawContext, WindowComponent};
 
 use utils::random;
 
-use force_graph::{ForceGraph, Node, NodeData};
+use force_graph::{ForceGraph, NodeData};
 
 use sdl2::pixels::Color;
-
-use ndarray::{Array, Array1};
 
 
 const INIT_SPREAD: f32 = 100.0;

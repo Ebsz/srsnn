@@ -7,10 +7,8 @@ use luna::config::{get_config, genome_config, MainConfig};
 
 use luna::models::Model;
 use luna::models::stochastic::main_model::MainStochasticModel;
-use luna::models::stochastic::random_model::RandomGenome;
 use luna::models::stochastic::base_model::BaseStochasticGenome;
 use luna::models::matrix::MatrixGenome;
-
 
 use model::neuron::izhikevich::Izhikevich;
 use model::network::description::{NetworkDescription, NeuronDescription};
@@ -19,7 +17,6 @@ use evolution::EvolutionEnvironment;
 use evolution::population::Population;
 
 use tasks::{Task, TaskEval};
-use tasks::task_runner::TaskRunner;
 use tasks::catching_task::CatchingTask;
 use tasks::movement_task::MovementTask;
 use tasks::survival_task::SurvivalTask;
@@ -41,7 +38,6 @@ trait Process {
         match config.genome.as_str() {
             "main" => { Self::resolve_t::<MainStochasticModel>(config); },
             "matrix" => { Self::resolve_t::<MatrixGenome>(config); },
-            //"random" => { Self::resolve_t::<RandomGenome>(config); }, //TODO: Impl Model
             "base_stochastic" => { Self::resolve_t::<BaseStochasticGenome>(config); },
             _ => { println!("Unknown genome: {}", config.genome); }
         }
@@ -85,7 +81,7 @@ impl Process for EvolutionProcess {
 
         init_ctrl_c_handler(population.stop_signal.clone());
 
-        let evolved_genome = population.evolve();
+        let _evolved_genome = population.evolve();
 
         plot_evolution_stats(&population.stats);
 
