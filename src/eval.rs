@@ -12,8 +12,8 @@ use model::network::builder::NetworkBuilder;
 
 
 pub struct ModelEvaluator<T: Task + TaskEval> {
-    main_evaluator: TaskEvaluator<T>,
-    env: EvolutionEnvironment
+    env: EvolutionEnvironment,
+    setups: Vec<T::Setup>
 }
 
 impl<M, T> Evaluate<M, NetworkRepresentation<NeuronDescription<Izhikevich>>> for ModelEvaluator<T>
@@ -29,49 +29,42 @@ where
         let mut runnable = RunnableNetwork {
             network,
             inputs: self.env.inputs,
-            outputs: self.env.outputs
+            outputs: self.env.outputs,
         };
 
-        (self.main_evaluator.evaluate_on_task(&mut runnable), desc)
+        (evaluate_on_task::<T, _>(&mut runnable, &self.setups), desc)
     }
 }
 
 impl<T: Task + TaskEval> ModelEvaluator<T> {
     pub fn new(env: EvolutionEnvironment) -> ModelEvaluator<T> {
         ModelEvaluator {
-            main_evaluator: TaskEvaluator::new(),
-            env
-        }
-    }
-}
-
-pub struct TaskEvaluator<T: Task + TaskEval> {
-    setups: Vec<T::Setup>,
-}
-
-impl<T: Task + TaskEval> TaskEvaluator<T> {
-    pub fn new() -> Self {
-        log::trace!("Creating evaluator");
-        TaskEvaluator {
+            env,
             setups: T::eval_setups(),
         }
     }
+}
 
-    pub fn evaluate_on_task<R: Runnable>(&self, r: &mut R) -> f32 {
-        let mut results: Vec<T::Result> = Vec::new();
+fn evaluate_on_task<T: Task + TaskEval, R: Runnable> (
+    r: &mut R,
+    setups: &Vec<T::Setup>
+) -> f32 {
+    let mut results: Vec<T::Result> = Vec::new();
 
-        for s in &self.setups {
-            let task = T::new(s);
+    log::trace!("eval::evaluate_on_task");
 
-            let mut runner = TaskRunner::new(task, r);
-            let result = runner.run();
+    for s in setups {
+        let task = T::new(s);
 
-            results.push(result);
-        }
+        let mut runner = TaskRunner::new(task, r);
+        let result = runner.run();
 
-        let f = T::fitness(results);
-        log::trace!("eval: {}", f);
-
-        f
+        results.push(result);
     }
+
+    let f = T::fitness(results);
+
+    log::debug!("eval: {}", f);
+
+    f
 }

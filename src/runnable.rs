@@ -9,6 +9,7 @@ use tasks::task_runner::Runnable;
 
 use ndarray::Array1;
 
+
 pub struct RunnableNetwork<N: Network> {
     pub network: N,
     pub inputs: usize,
@@ -33,6 +34,9 @@ impl<N: Network> RunnableNetwork<N> {
     fn task_output_to_network_input(&self, output: TaskOutput) -> Spikes {
         // Ensure that the sensor input is boolean
         let task_data: Array1<bool> = output.data.mapv(|x| if x != 0.0 { true } else { false });
+
+        assert!(task_data.shape()[0] == self.inputs,
+            "expected network input of size {}, got {}", self.inputs, task_data.shape()[0]);
 
         let mut network_input = Spikes::new(self.inputs);
         network_input.data.assign(&task_data);
