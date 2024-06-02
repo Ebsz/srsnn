@@ -60,6 +60,8 @@ fn evaluate_on_task<T: Task + TaskEval, R: Runnable> (
         let result = runner.run();
 
         results.push(result);
+
+        r.reset();
     }
 
     let f = T::fitness(results);

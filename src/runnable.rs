@@ -26,7 +26,7 @@ impl<N: Network> Runnable for RunnableNetwork<N> {
     }
 
     fn reset(&mut self) {
-        //TODO: Add reset fn to network trait and implement
+        self.network.reset_state();
     }
 }
 

@@ -11,6 +11,8 @@ pub type SynapticPotential = Array1<f32>;
 pub trait Synapse {
     fn step(&mut self, input: &Spikes) -> SynapticPotential;
     fn neuron_count(&self) -> usize;
+
+    fn reset(&mut self);
 }
 
 pub struct BaseSynapse<R: SynapseRepresentation> {
@@ -24,6 +26,10 @@ impl<R: SynapseRepresentation> Synapse for BaseSynapse<R> {
 
     fn neuron_count(&self) -> usize{
         self.representation.neuron_count()
+    }
+
+    fn reset(&mut self) {
+        // this does nothing, because the base synapse does not have state
     }
 }
 

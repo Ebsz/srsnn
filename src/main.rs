@@ -163,7 +163,7 @@ fn main() {
     init_logger(config.log_level.clone());
 
     log::info!("Using config: {}", config_name.unwrap_or("default".to_string()));
-    log::info!("seed is {}", SEED);
+    log::debug!("seed is {}", SEED);
 
     EvolutionProcess::init(config);
     //AnalysisProcess::init(config);

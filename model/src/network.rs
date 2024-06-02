@@ -20,8 +20,9 @@ const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 
 pub trait Network {
     fn step(&mut self, input: Spikes) -> Spikes;
-}
 
+    fn reset_state(&mut self);
+}
 
 /// A runnable RSNN.
 ///
@@ -68,6 +69,11 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
         }
 
         self.network_state.clone()
+    }
+
+    fn reset_state(&mut self) {
+        self.neurons.reset();
+        self.synapse.reset();
     }
 }
 
