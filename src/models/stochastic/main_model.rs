@@ -262,7 +262,8 @@ impl NeuronType {
         const W: f32 = 0.1;
 
         let noise: f32 = random::random_sample(StandardNormal);
-        self.prevalence += noise * W;
+
+        self.prevalence = math::clamp(self.prevalence + noise * W, 0.0, 1.0);
     }
 }
 

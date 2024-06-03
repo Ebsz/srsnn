@@ -23,19 +23,24 @@ pub fn clamp<T: PartialOrd>(val: T, min: T, max: T) -> T {
 }
 
 pub fn distribute(n: usize, p: &Vec<f32>) -> Vec<usize> {
+    assert!(p.iter().all(|p| *p >= 0.0 && *p <= 1.0));
     assert!(p.iter().sum::<f32>() <= P_TOLERANCE, "expected p.sum <= 1.0, was {}", p.iter().sum::<f32>());
 
-    let mut buckets: Vec<usize> = p.iter().map(|p| (p * n as f32) as usize).collect();
+    let mut buckets: Vec<usize> = p.iter().map(|p| (p * n as f32).floor() as usize).collect();
+    let sum_buckets = buckets.iter().sum::<usize>();
 
-    let remainder = n - buckets.iter().sum::<usize>();
+    assert!(sum_buckets <= n);
 
     // Assign the remaining items by minimizing the distance between desired and actual fractions
+    let remainder: usize = n - sum_buckets;
     for _ in 0..remainder {
         let dist: HashMap<usize, f32> = buckets.iter().enumerate().zip(p).map(|((i, b), p)| (i, p - (*b as f32 / n as f32))).collect();
         let max_idx: usize = *dist.iter().max_by(|a, b| a.1.partial_cmp(b.1).expect("")).map(|(k, _)| k).unwrap();
 
         buckets[max_idx] += 1;
     }
+
+    assert!(buckets.iter().sum::<usize>() == n);
 
     buckets
 }
