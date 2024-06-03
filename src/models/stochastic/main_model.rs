@@ -44,7 +44,6 @@ pub struct MainStochasticModel {
 
 
 impl Genome for MainStochasticModel {
-
     fn new(env: &EvolutionEnvironment, config: &MainModelConfig) -> MainStochasticModel {
         assert!(config.k <= config.n);
 
@@ -130,6 +129,8 @@ impl MainStochasticModel {
 
         let neurons = self.generate_neurons(&ndist);
 
+        assert!(neurons.shape()[0] == self.n + self.inputs);
+
         let cpm = self.generate_connection_probability_matrix(&ndist);
         let mut theta: Array2<u32> = stochastic::sample_connection_probability_matrix(&cpm);
 
@@ -137,8 +138,6 @@ impl MainStochasticModel {
         theta.slice_mut(s![self.n..(self.n + self.inputs),..]).fill(0);
 
         let weights: Array2<f32> = theta.mapv(|v| v as f32);
-
-        assert!(neurons.shape()[0] == self.n + self.inputs);
 
         NetworkRepresentation::new(neurons, theta, weights, self.inputs, self.outputs)
     }
@@ -170,7 +169,11 @@ impl MainStochasticModel {
             for _ in 0..ndist[*i as usize] {
                 neurons.push( NeuronDescription::new(
                         id,
-                        Some(IzhikevichParameters { a: t.params.a, b: t.params.b, c: t.params.c, d: t.params.d, }),
+                        Some(IzhikevichParameters {
+                            a: t.params.a,
+                            b: t.params.b,
+                            c: t.params.c,
+                            d: t.params.d, }),
                         t.params.inhibitory,
                         role));
 

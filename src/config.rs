@@ -30,13 +30,12 @@ impl MainConfig {
     }
 }
 
-fn read_config(config_path: Option<String>) -> Result<Config, ConfigError>{
+fn read_config(path: Option<String>) -> Result<Config, ConfigError>{
     let mut builder = Config::builder()
         .add_source(File::with_name(DEFAULT_CONFIG_PATH));
 
-
-    if let Some(path) = config_path {
-        builder = builder.add_source(File::with_name(path.as_str()));
+    if let Some(p) = path {
+        builder = builder.add_source(File::with_name(p.as_str()));
     }
 
     Ok(builder.build()?)

@@ -7,7 +7,6 @@ use luna::config::{get_config, main_config, MainConfig};
 
 use luna::models::Model;
 use luna::models::stochastic::main_model::MainStochasticModel;
-use luna::models::stochastic::base_model::BaseStochasticModel;
 use luna::models::matrix::MatrixModel;
 
 use model::neuron::izhikevich::Izhikevich;
@@ -39,7 +38,6 @@ trait Process {
         match config.model.as_str() {
             "main" => { Self::resolve_t::<MainStochasticModel>(config); },
             "matrix" => { Self::resolve_t::<MatrixModel>(config); },
-            "base_stochastic" => { Self::resolve_t::<BaseStochasticModel>(config); },
             _ => { println!("Unknown model: {}", config.model); }
         }
     }
@@ -108,25 +106,15 @@ impl EvolutionProcess {
     }
 }
 
-//struct AnalysisProcess;
-//
-//impl Process for AnalysisProcess {
-//    fn run<G: Model, T: Task + TaskEval>(config: MainConfig) {
-//        log::info!("Running analysis");
-//
-//        let genome_config = genome_config::<G>();
-//        let env = Self::environment::<T>();
-//
-//        let genome = G::new(&env, &genome_config);
-//        let setups = T::eval_setups();
-//
-//        let task = T::new(&setups[0]);
-//
-//        let mut p = genome.to_phenotype(&env);
-//        let mut runner = TaskRunner::new(task, &mut p);
-//        runner.run();
-//    }
-//}
+struct AnalysisProcess;
+
+impl Process for AnalysisProcess {
+    fn run<G: Model, T: Task + TaskEval>(config: MainConfig) {
+        log::info!("Running analysis");
+
+
+    }
+}
 
 ///// Analyzes a genome resulting from an evolutionary process
 //#[allow(dead_code)]

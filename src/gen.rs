@@ -37,7 +37,6 @@ pub mod synapse_gen {
     use model::synapse::BaseSynapse;
     use model::synapse::representation::{MatrixRepresentation, MapRepresentation};
 
-
     // Returns a synapse of size n connected with probability p, with a set number of
     // inhibitory neurons
     pub fn from_probability(n: usize, p: f32, inhibitory: Array1<bool>) -> BaseSynapse<MatrixRepresentation> {

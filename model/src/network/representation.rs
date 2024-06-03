@@ -1,9 +1,12 @@
 //! Abstract representation of a spiking network
 
 use crate::neuron::NeuronModel;
+use crate::neuron::izhikevich::Izhikevich;
 
 use ndarray::{Array1, Array2};
 
+
+pub type DefaultRepresentation = NetworkRepresentation<NeuronDescription<Izhikevich>>;
 
 pub struct NetworkRepresentation<N> {
     pub n: usize,

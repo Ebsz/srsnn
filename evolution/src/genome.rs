@@ -16,10 +16,11 @@ pub mod representation {
     //! Generic containers for different data structures
     //! with functions for performing mutation and crossover
 
-    use utils::random;
+    use utils::{random, math};
 
     use ndarray::{s, Array, Array2};
     use ndarray_rand::rand_distr::{StandardNormal, Uniform};
+
 
     /// Generic matrix representation for arbitrary kinds of data,
     #[derive(Clone, Debug)]
@@ -34,7 +35,6 @@ pub mod representation {
             }
         }
 
-
         /// Adds random gaussian noise multiplied by a weight to a random entry,
         /// simultaneously ensuring that the value is within the set bounds
         pub fn mutate_single_value(&mut self, w: f32, bounds: (f32, f32)) {
@@ -45,7 +45,7 @@ pub mod representation {
             let noise: f32 = random::random_sample(StandardNormal);
             self.data[[x, y]] += noise * w;
 
-            self.data[[x, y]] = utils::math::clamp(self.data[[x, y]], bounds.0, bounds.1);
+            self.data[[x, y]] = math::clamp(self.data[[x, y]], bounds.0, bounds.1);
         }
 
         /// Crossover by dividing the matrix into 4 quadrants by a point,
@@ -110,7 +110,6 @@ pub mod representation {
             }
 
             assert!(m1.data != m2.data);
-
         }
 
         #[test]

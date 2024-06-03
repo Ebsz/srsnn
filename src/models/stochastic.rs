@@ -1,6 +1,5 @@
 //! Stochastic models of RSNNs
 
-pub mod base_model;
 pub mod main_model;
 
 use crate::models::Model;

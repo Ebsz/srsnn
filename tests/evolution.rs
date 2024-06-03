@@ -21,7 +21,6 @@ fn get_test_config(n: usize, g: u32) -> (MainConfig, <MatrixModel as Configurabl
     (main_config, genome_config)
 }
 
-
 #[test]
 fn evolve_small_population() {
     evolve_genome(2, 100);

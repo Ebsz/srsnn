@@ -111,7 +111,6 @@ impl MatrixRepresentation {
         }
     }
 
-
     /// % of connections of all possible
     pub fn density(&self) -> f32 {
         self.connection_count() as f32 / self.neuron_count().pow(2) as f32

@@ -7,7 +7,7 @@ use tasks::task_runner::{TaskRunner, Runnable};
 use evolution::{Evaluate, EvolutionEnvironment};
 
 use model::neuron::izhikevich::Izhikevich;
-use model::network::representation::{NetworkRepresentation, NeuronDescription, DefaultRepresentation};
+use model::network::representation::DefaultRepresentation;
 use model::network::builder::NetworkBuilder;
 
 use utils::config::{Configurable, ConfigSection};
@@ -107,7 +107,6 @@ fn evaluate_network_representation<T: Task + TaskEval> (
 
     evaluate_on_task::<T, _>(&mut runnable, setups)
 }
-
 
 /// Evaluate a Runnable on a number of different setups, returning the evaluation over them.
 fn evaluate_on_task<T: Task + TaskEval, R: Runnable> (

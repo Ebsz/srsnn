@@ -13,6 +13,7 @@ use sdl2::render::WindowCanvas;
 
 
 /// Input to the task, from the agent
+#[derive(Debug)]
 pub struct TaskInput {
     pub input_id: u32
 }
