@@ -1,6 +1,6 @@
 //! luna/src/main.rs
 
-use luna::eval;
+use luna::eval::{ModelEvaluator, EvalConfig};
 
 use luna::visual::plots::{plot_evolution_stats};
 use luna::config::{get_config, genome_config, MainConfig};
@@ -69,16 +69,18 @@ trait Process {
 struct EvolutionProcess;
 
 impl Process for EvolutionProcess {
-    fn run<G: Model, T: Task + TaskEval>(config: MainConfig) {
-        log::info!("EvolutionProcess - model: {}, task: {}", config.model, config.task);
+    fn run<M: Model, T: Task + TaskEval>(config: MainConfig) {
+        log::info!("EvolutionProcess");
+        log::info!("Model: {}", config.model);
+        log::info!("Task: {}", config.task);
 
         let env = Self::environment::<T>();
 
-        let evaluator = eval::ModelEvaluator::new(env.clone());
+        let evaluator: ModelEvaluator<T> = Self::get_evaluator(&config);
 
-        let genome_config = genome_config::<G>();
+        let genome_config = genome_config::<M>();
 
-        let mut population = Population::<eval::ModelEvaluator<T>, G, NetworkRepresentation<NeuronDescription<Izhikevich>>>
+        let mut population = Population::<_, M, NetworkRepresentation<NeuronDescription<Izhikevich>>>
             ::new(env.clone(), config.evolution, genome_config, evaluator);
 
         init_ctrl_c_handler(population.stop_signal.clone());
@@ -89,6 +91,17 @@ impl Process for EvolutionProcess {
 
         //let task = T::new(&T::eval_setups()[0]);
         //visualize_genome_on_task(task, evolved_genome, &env);
+    }
+}
+
+impl EvolutionProcess {
+    fn get_evaluator<T: Task + TaskEval>(config: &MainConfig) -> ModelEvaluator<T> {
+        let eval_config = match config.task.as_str() {
+            "mnist" => Some(EvalConfig { batch_size: 10, batch_index: 0 }),
+             _ => None
+        };
+
+        ModelEvaluator::new(eval_config)
     }
 }
 

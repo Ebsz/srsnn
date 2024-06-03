@@ -137,6 +137,8 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
         }
         let eval_time = start_time.elapsed().as_secs_f32();
 
+        self.evaluator.next();
+
         log::trace!("Evaluated population in {}s", eval_time);
     }
 

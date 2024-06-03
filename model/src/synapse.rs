@@ -69,5 +69,4 @@ fn test_create_and_step_base_synapse() {
     let b_out = b.step(&input);
 
     assert_eq!(a_out, b_out);
-
 }

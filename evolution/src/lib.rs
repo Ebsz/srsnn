@@ -6,6 +6,9 @@ pub mod stats;
 
 pub trait Evaluate<G, P> {
     fn eval(&self, g: &G) -> (f32, P);
+
+    /// Called at the end of the eval
+    fn next(&mut self);
 }
 
 #[derive(Debug, Clone)]
