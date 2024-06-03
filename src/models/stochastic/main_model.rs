@@ -23,33 +23,11 @@ use utils::random;
 use utils::math;
 use utils::config::ConfigSection;
 
-use std::collections::HashMap;
-
 use serde::Deserialize;
 
 use ndarray::{s, Array, Array1, Array2};
+use ndarray_rand::rand_distr::StandardNormal;
 
-
-#[derive(Deserialize)]
-pub struct MainModelConfig {
-    pub n: usize,
-    pub k: usize,
-    pub type_inhibitory_probability: f32,
-
-    pub n_mutations: usize,
-
-    pub mutate_type_cpm_probability: f32,
-    pub mutate_params_probability: f32,
-    pub mutate_type_ratio_probability: f32,
-
-    pub initial_probability_range: (f32, f32)
-}
-
-impl ConfigSection for MainModelConfig {
-    fn name() -> String {
-        "main_model".to_string()
-    }
-}
 
 /// types contains the specified neuron types, excluding the input type.
 ///
@@ -60,7 +38,7 @@ pub struct MainStochasticModel {
     pub inputs: usize,
     pub outputs: usize,
 
-    pub types: HashMap<u32, NeuronType>,
+    pub types: Vec<(u32, NeuronType)>,
     pub type_connection_probabilities: MatrixGene,
 }
 
@@ -72,14 +50,14 @@ impl Genome for MainStochasticModel {
 
         let types = Self::init_neuron_types(config);
 
-        let total_num_types = config.k + 1;
+        let n_types = config.k + 1;
 
         MainStochasticModel {
             n: config.n,
             inputs: env.inputs,
             outputs: env.outputs,
             types,
-            type_connection_probabilities: MatrixGene::init_random(total_num_types, config.initial_probability_range)
+            type_connection_probabilities: MatrixGene::init_random(n_types, config.initial_probability_range)
         }
     }
 
@@ -88,47 +66,38 @@ impl Genome for MainStochasticModel {
             if random::random_range((0.0, 1.0)) <  config.mutate_type_cpm_probability {
                 self.type_connection_probabilities.mutate_single_value(0.1, (0.0, 1.0));
             }
-            if random::random_range((0.0, 1.0)) <  config.mutate_params_probability {
-                self.mutate_type_params(config);
-            }
-            if random::random_range((0.0, 1.0)) <  config.mutate_type_ratio_probability {
-                self.mutate_type_ratio(config);
-            }
+
+            // randomly choose a type and mutate it
+            let n = random::random_range((0, self.types.len()));
+            self.types[n].1.mutate(config);
         }
+
+        self.normalize_type_prevalence();
     }
 
     fn crossover(&self, _other: &Self) -> Self {
         // TODO: implement for real
 
         MainStochasticModel {
-            n: self.n,
-            inputs: self.inputs,
-            outputs: self.outputs,
             types: self.types.clone(),
-            type_connection_probabilities: self.type_connection_probabilities.clone()
+            type_connection_probabilities: self.type_connection_probabilities.clone(),
+            n: self.n,
+
+            ..*self
         }
     }
 }
 
 impl MainStochasticModel {
-    fn mutate_type_ratio(&mut self, _config: &MainModelConfig) {
-        // TODO: Implement
-
-    }
-    fn mutate_type_params(&mut self, _config: &MainModelConfig) {
-        // TODO: Implement
-
-    }
-
-    fn init_neuron_types(config: &MainModelConfig) -> HashMap<u32, NeuronType> {
+    fn init_neuron_types(config: &MainModelConfig) -> Vec<(u32, NeuronType)> {
         // Create types
-        let mut types = HashMap::new();
+        let mut types = Vec::new();
 
         for i in 0..config.k {
-            types.insert(i as u32, NeuronType {
+            types.push((i as u32, NeuronType {
                 prevalence: random::random_range((0.0, 1.0)),
                 params: NeuronTypeParams::new(config),
-            });
+            }));
         }
 
         // Normalize type prevalances
@@ -143,6 +112,14 @@ impl MainStochasticModel {
         assert!((total_prevalence <= math::P_TOLERANCE), "total prevalence: {total_prevalence}");
 
         types
+    }
+
+    fn normalize_type_prevalence(&mut self) {
+        let p_sum: f32 = self.types.iter().map(|(_, t)| t.prevalence).sum();
+
+        for (_, t) in &mut self.types {
+            t.prevalence = t.prevalence / p_sum;
+        }
     }
 
     pub fn sample(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
@@ -160,9 +137,6 @@ impl MainStochasticModel {
         theta.slice_mut(s![self.n..(self.n + self.inputs),..]).fill(0);
 
         let weights: Array2<f32> = theta.mapv(|v| v as f32);
-
-        //println!("cpm size: {:?}", cpm.shape()[0]);
-        //println!("neurons size: {:?}", neurons.shape()[0]);
 
         assert!(neurons.shape()[0] == self.n + self.inputs);
 
@@ -246,14 +220,54 @@ impl Model for MainStochasticModel {
     }
 }
 
+#[derive(Deserialize)]
+pub struct MainModelConfig {
+    pub n: usize,
+    pub k: usize,
+    pub type_inhibitory_probability: f32,
+
+    pub n_mutations: usize,
+
+    pub mutate_type_cpm_probability: f32,
+    pub mutate_params_probability: f32,
+    pub mutate_type_ratio_probability: f32,
+
+    pub initial_probability_range: (f32, f32)
+}
+
+impl ConfigSection for MainModelConfig {
+    fn name() -> String {
+        "main_model".to_string()
+    }
+}
+
 #[derive(Clone)]
 pub struct NeuronType {
     prevalence: f32,
     params: NeuronTypeParams,
 }
 
+impl NeuronType {
+    fn mutate(&mut self, config: &MainModelConfig) {
+        if random::random_range((0.0, 1.0)) <  config.mutate_params_probability {
+            self.params.mutate(config);
+        }
+
+        if random::random_range((0.0, 1.0)) <  config.mutate_type_ratio_probability {
+            self.mutate_ratio(config);
+        }
+    }
+
+    fn mutate_ratio(&mut self, config: &MainModelConfig) {
+        const W: f32 = 0.1;
+
+        let noise: f32 = random::random_sample(StandardNormal);
+        self.prevalence += noise * W;
+    }
+}
+
 /// Parameters dictating the dynamics of a neuron type
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct NeuronTypeParams {
     a: f32,
     b: f32,
@@ -276,6 +290,28 @@ impl NeuronTypeParams {
 
             inhibitory: if random::random_range((0.0, 1.0)) >
                 config.type_inhibitory_probability { false } else { true }
+        }
+    }
+
+    fn mutate(&mut self, config: &MainModelConfig) {
+        const W: f32 = 0.15;
+
+        let p_ix = random::random_range((0, 4));
+        let noise: f32 = random::random_sample(StandardNormal);
+
+        let min_val = Self::PARAM_RANGE[p_ix].0;
+        let max_val = Self::PARAM_RANGE[p_ix].1;
+
+        let r: f32 = (max_val - min_val).abs();
+
+        let delta: f32 = noise * r * W;
+
+        match p_ix {
+            0 =>  { self.a = math::clamp(self.a + delta, min_val, max_val); },
+            1 =>  { self.b = math::clamp(self.b + delta, min_val, max_val); },
+            2 =>  { self.c = math::clamp(self.c + delta, min_val, max_val); },
+            3 =>  { self.d = math::clamp(self.d + delta, min_val, max_val); },
+            _ => {panic!("mutating non-existent neuron param")}
         }
     }
 }
