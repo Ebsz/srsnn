@@ -17,6 +17,7 @@ use evolution::EvolutionEnvironment;
 use evolution::population::Population;
 
 use tasks::{Task, TaskEval};
+use tasks::mnist_task::MNISTTask;
 use tasks::catching_task::CatchingTask;
 use tasks::movement_task::MovementTask;
 use tasks::survival_task::SurvivalTask;
@@ -32,7 +33,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 
 trait Process {
-    fn run<G: Model, T: Task + TaskEval>(conf: MainConfig);
+    fn run<M: Model, T: Task + TaskEval>(conf: MainConfig);
 
     fn init(config: MainConfig) {
         match config.model.as_str() {
@@ -43,13 +44,14 @@ trait Process {
         }
     }
 
-    fn resolve_t<G: Model>(config: MainConfig) {
+    fn resolve_t<M: Model>(config: MainConfig) {
         match config.task.as_str() {
-            "catching" => { Self::run::<G, CatchingTask>(config); },
-            "movement" => { Self::run::<G, MovementTask>(config); },
-            "survival" => { Self::run::<G, SurvivalTask>(config); },
-            "energy"   => { Self::run::<G, EnergyTask>(config); },
-            "xor"      => { Self::run::<G, XORTask>(config); },
+            "catching" => { Self::run::<M, CatchingTask>(config); },
+            "movement" => { Self::run::<M, MovementTask>(config); },
+            "survival" => { Self::run::<M, SurvivalTask>(config); },
+            "energy"   => { Self::run::<M, EnergyTask>(config); },
+            "mnist"   => { Self::run::<M, MNISTTask>(config); },
+            "xor"      => { Self::run::<M, XORTask>(config); },
             _ => { println!("Unknown task: {}", config.task); }
         }
     }

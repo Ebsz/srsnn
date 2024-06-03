@@ -5,6 +5,7 @@ pub mod catching_task;
 pub mod movement_task;
 pub mod survival_task;
 pub mod energy_task;
+pub mod mnist_task;
 pub mod xor_task;
 
 use ndarray::Array1;

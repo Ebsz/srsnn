@@ -76,6 +76,7 @@ impl Task for XORTask {
     fn reset(&mut self) {
 
     }
+
     fn environment() -> TaskEnvironment {
         TaskEnvironment {
             agent_inputs: AGENT_INPUTS,
