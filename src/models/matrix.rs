@@ -7,7 +7,7 @@ use evolution::genome::Genome;
 use evolution::EvolutionEnvironment;
 
 use utils::random::{random_range, random_sample, random_choice};
-use utils::config::ConfigSection;
+use utils::config::{Configurable, ConfigSection};
 
 use ndarray::{s, Array, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
@@ -27,9 +27,11 @@ pub struct MatrixModel {
     outputs: usize,
 }
 
-impl Genome for MatrixModel {
+impl Configurable for MatrixModel {
     type Config = MatrixModelConfig;
+}
 
+impl Genome for MatrixModel {
     fn new(env: &EvolutionEnvironment, config: &MatrixModelConfig) -> MatrixModel {
         let mut neurons: Vec<NeuronGene> = vec![];
 

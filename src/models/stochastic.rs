@@ -5,7 +5,7 @@ pub mod main_model;
 
 use crate::models::Model;
 
-use utils::config::ConfigSection;
+use utils::config::{Configurable, ConfigSection};
 
 use serde::Deserialize;
 

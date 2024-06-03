@@ -21,7 +21,7 @@ use evolution::genome::representation::MatrixGene;
 
 use utils::random;
 use utils::math;
-use utils::config::ConfigSection;
+use utils::config::{Configurable, ConfigSection};
 
 use serde::Deserialize;
 
@@ -42,8 +42,11 @@ pub struct MainStochasticModel {
     pub type_connection_probabilities: MatrixGene,
 }
 
-impl Genome for MainStochasticModel {
+impl Configurable for MainStochasticModel {
     type Config = MainModelConfig;
+}
+
+impl Genome for MainStochasticModel {
 
     fn new(env: &EvolutionEnvironment, config: &MainModelConfig) -> MainStochasticModel {
         assert!(config.k <= config.n);

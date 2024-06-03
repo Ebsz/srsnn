@@ -13,6 +13,7 @@ use evolution::genome::Genome;
 use evolution::genome::representation::MatrixGene;
 
 use utils::random;
+use utils::config::Configurable;
 
 use ndarray::{Array, Array1, Array2};
 use ndarray_rand::rand_distr::Uniform;
@@ -25,9 +26,11 @@ pub struct BaseStochasticModel {
     pub outputs: usize,
 }
 
-impl Genome for BaseStochasticModel {
+impl Configurable for BaseStochasticModel {
     type Config = StochasticGenomeConfig;
+}
 
+impl Genome for BaseStochasticModel {
     fn new(env: &EvolutionEnvironment, config: &Self::Config) -> Self {
         assert!(config.max_neurons >= (env.inputs + env.outputs));
 

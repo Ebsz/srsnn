@@ -3,7 +3,7 @@
 use luna::eval::{ModelEvaluator, EvalConfig};
 
 use luna::visual::plots::{plot_evolution_stats};
-use luna::config::{get_config, genome_config, MainConfig};
+use luna::config::{get_config, main_config, MainConfig};
 
 use luna::models::Model;
 use luna::models::stochastic::main_model::MainStochasticModel;
@@ -78,7 +78,7 @@ impl Process for EvolutionProcess {
 
         let evaluator: ModelEvaluator<T> = Self::get_evaluator(&config);
 
-        let genome_config = genome_config::<M>();
+        let genome_config = get_config::<M>();
 
         let mut population = Population::<_, M, NetworkRepresentation<NeuronDescription<Izhikevich>>>
             ::new(env.clone(), config.evolution, genome_config, evaluator);
@@ -173,7 +173,7 @@ fn parse_config_name_from_args() -> Option<String> {
 
 fn main() {
     let config_name = parse_config_name_from_args();
-    let config = get_config(config_name.clone());
+    let config = main_config(config_name.clone());
 
     init_logger(config.log_level.clone());
 

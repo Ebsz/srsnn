@@ -10,6 +10,8 @@ use model::neuron::izhikevich::Izhikevich;
 use model::network::representation::{NetworkRepresentation, NeuronDescription};
 use model::network::builder::NetworkBuilder;
 
+use utils::config::ConfigSection;
+
 
 pub struct EvalConfig {
     pub batch_size: usize,

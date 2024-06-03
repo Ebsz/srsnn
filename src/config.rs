@@ -1,7 +1,7 @@
 use evolution::config::EvolutionConfig;
 use evolution::genome::Genome;
 
-use utils::config::ConfigSection;
+use utils::config::{Configurable, ConfigSection};
 
 use config::{Config, ConfigError, File};
 use serde::Deserialize;
@@ -42,7 +42,7 @@ fn read_config(config_path: Option<String>) -> Result<Config, ConfigError>{
     Ok(builder.build()?)
 }
 
-pub fn get_config(config_name: Option<String>) -> MainConfig {
+pub fn main_config(config_name: Option<String>) -> MainConfig {
     let mut path: Option<String> = None;
 
     // Parse config path from name
@@ -75,10 +75,10 @@ pub fn get_config(config_name: Option<String>) -> MainConfig {
     }
 }
 
-pub fn genome_config<G: Genome>() -> G::Config {
+pub fn get_config<C: Configurable>() -> C::Config {
     let config = CONFIG.with(|c| c.borrow().clone()).unwrap();
 
-    match config.get::<G::Config>(G::Config::name().as_str()) {
+    match config.get::<C::Config>(C::Config::name().as_str()) {
         Ok(c) => c,
         Err(e) => {
             println!("Error loading genome config: {e}");

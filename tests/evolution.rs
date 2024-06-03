@@ -1,18 +1,18 @@
 use evolution::{Evaluate, EvolutionEnvironment};
-use evolution::genome::Genome;
 use luna::models::matrix::MatrixModel;
 use evolution::population::Population;
 
-use luna::config::{get_config, genome_config, MainConfig};
+use luna::config::{main_config, get_config, MainConfig};
+use utils::config::Configurable;
 
 
-fn get_test_config(n: usize, g: u32) -> (MainConfig, <MatrixModel as Genome>::Config) {
-    let mut main_config = get_config(None);
+fn get_test_config(n: usize, g: u32) -> (MainConfig, <MatrixModel as Configurable>::Config) {
+    let mut main_config = main_config(None);
 
     main_config.evolution.population_size = n;
     main_config.evolution.max_generations = g;
 
-    let mut genome_config = genome_config::<MatrixModel>();
+    let mut genome_config = get_config::<MatrixModel>();
 
     genome_config.max_neurons  = 10;
     genome_config.initial_neuron_count_range = (2, 4);

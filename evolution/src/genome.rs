@@ -1,11 +1,9 @@
 use crate::EvolutionEnvironment;
 
-use utils::config::ConfigSection;
+use utils::config::{Configurable, ConfigSection};
 
 
-pub trait Genome {
-    type Config: ConfigSection;
-
+pub trait Genome: Configurable {
     fn new(env: &EvolutionEnvironment, config: &Self::Config) -> Self;
 
     fn mutate(&mut self, config: &Self::Config);
