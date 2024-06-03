@@ -42,9 +42,6 @@ pub struct MainStochasticModel {
     pub type_connection_probabilities: MatrixGene,
 }
 
-impl Configurable for MainStochasticModel {
-    type Config = MainModelConfig;
-}
 
 impl Genome for MainStochasticModel {
 
@@ -221,6 +218,10 @@ impl Model for MainStochasticModel {
     fn develop(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         self.sample()
     }
+}
+
+impl Configurable for MainStochasticModel {
+    type Config = MainModelConfig;
 }
 
 #[derive(Deserialize)]

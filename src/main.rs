@@ -1,6 +1,6 @@
 //! luna/src/main.rs
 
-use luna::eval::{ModelEvaluator, EvalConfig};
+use luna::eval::{ModelEvaluator, EvalConfig, BatchConfig};
 
 use luna::visual::plots::{plot_evolution_stats};
 use luna::config::{get_config, main_config, MainConfig};
@@ -96,8 +96,11 @@ impl Process for EvolutionProcess {
 
 impl EvolutionProcess {
     fn get_evaluator<T: Task + TaskEval>(config: &MainConfig) -> ModelEvaluator<T> {
-        let eval_config = match config.task.as_str() {
-            "mnist" => Some(EvalConfig { batch_size: 10, batch_index: 0 }),
+
+        let mut eval_config = get_config::<ModelEvaluator<T>>();
+
+        eval_config.batch = match config.task.as_str() {
+            "mnist" => Some(BatchConfig { batch_size: 10, batch_index: 0 }),
              _ => None
         };
 

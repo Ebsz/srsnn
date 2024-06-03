@@ -7,60 +7,94 @@ use tasks::task_runner::{TaskRunner, Runnable};
 use evolution::{Evaluate, EvolutionEnvironment};
 
 use model::neuron::izhikevich::Izhikevich;
-use model::network::representation::{NetworkRepresentation, NeuronDescription};
+use model::network::representation::{NetworkRepresentation, NeuronDescription, DefaultRepresentation};
 use model::network::builder::NetworkBuilder;
 
-use utils::config::ConfigSection;
+use utils::config::{Configurable, ConfigSection};
 
+use serde::Deserialize;
 
-pub struct EvalConfig {
-    pub batch_size: usize,
-    pub batch_index: usize,
-    //pub n_trials: usize
-}
 
 pub struct ModelEvaluator<T: Task + TaskEval> {
     setups: Vec<T::Setup>,
-    config: Option<EvalConfig>
+    config: EvalConfig
 }
 
-impl<M, T> Evaluate<M, NetworkRepresentation<NeuronDescription<Izhikevich>>> for ModelEvaluator<T>
+impl<M, T> Evaluate<M, DefaultRepresentation> for ModelEvaluator<T>
 where
     T: Task + TaskEval,
     M: Model,
 {
-    fn eval(&self, m: &M) -> (f32, NetworkRepresentation<NeuronDescription<Izhikevich>>) {
-        let repr = m.develop();
+    fn eval(&self, m: &M) -> (f32, DefaultRepresentation) {
+        let setup = self.get_setup();
 
-        let setup: &[T::Setup];
+        let mut evals: Vec<(f32, DefaultRepresentation)> = Vec::new();
 
-        if let Some(conf) = &self.config {
-            setup = &self.setups[conf.batch_index..(conf.batch_index + conf.batch_size)];
-        } else {
-            setup = &self.setups;
+        for _ in 0..self.config.trials {
+            let repr = m.develop();
+            let eval = evaluate_network_representation::<T>(&repr, setup);
+            evals.push((eval, repr));
         }
 
-        (evaluate_network_representation::<T>(&repr, setup), repr)
+        evals.sort_by(|x,y| y.0.partial_cmp(&x.0).unwrap());
+
+        let avg_eval = evals.iter().map(|(e, _)| e).sum::<f32>() / self.config.trials as f32;
+        let best_eval: (f32, DefaultRepresentation) = evals.remove(0);
+
+        log::info!("Average eval: {avg_eval}, best: {}", best_eval.0);
+
+        (avg_eval, best_eval.1)
     }
+
     fn next(&mut self) {
-        if let Some(conf) = &mut self.config {
-            conf.batch_index = (conf.batch_index + conf.batch_size) % self.setups.len();
-            log::trace!("using next batch with index {}", conf.batch_index);
+        if let Some(bc) = &mut self.config.batch {
+            bc.batch_index = (bc.batch_index + bc.batch_size) % self.setups.len();
+            log::trace!("using next batch with index {}", bc.batch_index);
         }
     }
 }
 
 impl<T: Task + TaskEval> ModelEvaluator<T> {
-    pub fn new(config: Option<EvalConfig>) -> ModelEvaluator<T> {
+    pub fn new(config: EvalConfig) -> ModelEvaluator<T> {
         ModelEvaluator {
             config,
             setups: T::eval_setups(),
         }
     }
+
+    fn get_setup(&self) -> &[T::Setup] {
+        if let Some(bc) = &self.config.batch {
+            &self.setups[bc.batch_index..(bc.batch_index + bc.batch_size)]
+        } else {
+            &self.setups
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct EvalConfig {
+    pub trials: usize,
+    pub batch: Option<BatchConfig>
+}
+
+impl ConfigSection for EvalConfig {
+    fn name() -> String {
+        "eval".to_string()
+    }
+}
+
+#[derive(Deserialize)]
+pub struct BatchConfig {
+    pub batch_size: usize,
+    pub batch_index: usize,
+}
+
+impl<T: Task + TaskEval> Configurable for ModelEvaluator<T> {
+    type Config = EvalConfig;
 }
 
 fn evaluate_network_representation<T: Task + TaskEval> (
-    repr: &NetworkRepresentation<NeuronDescription<Izhikevich>>,
+    repr: &DefaultRepresentation,
     setups: &[T::Setup]
 ) -> f32 {
     let network = NetworkBuilder::build(repr);
@@ -81,8 +115,6 @@ fn evaluate_on_task<T: Task + TaskEval, R: Runnable> (
     setups: &[T::Setup]
 ) -> f32 {
     let mut results: Vec<T::Result> = Vec::new();
-
-    log::trace!("eval::evaluate_on_task");
 
     for s in setups {
         let task = T::new(s);

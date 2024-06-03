@@ -10,6 +10,9 @@ max_generations = 50
 
 n_stale_before_reset = 0 # =0 disables resetting
 
+[eval]
+trials = 1
+
 [matrix_genome]
 max_neurons =  25
 initial_neuron_count_range = [3, 15]
