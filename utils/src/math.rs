@@ -1,7 +1,14 @@
 use std::collections::HashMap;
 
+use ndarray::Array1;
+
 pub const P_TOLERANCE: f32 = 1.0001;
 
+
+/// Return the index of the entry in the array with the max value
+pub fn max_index<T: PartialOrd>(data: &Array1<T>) -> usize {
+    data.iter().enumerate().max_by(|a,b| a.1.partial_cmp(b.1).expect("")).map(|(k, _)| k).unwrap()
+}
 
 pub fn clamp<T: PartialOrd>(val: T, min: T, max: T) -> T {
     if val < min {
