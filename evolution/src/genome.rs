@@ -1,6 +1,6 @@
 use crate::EvolutionEnvironment;
 
-use utils::config::{Configurable, ConfigSection};
+use utils::config::Configurable;
 
 
 pub trait Genome: Configurable {
@@ -16,7 +16,7 @@ pub mod representation {
     //! Generic containers for different data structures
     //! with functions for performing mutation and crossover
 
-    use utils::{random, math};
+    use utils::random;
 
     use ndarray::{s, Array, Array2};
     use ndarray_rand::rand_distr::{StandardNormal, Uniform};
@@ -37,15 +37,12 @@ pub mod representation {
 
         /// Adds random gaussian noise multiplied by a weight to a random entry,
         /// simultaneously ensuring that the value is within the set bounds
-        pub fn mutate_single_value(&mut self, w: f32, bounds: (f32, f32)) {
-            assert!(bounds.0 < bounds.1);
-
+        pub fn mutate_single_value(&mut self, w: f32, bounds: (f32, f32)) -> (usize, usize) {
             let (x, y) = self.random_entry();
 
-            let noise: f32 = random::random_sample(StandardNormal);
-            self.data[[x, y]] += noise * w;
+            self.data[[x, y]] = random::gaussian(self.data[[x,y]], w, bounds);
 
-            self.data[[x, y]] = math::clamp(self.data[[x, y]], bounds.0, bounds.1);
+            (x, y)
         }
 
         /// Crossover by dividing the matrix into 4 quadrants by a point,
@@ -110,6 +107,16 @@ pub mod representation {
             }
 
             assert!(m1.data != m2.data);
+        }
+
+        #[test]
+        fn matrix_gene_mutate_within_bounds() {
+            let mut m = MatrixGene {data: Array::ones((N, N))};
+
+            for _ in 0..100 {
+                let (x, y) = m.mutate_single_value(0.1, (0.0, 1.0));
+                assert!(m.data[[x, y]] >= 0.0 && m.data[[x, y]] <= 1.0);
+            }
         }
 
         #[test]

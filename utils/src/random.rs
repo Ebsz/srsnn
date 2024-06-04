@@ -1,3 +1,5 @@
+use crate::math;
+
 use std::cmp::PartialOrd;
 use std::cell::RefCell;
 
@@ -6,7 +8,7 @@ use ndarray::{Array1, Array2, Array};
 use ndarray_rand::RandomExt;
 use ndarray_rand::rand::{Rng, SeedableRng};
 use ndarray_rand::rand::rngs::StdRng;
-use ndarray_rand::rand_distr::Distribution;
+use ndarray_rand::rand_distr::{StandardNormal, Distribution};
 use ndarray_rand::rand_distr::uniform::SampleUniform;
 
 use rand::seq::SliceRandom;
@@ -18,10 +20,16 @@ thread_local! {
     static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));
 }
 
-pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> {
-    RNG.with(|rng| {
-        Array::random_using(size, dist, &mut (*rng.borrow_mut()))
-    })
+
+/// Applies bounded and weighted gaussian noise.
+pub fn gaussian(x: f32, w: f32, bounds: (f32, f32)) -> f32 {
+    assert!(bounds.0 < bounds.1);
+
+    let noise: f32 = random_sample(StandardNormal);
+
+    let y = x + noise * w;
+
+    math::clamp(y, bounds.0, bounds.1)
 }
 
 /// Generate a random matrix
@@ -31,7 +39,12 @@ pub fn random_matrix<T, D: Distribution<T>>(shape: (usize, usize), dist: D) -> A
     })
 }
 
-// TODO: change to use std::ops::Range for more natural syntax
+pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> {
+    RNG.with(|rng| {
+        Array::random_using(size, dist, &mut (*rng.borrow_mut()))
+    })
+}
+
 /// Get a random sample from a specified range
 pub fn random_range<T: SampleUniform + PartialOrd>(range: (T, T)) -> T {
     RNG.with(|rng| rng.borrow_mut().gen_range(range.0..range.1))

@@ -266,9 +266,7 @@ impl NeuronType {
     fn mutate_ratio(&mut self, config: &MainModelConfig) {
         const W: f32 = 0.1;
 
-        let noise: f32 = random::random_sample(StandardNormal);
-
-        self.prevalence = math::clamp(self.prevalence + noise * W, 0.0, 1.0);
+        self.prevalence = random::gaussian(self.prevalence, W, (0.0, 1.0));
     }
 }
 
