@@ -1,6 +1,8 @@
 //! luna/src/main.rs
 
-use luna::eval::{ModelEvaluator, EvalConfig, BatchConfig};
+use luna::eval::trial::{SingleTrialEvaluator, MultiTrialEvaluator};
+use luna::eval::{Evaluator, MainEvaluator};
+use luna::eval::config::BatchSetup;
 
 use luna::visual::plots::{plot_evolution_stats};
 use luna::config::{get_config, main_config, MainConfig};
@@ -9,7 +11,6 @@ use luna::models::Model;
 use luna::models::stochastic::main_model::MainStochasticModel;
 use luna::models::matrix::MatrixModel;
 
-use model::neuron::izhikevich::Izhikevich;
 use model::network::representation::DefaultRepresentation;
 
 use evolution::EvolutionEnvironment;
@@ -74,7 +75,7 @@ impl Process for EvolutionProcess {
 
         let env = Self::environment::<T>();
 
-        let evaluator: ModelEvaluator<T> = Self::get_evaluator(&config);
+        let evaluator: Evaluator<T> = Self::get_evaluator(&config);
 
         let genome_config = get_config::<M>();
 
@@ -93,16 +94,20 @@ impl Process for EvolutionProcess {
 }
 
 impl EvolutionProcess {
-    fn get_evaluator<T: Task + TaskEval>(config: &MainConfig) -> ModelEvaluator<T> {
+    fn get_evaluator<T: Task + TaskEval>(config: &MainConfig) -> Evaluator<T> {
+        let base_eval = match config.model.as_str() {
+            "main" =>  MainEvaluator::MultiTrial(MultiTrialEvaluator {
+                config: get_config::<MultiTrialEvaluator>()
+            }),
+            _ => MainEvaluator::SingleTrial(SingleTrialEvaluator),
+        };
 
-        let mut eval_config = get_config::<ModelEvaluator<T>>();
-
-        eval_config.batch = match config.task.as_str() {
-            "mnist" => Some(BatchConfig { batch_size: 10, batch_index: 0 }),
+        let batch_config = match config.task.as_str() {
+            "mnist" => Some(BatchSetup { batch_size: 10, batch_index: 0 }),
              _ => None
         };
 
-        ModelEvaluator::new(eval_config)
+        Evaluator::new(batch_config, base_eval)
     }
 }
 

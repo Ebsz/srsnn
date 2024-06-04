@@ -1,69 +1,57 @@
+pub mod config;
+pub mod trial;
+
+use crate::eval::trial::{SingleTrialEvaluator, MultiTrialEvaluator};
+use crate::eval::config::BatchSetup;
+
 use crate::models::Model;
 use crate::runnable::RunnableNetwork;
 
 use tasks::{Task, TaskEval};
 use tasks::task_runner::{TaskRunner, Runnable};
 
-use evolution::{Evaluate, EvolutionEnvironment};
+use evolution::Evaluate;
 
-use model::neuron::izhikevich::Izhikevich;
 use model::network::representation::DefaultRepresentation;
 use model::network::builder::NetworkBuilder;
 
-use utils::config::{Configurable, ConfigSection};
 
-use serde::Deserialize;
-
-
-pub struct ModelEvaluator<T: Task + TaskEval> {
-    setups: Vec<T::Setup>,
-    config: EvalConfig
+/// Performs the actual evaluating
+pub trait BaseEvaluator<M, T: Task + TaskEval> {
+    fn evaluate(&self, m: &M, setups: &[T::Setup]) -> (f32, DefaultRepresentation);
 }
 
-impl<M, T> Evaluate<M, DefaultRepresentation> for ModelEvaluator<T>
-where
-    T: Task + TaskEval,
-    M: Model,
-{
+pub struct Evaluator<T: Task + TaskEval> {
+    main: MainEvaluator,
+
+    setups: Vec<T::Setup>,
+    batch_setup: Option<BatchSetup>
+}
+
+impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for Evaluator<T> {
     fn eval(&self, m: &M) -> (f32, DefaultRepresentation) {
-        let setup = self.get_setup();
-
-        let mut evals: Vec<(f32, DefaultRepresentation)> = Vec::new();
-
-        for _ in 0..self.config.trials {
-            let repr = m.develop();
-            let eval = evaluate_network_representation::<T>(&repr, setup);
-            evals.push((eval, repr));
-        }
-
-        evals.sort_by(|x,y| y.0.partial_cmp(&x.0).unwrap());
-
-        let avg_eval = evals.iter().map(|(e, _)| e).sum::<f32>() / self.config.trials as f32;
-        let best_eval: (f32, DefaultRepresentation) = evals.remove(0);
-
-        log::info!("Average eval: {avg_eval}, best: {}", best_eval.0);
-
-        (avg_eval, best_eval.1)
+        self.main.evaluate::<M, T>(m, self.eval_setup())
     }
 
     fn next(&mut self) {
-        if let Some(bc) = &mut self.config.batch {
-            bc.batch_index = (bc.batch_index + bc.batch_size) % self.setups.len();
-            log::trace!("using next batch with index {}", bc.batch_index);
+        if let Some(bs) = &mut self.batch_setup {
+            bs.batch_index = (bs.batch_index + bs.batch_size) % self.setups.len();
+            log::trace!("using next batch with index {}", bs.batch_index);
         }
     }
 }
 
-impl<T: Task + TaskEval> ModelEvaluator<T> {
-    pub fn new(config: EvalConfig) -> ModelEvaluator<T> {
-        ModelEvaluator {
-            config,
+impl<T: Task + TaskEval> Evaluator<T> {
+    pub fn new(batch_setup: Option<BatchSetup>, main: MainEvaluator) -> Evaluator<T> {
+        Evaluator {
+            main,
+            batch_setup,
             setups: T::eval_setups(),
         }
     }
 
-    fn get_setup(&self) -> &[T::Setup] {
-        if let Some(bc) = &self.config.batch {
+    fn eval_setup(&self) -> &[T::Setup] {
+        if let Some(bc) = &self.batch_setup{
             &self.setups[bc.batch_index..(bc.batch_index + bc.batch_size)]
         } else {
             &self.setups
@@ -71,26 +59,18 @@ impl<T: Task + TaskEval> ModelEvaluator<T> {
     }
 }
 
-#[derive(Deserialize)]
-pub struct EvalConfig {
-    pub trials: usize,
-    pub batch: Option<BatchConfig>
+pub enum MainEvaluator {
+    SingleTrial(SingleTrialEvaluator),
+    MultiTrial(MultiTrialEvaluator),
 }
 
-impl ConfigSection for EvalConfig {
-    fn name() -> String {
-        "eval".to_string()
+impl MainEvaluator {
+    fn evaluate<M: Model, T: Task + TaskEval>(&self, m: &M, setups: &[T::Setup]) -> (f32, DefaultRepresentation) {
+        match self {
+            MainEvaluator::SingleTrial(s) => <SingleTrialEvaluator as BaseEvaluator<M, T>>::evaluate(s, m, setups),
+            MainEvaluator::MultiTrial(s) => <MultiTrialEvaluator as BaseEvaluator<M, T>>::evaluate(s, m, setups),
+        }
     }
-}
-
-#[derive(Deserialize)]
-pub struct BatchConfig {
-    pub batch_size: usize,
-    pub batch_index: usize,
-}
-
-impl<T: Task + TaskEval> Configurable for ModelEvaluator<T> {
-    type Config = EvalConfig;
 }
 
 fn evaluate_network_representation<T: Task + TaskEval> (
@@ -128,7 +108,7 @@ fn evaluate_on_task<T: Task + TaskEval, R: Runnable> (
 
     let f = T::fitness(results);
 
-    log::debug!("eval: {}", f);
+    log::trace!("eval: {}", f);
 
     f
 }
