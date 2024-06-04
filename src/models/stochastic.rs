@@ -8,9 +8,17 @@ use utils::config::{Configurable, ConfigSection};
 
 use serde::Deserialize;
 
+use model::network::representation::{DefaultRepresentation};
+
 
 pub trait StochasticModel: Model {
+    fn sample(&self) -> DefaultRepresentation;
+}
 
+impl<S: StochasticModel> Model for S {
+    fn develop(&self) -> DefaultRepresentation {
+        self.sample()
+    }
 }
 
 #[derive(Deserialize)]

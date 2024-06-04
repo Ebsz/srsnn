@@ -9,10 +9,11 @@
 //! not ideal.
 //!
 
-use crate::models::Model;
+use crate::models::stochastic::StochasticModel;
 use crate::gen::stochastic;
 
-use model::network::representation::{NetworkRepresentation, NeuronDescription, NeuronRole};
+use model::network::representation::{NetworkRepresentation, NeuronDescription,
+    NeuronRole, DefaultRepresentation};
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
 
 use evolution::EvolutionEnvironment;
@@ -121,26 +122,6 @@ impl MainStochasticModel {
         }
     }
 
-    pub fn sample(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
-        // Number of neurons for each neuron type.
-        let ndist = self.get_neuron_distribution();
-
-        assert!(ndist.iter().sum::<usize>() == self.n + self.inputs);
-
-        let neurons = self.generate_neurons(&ndist);
-
-        assert!(neurons.shape()[0] == self.n + self.inputs);
-
-        let cpm = self.generate_connection_probability_matrix(&ndist);
-        let mut theta: Array2<u32> = stochastic::sample_connection_probability_matrix(&cpm);
-
-        // Remove incoming connections to input neurons
-        theta.slice_mut(s![self.n..(self.n + self.inputs),..]).fill(0);
-
-        let weights: Array2<f32> = theta.mapv(|v| v as f32);
-
-        NetworkRepresentation::new(neurons, theta, weights, self.inputs, self.outputs)
-    }
 
     fn get_neuron_distribution(&self) -> Array1<usize> {
         let prevalences: Vec<f32> = self.types.iter().map(|(_, t)| t.prevalence).collect();
@@ -217,9 +198,26 @@ impl MainStochasticModel {
     }
 }
 
-impl Model for MainStochasticModel {
-    fn develop(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
-        self.sample()
+impl StochasticModel for MainStochasticModel {
+    fn sample(&self) -> DefaultRepresentation {
+        // Number of neurons for each neuron type.
+        let ndist = self.get_neuron_distribution();
+
+        assert!(ndist.iter().sum::<usize>() == self.n + self.inputs);
+
+        let neurons = self.generate_neurons(&ndist);
+
+        assert!(neurons.shape()[0] == self.n + self.inputs);
+
+        let cpm = self.generate_connection_probability_matrix(&ndist);
+        let mut theta: Array2<u32> = stochastic::sample_connection_probability_matrix(&cpm);
+
+        // Remove incoming connections to input neurons
+        theta.slice_mut(s![self.n..(self.n + self.inputs),..]).fill(0);
+
+        let weights: Array2<f32> = theta.mapv(|v| v as f32);
+
+        NetworkRepresentation::new(neurons, theta, weights, self.inputs, self.outputs)
     }
 }
 

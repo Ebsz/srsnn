@@ -10,7 +10,7 @@ use luna::models::stochastic::main_model::MainStochasticModel;
 use luna::models::matrix::MatrixModel;
 
 use model::neuron::izhikevich::Izhikevich;
-use model::network::representation::{NetworkRepresentation, NeuronDescription};
+use model::network::representation::DefaultRepresentation;
 
 use evolution::EvolutionEnvironment;
 use evolution::population::Population;
@@ -78,7 +78,7 @@ impl Process for EvolutionProcess {
 
         let genome_config = get_config::<M>();
 
-        let mut population = Population::<_, M, NetworkRepresentation<NeuronDescription<Izhikevich>>>
+        let mut population = Population::<_, M, DefaultRepresentation>
             ::new(env.clone(), config.evolution, genome_config, evaluator);
 
         init_ctrl_c_handler(population.stop_signal.clone());
