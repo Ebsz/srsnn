@@ -4,6 +4,7 @@ use tasks::{Task, TaskInput, TaskRenderer};
 use tasks::catching_task::{CatchingTask, CatchingTaskSetup};
 use tasks::movement_task::{MovementTask, MovementTaskSetup};
 use tasks::survival_task::{SurvivalTask, SurvivalTaskSetup};
+use tasks::pole_balancing_task::{PoleBalancingTask, PoleBalancingSetup};
 
 use ndarray_rand::rand::rngs::StdRng;
 use ndarray_rand::rand::{Rng, SeedableRng};
@@ -19,7 +20,7 @@ use std::time::Instant;
 
 
 fn main () {
-    const TASKNAME: &str  = "catching";
+    const TASKNAME: &str = "pole_balancing";
 
     let mut input_map: HashMap<Keycode, u32> = HashMap::new();
 
@@ -62,6 +63,16 @@ fn main () {
             let mut t = TaskTester::new(task, input_map);
             t.run();
         },
+        "pole_balancing" => {
+            input_map.insert(Keycode::A, 0);
+            input_map.insert(Keycode::D, 1);
+
+            let task = PoleBalancingTask::new(&PoleBalancingSetup {});
+
+            let mut t = TaskTester::new(task, input_map);
+            t.run();
+
+        }
         _ => { println!("Unknown task"); }
     }
 }

@@ -7,6 +7,7 @@ pub mod survival_task;
 pub mod energy_task;
 pub mod mnist_task;
 pub mod xor_task;
+pub mod pole_balancing_task;
 
 use ndarray::Array1;
 use sdl2::render::WindowCanvas;
