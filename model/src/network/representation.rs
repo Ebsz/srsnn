@@ -1,4 +1,4 @@
-//! Abstract representation of a spiking network
+//! Runnable representation of a spiking network
 
 use crate::neuron::NeuronModel;
 use crate::neuron::izhikevich::Izhikevich;

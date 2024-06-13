@@ -1,5 +1,33 @@
 use ndarray::{s, Axis, Array, Array1, Array2};
 
+use model::network::representation::NetworkRepresentation;
+
+
+struct Graph {
+    adjacency: Array2<u32>,
+}
+
+impl Graph {
+    fn rank(&self) -> usize {
+        self.adjacency.shape()[0]
+    }
+}
+
+
+pub struct NetworkAnalysis {
+    pub rank: usize,
+    pub size: usize,
+
+    pub degree_distribution: Array1<u32>
+}
+
+//fn analyze_network(repr: NetworkRepresentation) -> NetworkAnalysis {
+//    repr.
+//
+//    NetworkAnalysis {
+//
+//    }
+//}
 
 pub type SpikeSeries = Array2<f32>;
 

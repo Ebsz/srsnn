@@ -9,6 +9,23 @@ use ndarray::{Array, Array1, Array2, Zip};
 use ndarray_rand::rand_distr::{StandardNormal, Uniform};
 
 
+/// Generative graph models
+pub mod graph {
+    use super::*;
+
+    type Graph = Array2<u32>;
+
+    pub fn g(n: usize, p: f32) -> Graph {
+        let mut a: Array2<f32> = Array::ones((n, n)) * p;
+
+        stochastic::sample_connection_probability_matrix(&a)
+    }
+    //pub fn sbm(n: usize, p: f32) -> Graph {
+
+    //}
+}
+
+
 pub mod stochastic {
     use super::*;
 
@@ -29,7 +46,6 @@ pub mod stochastic {
         connection_mask
     }
 }
-
 
 pub mod synapse_gen {
     use super::*;

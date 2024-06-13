@@ -13,16 +13,13 @@ use visual::task_window::TaskWindow;
 use tasks::{Task, TaskRenderer};
 use tasks::task_runner::TaskRunner;
 
-pub fn visualize_network<N>(desc: NetworkRepresentation<N>) {
-    let edges = desc.edges();
-
+pub fn visualize_network(n: usize, edges: Vec<(u32, u32)>) {
     let components: Vec<Box<dyn WindowComponent>> = vec![
-        Box::new(ForceGraphComponent::new(desc.n, edges))
+        Box::new(ForceGraphComponent::new(n, edges))
     ];
 
     let mut w = Window::new(Window::DEFAULT_WINDOW_SIZE, components);
 
-    println!("Running..");
     w.run();
 }
 
