@@ -1,5 +1,7 @@
 use plotters::prelude::*;
 
+use utils::math;
+
 
 pub fn plot_single_variable(data: Vec<f32>, description: &str, caption: &str, filename: &str, color: &RGBColor)
     -> Result<(), Box<dyn std::error::Error>> {
@@ -85,6 +87,40 @@ pub fn plot_multiple_series(data: Vec<Vec<f32>>, description: &str, caption: &st
         .background_style(&WHITE.mix(0.8))
         .border_style(&BLACK)
         .draw()?;
+
+    root.present()?;
+
+    log::info!("Plot saved to {}", filename);
+
+    Ok(())
+}
+
+/// Plot two variables against each other
+pub fn plot_two(points: Vec<(f32, f32)>, filename: &str, caption: &str)
+    -> Result<(), Box<dyn std::error::Error>> {
+
+    let xs: Vec<f32> = points.iter().map(|(x,y)| *x).collect();
+    let ys: Vec<f32> = points.iter().map(|(x,y)| *y).collect();
+
+    let max_x: f32 = math::maxf(&xs);
+    let max_y: f32 = math::maxf(&ys);
+    let min_x: f32 = math::minf(&xs);
+    let min_y: f32 = math::minf(&ys);
+
+    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
+    root.fill(&WHITE)?;
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption(caption, ("sans-serif", 30).into_font())
+        .margin(15)
+        .x_label_area_size(20)
+        .y_label_area_size(20)
+        .build_cartesian_2d(min_x..max_x, min_y..max_y)?;
+
+    chart.configure_mesh().draw()?;
+
+    let series = LineSeries::new(points, &BLACK);
+    chart.draw_series(series).unwrap();
 
     root.present()?;
 
