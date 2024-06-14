@@ -86,10 +86,10 @@ impl Process for EvolutionProcess {
 
         init_ctrl_c_handler(population.stop_signal.clone());
 
-        let _evolved_genome = population.evolve();
+        let evolved = population.evolve();
 
-        plot_evolution_stats(&population.stats);
-
+        //analyze_individual::<M, T>(evolved);
+        //plot_evolution_stats(&population.stats);
         //let task = T::new(&T::eval_setups()[0]);
         //visualize_genome_on_task(task, evolved_genome, &env);
     }

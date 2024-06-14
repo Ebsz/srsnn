@@ -61,7 +61,7 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
         }
     }
 
-    pub fn evolve(&mut self) -> &G {
+    pub fn evolve(&mut self) -> &Individual<G, P> {
         let mut sorted_fitness: Vec<(u32, f32)>;
 
         let mut stale_counter = 0;
@@ -109,7 +109,7 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
         }
 
         // Return the best fit genome of the population
-        &self.population.iter().find(|g| g.id == sorted_fitness[0].0).unwrap().genome
+        &self.population.iter().find(|g| g.id == sorted_fitness[0].0).unwrap()
     }
 
     /// Reset the population by generating a new population, keeping only the elites
@@ -242,10 +242,10 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
 
 /// Represents a member of the population
 pub struct Individual<G: Genome, P> {
-    genome: G,
-    id: u32,
-    fitness: Option<f32>,
-    phenotype: Option<P>
+    pub genome: G,
+    pub id: u32,
+    pub fitness: Option<f32>,
+    pub phenotype: Option<P>
 }
 
 impl<G: Genome, P> Individual<G, P> {

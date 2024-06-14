@@ -19,7 +19,7 @@ pub mod representation {
     use utils::random;
 
     use ndarray::{s, Array, Array2};
-    use ndarray_rand::rand_distr::{StandardNormal, Uniform};
+    use ndarray_rand::rand_distr::Uniform;
 
 
     /// Generic matrix representation for arbitrary kinds of data,
