@@ -1,9 +1,17 @@
+use ndarray::Array1;
+
 use std::collections::HashMap;
 
-use ndarray::Array1;
 
 pub const P_TOLERANCE: f32 = 1.0001;
 
+// min/max for floats
+pub fn maxf(data: &Vec<f32>) -> f32 {
+    data.iter().fold(0.0f32, |acc, &x| if x > acc {x} else {acc})
+}
+pub fn minf(data: &Vec<f32>) -> f32 {
+    data.iter().fold(0.0f32, |acc, &x| if x < acc {x} else {acc})
+}
 
 /// Return the index of the entry in the array with the max value
 pub fn max_index<T: PartialOrd>(data: &Array1<T>) -> usize {
