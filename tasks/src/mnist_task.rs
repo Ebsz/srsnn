@@ -1,6 +1,6 @@
 use crate::{Task, TaskEval, TaskInput, TaskOutput, TaskState, TaskEnvironment};
 
-use utils::math;
+use utils::{math, random, encoding};
 
 use ndarray::{s, Axis, Array, Array1, Array2};
 
@@ -8,7 +8,7 @@ use ndarray::{s, Axis, Array, Array1, Array2};
 const N_CLASSES: usize = 10;
 const OUTPUTS_PER_CLASS: usize = 2;
 
-const MAX_T: usize = 300;
+const MAX_T: usize = 200;
 
 const INPUT_T: usize = 28;
 
@@ -50,14 +50,7 @@ impl Task for MNISTTask {
     }
 
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<Self::Result> {
-        let output: TaskOutput;
-
-        if self.t < self.setup.input_t {
-            let ix = self.t * AGENT_INPUTS;
-            output = TaskOutput {data: self.setup.input.slice(s![ix..ix+AGENT_INPUTS]).to_owned()};
-        } else {
-            output = TaskOutput {data: Array::zeros(AGENT_INPUTS)};
-        }
+        let output: TaskOutput = self.get_output();
 
         if self.t >= MAX_T {
             return TaskState {
@@ -94,15 +87,31 @@ impl MNISTTask {
             self.spikes[[self.t, i.input_id as usize]] = 1;
         }
     }
+
+    fn get_output(&mut self) -> TaskOutput {
+        if self.t < self.setup.input_t {
+            let ix = self.t * AGENT_INPUTS;
+
+            let data = self.setup.input.slice(s![ix..ix+AGENT_INPUTS]).to_owned();
+
+            return TaskOutput { data };
+        }
+
+        TaskOutput {data: Array::zeros(AGENT_INPUTS)}
+    }
 }
 
 impl TaskEval for MNISTTask {
     fn eval_setups() -> Vec<Self::Setup> {
-        let (data, labels) = mnist::load_mnist().expect("Could not load mnist data");
+        log::info!("Loading MNIST data");
+        let (data, labels) = mnist::load_mnist().expect("Could not load MNIST data");
+
+        log::trace!("Rate-encoding MNIST data");
+        let encoded_data = encoding::rate_encode_array(&data);
+
+        assert!(encoded_data.shape() == data.shape());
 
         let mut setups = Vec::new();
-
-        // create setups
         for i in 0..mnist::N_IMAGES_TRAIN {
             setups.push( MNISTSetup {
                 input: data.slice(s![i, ..]).to_owned(),
@@ -115,7 +124,7 @@ impl TaskEval for MNISTTask {
     }
 
     fn fitness(results: Vec<Self::Result>) -> f32 {
-        let mut total_fitness = 100.0;
+        let mut total_fitness = 200.0;
         let batch_size: f32 = results.len() as f32;
 
         let mut correct = 0;
@@ -141,7 +150,8 @@ impl TaskEval for MNISTTask {
             let predicted_label = math::max_index(&firing_rates);
             let label = math::max_index(&r.label);
 
-            if predicted_label == label {
+            let all_labels_equal = firing_rates.windows(2).into_iter().all(|x| x[0] == x[1]);
+            if predicted_label == label && !all_labels_equal {
                 correct += 1;
 
                 total_fitness += 100.0 / batch_size;
@@ -149,7 +159,8 @@ impl TaskEval for MNISTTask {
 
             total_fitness -= error;
         }
-        println!("{}/{} correct", correct, results.len());
+
+        log::debug!("{}/{} correct", correct, results.len());
 
         total_fitness
     }
@@ -164,10 +175,7 @@ fn softmax(x: &Array1<f32>) -> Array1<f32> {
 }
 
 fn cross_entropy(predictions: &Array1<f32>, label: &Array1<f32>) -> f32 {
-
     -(label * &predictions.mapv(f32::ln).view()).sum()
-
-    //-(&y * &(a.mapv(f32::ln)).view()).sum() / bs
 }
 
 mod mnist {
@@ -183,7 +191,6 @@ mod mnist {
     pub const N_IMAGES_TRAIN: usize = 60000;
 
     pub fn load_mnist() -> Result<(Array2<f32>, Array2<f32>), String> {
-        println!("Loading mnist dataset");
 
         let training_data: (Vec<u8>, Vec<u8>) = load_training_set()?;
 
@@ -205,16 +212,14 @@ mod mnist {
         onehot
     }
 
-    /// Normalize each point in the images from [0,255] to (-1,1)
+    /// Normalize each point in the images from [0,255] to (0,1)
     fn normalize_img(data: Array2<f32>) -> Array2<f32> {
-        data * (2.0 / 255.0) - 1.0
+        data / 255.0
     }
 
     /// Convert the raw image data to arrays that can be batched
     /// Returns an Array2 of shape [60000, 784]
     fn data_to_arrays(data: Vec<u8>) -> Array2<f32> {
-
-
         Array::from_shape_vec((60000, IMG_SIZE), data)
             .unwrap()
             .mapv(|x| f32::from(x))
