@@ -1,3 +1,5 @@
+use crate::tasks::TaskRenderer;
+
 use sdl2::Sdl;
 use sdl2::event::Event;
 use sdl2::render::WindowCanvas;
@@ -7,7 +9,7 @@ use sdl2::keyboard::Keycode;
 
 use std::time::Instant;
 
-use tasks::{Task, TaskRenderer};
+use tasks::Task;
 use tasks::task_runner::{ExecutionState, TaskRunner, Runnable};
 
 
@@ -100,7 +102,11 @@ impl<'a, T: Task + TaskRenderer, R: Runnable> TaskWindow<'a, T, R>
 
     fn update(&mut self) {
         if self.runner.state != ExecutionState::FINISHED {
-            self.runner.step();
+            let r = self.runner.step();
+
+            if let Some(result) = r {
+                println!("{:?}", result);
+            }
         }
     }
 

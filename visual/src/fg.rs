@@ -6,6 +6,8 @@ use force_graph::{ForceGraph, NodeData};
 
 use sdl2::pixels::Color;
 
+use ndarray::Array1;
+
 
 const INIT_SPREAD: f32 = 100.0;
 
@@ -19,7 +21,7 @@ pub struct ForceGraphComponent {
 impl ForceGraphComponent {
     const NODE_SIZE: i16 = 20;
 
-    pub fn new(n: usize, edges: Vec<(u32, u32)>) -> ForceGraphComponent {
+    pub fn new(n: usize, edges: Vec<(u32, u32)>, colors: Option<Array1<Color>>) -> ForceGraphComponent {
         let mut graph = <ForceGraph>::new(Default::default());
 
         let mut ids = Vec::new();
@@ -28,6 +30,7 @@ impl ForceGraphComponent {
             let id = graph.add_node(NodeData {
                 x: random::random_range((-INIT_SPREAD, INIT_SPREAD)),
                 y: random::random_range((-INIT_SPREAD, INIT_SPREAD)),
+                //user_data: colors[i],
                 ..Default::default()
             });
             ids.push(id);

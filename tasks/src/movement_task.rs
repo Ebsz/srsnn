@@ -1,18 +1,15 @@
-use crate::{Task, TaskEnvironment, TaskInput, TaskOutput, TaskState, TaskRenderer, TaskEval};
+use crate::{Task, TaskEnvironment, TaskInput, TaskOutput, TaskState, TaskEval};
 use crate::sensor::Sensor;
 
 use ndarray::{Array, Array1};
 
-use sdl2::gfx::primitives::DrawRenderer;
-use sdl2::render::WindowCanvas;
-use sdl2::pixels::Color;
-
 use std::f32::consts::PI;
 
+pub const AGENT_RADIUS: f32 = 32.0;
+pub const TARGET_RADIUS: f32 = 50.0;
+pub const SENSOR_LEN: f32 = 300.0;
+pub const WORLD_SIZE: (i16, i16) = (1000, 1000);
 
-const WORLD_SIZE: (i16, i16) = (1000, 1000);
-
-const AGENT_RADIUS: f32 = 32.0;
 const AGENT_START_POS: (i16, i16) = (WORLD_SIZE.0 / 2, WORLD_SIZE.1 / 2);
 const AGENT_START_ROTATION: f32 = PI; // / 2.0;
 const AGENT_MOVEMENT_SPEED: f32 = 8.0;
@@ -20,21 +17,20 @@ const AGENT_MOVEMENT_SPEED: f32 = 8.0;
 const N_SENSORS: usize = 1;
 const N_CONTROLS: usize = 4; // up/down + rotate left/right
 
-const SENSOR_LEN: f32 = 300.0;
 
 const MAX_T: u32 = 300;
-const TARGET_RADIUS: f32 = 50.0;
 
 
 pub struct MovementTask {
-    agent: Agent,
-    target: Target,
-    sensor: Sensor,
-    ticks: u32,
+    pub agent: Agent,
+    pub target: Target,
+    pub sensor: Sensor,
+    pub ticks: u32,
 }
 
 pub struct MovementTaskSetup { }
 
+#[derive(Debug)]
 pub struct MovementTaskResult {
     pub distance: f32,
 }
@@ -118,10 +114,10 @@ impl MovementTask {
     }
 }
 
-struct Agent {
-    x: f32,
-    y: f32,
-    rotation: f32
+pub struct Agent {
+    pub x: f32,
+    pub y: f32,
+    pub rotation: f32
 }
 
 impl Agent {
@@ -157,9 +153,9 @@ impl Agent {
     }
 }
 
-struct Target {
-    x: f32,
-    y: f32,
+pub struct Target {
+    pub x: f32,
+    pub y: f32,
 }
 
 impl Target {
@@ -178,24 +174,5 @@ impl TaskEval for MovementTask {
 
     fn fitness(_results: Vec<MovementTaskResult>) -> f32 {
         0.0
-    }
-}
-
-impl TaskRenderer for MovementTask {
-    fn render(&self, canvas: &mut WindowCanvas) {
-        let _ = canvas.filled_circle(self.agent.x as i16, self.agent.y as i16, AGENT_RADIUS as i16, Color::BLACK);
-        
-        let _ = canvas.filled_circle(self.target.x as i16, self.target.y as i16, TARGET_RADIUS as i16, Color::RED);
-
-
-        let x = self.agent.x + self.agent.rotation.cos() * SENSOR_LEN;
-        let y = self.agent.y - self.agent.rotation.sin() * SENSOR_LEN;
-
-        let _ = canvas.thick_line(self.agent.x as i16, self.agent.y as i16, x as i16, y as i16, 3, Color::BLACK);
-    }
-
-    /// Returns the size of the 'arena' that the task operates in
-    fn render_size() -> (i32, i32) {
-        (WORLD_SIZE.0 as i32, WORLD_SIZE.1 as i32)
     }
 }

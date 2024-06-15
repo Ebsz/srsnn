@@ -1,3 +1,11 @@
+use crate::models::Model;
+
+use tasks::{Task, TaskEval};
+
+use evolution::population::Individual;
+
+use model::network::representation::DefaultRepresentation;
+
 use ndarray::{s, Axis, Array, Array1, Array2};
 
 use model::network::representation::NetworkRepresentation;
@@ -13,7 +21,7 @@ impl Graph {
     }
 }
 
-
+// TODO: Make this usable
 pub struct NetworkAnalysis {
     pub rank: usize,
     pub size: usize,
@@ -21,13 +29,18 @@ pub struct NetworkAnalysis {
     pub degree_distribution: Array1<u32>
 }
 
-//fn analyze_network(repr: NetworkRepresentation) -> NetworkAnalysis {
-//    repr.
-//
-//    NetworkAnalysis {
-//
-//    }
-//}
+pub fn analyze_individual<M: Model, T: Task + TaskEval>(i: &Individual<M, DefaultRepresentation>) {
+    let desc = i.phenotype.as_ref().unwrap();
+
+    let n = desc.n;
+
+    println!("Resulting genome:");
+    println!("n: {:?}", n);
+
+    let density = desc.edges().len() as f32 / (n * n) as f32;
+
+    println!("connection density {:?}", density);
+}
 
 pub type SpikeSeries = Array2<f32>;
 

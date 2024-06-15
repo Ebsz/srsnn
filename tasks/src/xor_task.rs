@@ -20,6 +20,7 @@ pub struct XORTaskSetup {
     output: u32
 }
 
+#[derive(Debug)]
 pub struct XORTaskResult {
     spike_times: Vec<u32>,
     desired_output: u32

@@ -3,27 +3,22 @@
 //! how it's used in graphics libraries like macroquad.
 //! TODO: Change the coordinate system to correspond with human perception
 
-use crate::{Task, TaskEnvironment, TaskInput, TaskOutput, TaskState, TaskRenderer, TaskEval};
-
+use crate::{Task, TaskEnvironment, TaskInput, TaskOutput, TaskState, TaskEval};
 use crate::sensor::Sensor;
-
-use sdl2::render::WindowCanvas;
-use sdl2::gfx::primitives::DrawRenderer;
-use sdl2::pixels::Color;
 
 use ndarray::{Array, Array1};
 
 use std::f32::consts::PI;
 
-const ARENA_SIZE: (i32, i32) = (500, 600);
+pub const ARENA_SIZE: (i32, i32) = (500, 600);
+pub const APPLE_RADIUS: i32 = 16;
+pub const AGENT_RADIUS: i32 = 32;
 
 const AGENT_START_POS: (i32, i32) = (ARENA_SIZE.0 / 2, (ARENA_SIZE.1 - AGENT_RADIUS));
-const AGENT_RADIUS: i32 = 32;
-const APPLE_SPEED: i32 = 3;
 const N_AGENT_CONTROLS: usize = 2;
-
-const APPLE_RADIUS: i32 = 16;
+const APPLE_SPEED: i32 = 3;
 const AGENT_SPEED: i32 = 5;
+
 
 const N_SENSORS: usize = 7;
 const SENSOR_SPREAD: f32 = PI / 3.0; // The angle between the first and last sensor
@@ -44,6 +39,7 @@ pub struct CatchingTaskSetup {
     pub target_pos: i32
 }
 
+#[derive(Debug)]
 pub struct CatchingTaskResult {
     pub success: bool,
     pub distance: f32,
@@ -222,36 +218,21 @@ impl TaskEval for CatchingTask {
     }
 
     fn fitness(results: Vec<CatchingTaskResult>) -> f32 {
-        let max_distance = Self::render_size().0 as f32;
+        let max_distance = ARENA_SIZE.0 as f32;
 
         let mut total_fitness: f32 = 0.0;
+        let mut correct = 0;
 
         for r in &results {
             total_fitness += (1.0 - r.distance/max_distance) * 100.0 - (if r.success {0.0} else {30.0});
+
+            if r.success {
+                correct += 1;
+            }
         }
+
+        log::debug!("{}/{} correct", correct, results.len());
 
         total_fitness / results.len() as f32
-    }
-}
-
-impl TaskRenderer for CatchingTask {
-    fn render(&self, canvas: &mut WindowCanvas) {
-        let _ = canvas.filled_circle(self.apple.x as i16, self.apple.y as i16, APPLE_RADIUS as i16, Color::RED);
-        let _ = canvas.filled_circle(self.agent.x as i16, self.agent.y as i16, AGENT_RADIUS as i16, Color::BLACK);
-
-
-        // Draw Sensors
-        let agent_pos = (self.agent.x as f32, self.agent.y as f32);
-
-        for s in &self.sensors {
-            let sensor_endpoint = s.endpoint(agent_pos);
-
-            let _ = canvas.thick_line(agent_pos.0 as i16, agent_pos.1 as i16,
-                sensor_endpoint.0 as i16, sensor_endpoint.1 as i16, 2, Color::BLACK);
-        }
-    }
-
-    fn render_size() -> (i32, i32) {
-        return ARENA_SIZE;
     }
 }

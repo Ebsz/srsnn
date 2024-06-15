@@ -5,14 +5,9 @@
 //! - Pole angle is less than X dg
 //! - Cart moves more than Y units away from the center
 
-use crate::{Task, TaskRenderer, TaskState, TaskInput, TaskOutput, TaskEnvironment, TaskEval};
+use crate::{Task, TaskState, TaskInput, TaskOutput, TaskEnvironment, TaskEval};
 
 use utils::{encoding, math};
-
-use sdl2::gfx::primitives::DrawRenderer;
-use sdl2::render::WindowCanvas;
-use sdl2::pixels::Color;
-use sdl2::rect::Rect;
 
 use ndarray::{array, Array1};
 
@@ -21,8 +16,6 @@ use std::f64::consts::PI;
 // Task params
 const AGENT_INPUTS: usize = 8;
 const AGENT_OUTPUTS: usize = 2;
-const WORLD_SIZE: (i32, i32) = (800, 500);
-
 
 // End conditions
 const MAX_ANGLE: f64 = PI / 4.0;
@@ -34,6 +27,7 @@ const TC: f64 = 0.003;
 const G: f64 = 9.81;
 
 const START_X: f64 = 0.0;
+const START_ANGLE: f64 = -0.05;
 
 const FORCE: f64 = 100.0;
 
@@ -43,25 +37,18 @@ const TOTAL_MASS: f64 = POLE_MASS + CART_MASS;
 const CT_FRICTION: f64 = 10.01; // Cart-track friction
 const CP_FRICTION: f64 = 0.001; // Cart-pole friction
 
-const POLE_START_ANGLE: f64 = -0.05; //PI;
 const POLE_LEN: f64 = 100.0;
-
-// Rendering params
-const POLE_RENDER_LEN: f64 = 200.0;
-
-const CART_SIZE: (u32, u32) = (100, 30);
-const CART_START_POS: (i32, i32) = (WORLD_SIZE.0 / 2 - CART_SIZE.0 as i32/ 2, WORLD_SIZE.1 - 80);
 
 
 pub struct PoleBalancingSetup { }
 pub struct PoleBalancingResult {
-    t: u32
+    pub t: u32
 }
 
 pub struct PoleBalancingTask {
-    cart: Cart,
-    pole: Pole,
-    t: u32,
+    pub cart: Cart,
+    pub pole: Pole,
+    pub t: u32,
 }
 
 impl Task for PoleBalancingTask {
@@ -195,10 +182,9 @@ impl TaskEval for PoleBalancingTask {
     }
 }
 
-
-struct Cart {
-    x: f64,
-    x_vel: f64,
+pub struct Cart {
+    pub x: f64,
+    pub x_vel: f64,
 }
 
 impl Cart {
@@ -210,52 +196,16 @@ impl Cart {
     }
 }
 
-struct Pole {
-    angle: f64,
-    angle_vel: f64,
+pub struct Pole {
+    pub angle: f64,
+    pub angle_vel: f64,
 }
 
 impl Pole {
     fn new() -> Pole {
         Pole {
-            angle: POLE_START_ANGLE,
+            angle: START_ANGLE,
             angle_vel: 0.0,
         }
-    }
-}
-
-impl TaskRenderer for PoleBalancingTask {
-    fn render(&self, canvas: &mut WindowCanvas) {
-        let _ = canvas.thick_line(0, CART_START_POS.1 as i16 + CART_SIZE.1 as i16 / 2,
-            WORLD_SIZE.0 as i16, CART_START_POS.1 as i16 + CART_SIZE.1 as i16 / 2,
-            1, Color::RGB(200,200,200));
-
-        // Cart
-        let cart_x: i32 = CART_START_POS.0 + self.cart.x.round() as i32;
-
-        let _ = canvas.set_draw_color(Color::BLACK);
-        let _ = canvas.fill_rect(Rect::new(cart_x ,CART_START_POS.1, CART_SIZE.0,CART_SIZE.1));
-
-        let angle = self.pole.angle - PI / 2.0;
-
-        // Pole
-        let pole_x0: i16 = cart_x as i16 + CART_SIZE.0 as i16 /2;
-        let pole_y0: i16 = CART_START_POS.1 as i16;
-
-        let pole_x1: i16 = pole_x0 + (angle.cos() * POLE_RENDER_LEN) as i16;
-        let pole_y1: i16 = pole_y0 + (angle.sin() * POLE_RENDER_LEN) as i16;
-
-        let _ = canvas.thick_line(pole_x0, pole_y0, pole_x1, pole_y1, 3, Color::RGB(100,100,100));
-
-        // Pole weight
-        let _ = canvas.filled_circle(pole_x1, pole_y1, 12, Color::BLACK);
-
-        // Cart hinge
-        let _ = canvas.filled_circle(cart_x as i16 + CART_SIZE.0 as i16 / 2, CART_START_POS.1 as i16, 8, Color::BLACK);
-        let _ = canvas.aa_circle(cart_x as i16 + CART_SIZE.0 as i16 / 2, CART_START_POS.1 as i16, 8, Color::BLACK);
-    }
-
-    fn render_size() -> (i32, i32) {
-       WORLD_SIZE
     }
 }

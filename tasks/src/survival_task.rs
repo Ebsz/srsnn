@@ -1,35 +1,30 @@
-use crate::{Task, TaskEnvironment, TaskInput, TaskOutput, TaskState, TaskRenderer, TaskEval};
+use crate::{Task, TaskEnvironment, TaskInput, TaskOutput, TaskState, TaskEval};
 use crate::sensor::Sensor;
 
 use utils::random;
 
 use ndarray::{Array, Array1};
 
-use sdl2::gfx::primitives::DrawRenderer;
-use sdl2::render::WindowCanvas;
-use sdl2::pixels::Color;
-use sdl2::rect::Rect;
-
 use std::f32::consts::PI;
 
 
-const WORLD_SIZE: (i16, i16) = (1000, 1000);
+pub const WORLD_SIZE: (i16, i16) = (1000, 1000);
+pub const SENSOR_LEN: f32 = 500.0;
 
 const N_CONTROLS: usize = 4; // up/down + rotate left/right
 
 const N_SENSORS: usize = 5;
 const SENSOR_SPREAD: f32 = PI / 4.0; // Angle between the first and last sensor
-const SENSOR_LEN: f32 = 500.0;
 
 const ENERGY_DRAIN_RATE: f32 = 0.1; // How much energy is lost each tick
 
 
 pub struct SurvivalTask {
-    agent: Agent,
-    food: Vec<Food>,
-    ticks: u32,
+    pub agent: Agent,
+    pub food: Vec<Food>,
+    pub ticks: u32,
 
-    setup: SurvivalTaskSetup
+    pub setup: SurvivalTaskSetup
 }
 
 #[derive(Copy, Clone)]
@@ -37,6 +32,7 @@ pub struct SurvivalTaskSetup {
     pub food_spawn_rate: u32
 }
 
+#[derive(Debug)]
 pub struct SurvivalTaskResult {
     pub time: u32
 }
@@ -159,23 +155,23 @@ impl SurvivalTask {
     }
 }
 
-struct Agent {
-    x: f32,
-    y: f32,
-    rotation: f32,
+pub struct Agent {
+    pub x: f32,
+    pub y: f32,
+    pub rotation: f32,
 
-    energy: f32,
+    pub energy: f32,
 
-    sensors: Vec<Sensor>,
+    pub sensors: Vec<Sensor>,
 }
 
 impl Agent {
-    const RADIUS: f32 = 32.0;
+    pub const RADIUS: f32 = 32.0;
     const START_POS: (i16, i16) = (WORLD_SIZE.0 / 2, WORLD_SIZE.1 / 2);
     const START_ROTATION: f32 = PI / 2.0;
     const MOVEMENT_SPEED: f32 = 8.0;
 
-    const MAX_ENERGY: f32 = 100.0;
+    pub const MAX_ENERGY: f32 = 100.0;
 
     fn new() -> Agent {
         Agent {
@@ -243,16 +239,16 @@ impl Agent {
     }
 }
 
-struct Food {
-    x: f32,
-    y: f32,
+pub struct Food {
+    pub x: f32,
+    pub y: f32,
 
-    energy: f32
+    pub energy: f32
 }
 
 impl Food {
-    const RADIUS: f32 = 8.0;
-    const BASE_ENERGY: f32 = 20.0;
+    pub const RADIUS: f32 = 8.0;
+    pub const BASE_ENERGY: f32 = 20.0;
 
     fn new(x: f32, y: f32) -> Food {
         Food {
@@ -282,42 +278,3 @@ impl TaskEval for SurvivalTask {
     }
 }
 
-impl TaskRenderer for SurvivalTask {
-    fn render(&self, canvas: &mut WindowCanvas) {
-
-        // Draw food
-        for e in &self.food {
-            let _ = canvas.filled_circle(e.x as i16, e.y as i16, Food::RADIUS as i16, Color::RED);
-        }
-
-        // Draw Agent
-        let _ = canvas.filled_circle(self.agent.x as i16, self.agent.y as i16, Agent::RADIUS as i16, Color::BLACK);
-
-        // Draw Sensors
-        for s in &self.agent.sensors {
-            let sensor_endpoint = s.endpoint((self.agent.x, self.agent.y));
-
-            let _ = canvas.thick_line(self.agent.x as i16, self.agent.y as i16,
-                sensor_endpoint.0 as i16, sensor_endpoint.1 as i16, 2, Color::BLACK);
-        }
-
-        let x = self.agent.x + self.agent.rotation.cos() * SENSOR_LEN;
-        let y = self.agent.y - self.agent.rotation.sin() * SENSOR_LEN;
-        let _ = canvas.thick_line(self.agent.x as i16, self.agent.y as i16, x as i16, y as i16, 3, Color::BLACK);
-
-
-        let energy_bar_x: i32 = 10;
-        let energy_bar_y: i32 = (WORLD_SIZE.1 - 30).into();
-
-        let energy_bar_width: u32 = (800.0 * (self.agent.energy / Agent::MAX_ENERGY)) as u32;
-        let energy_bar_height: u32 = 20;
-
-        canvas.set_draw_color(Color::BLUE);
-        let _ = canvas.fill_rect(Rect::new(energy_bar_x, energy_bar_y, energy_bar_width, energy_bar_height));
-    }
-
-    /// Returns the size of the 'arena' that the task operates in
-    fn render_size() -> (i32, i32) {
-        (WORLD_SIZE.0 as i32, WORLD_SIZE.1 as i32)
-    }
-}

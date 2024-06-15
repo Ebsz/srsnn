@@ -11,8 +11,3 @@ ndarray-rand = "0.14.0"
 utils = { path = "../utils" }
 serde = "1.0.199"
 log = "0.4.21"
-
-[dependencies.sdl2]
-version = "0.36"
-default-features = false
-features = ["gfx"]

@@ -10,7 +10,8 @@ pub mod xor_task;
 pub mod pole_balancing_task;
 
 use ndarray::Array1;
-use sdl2::render::WindowCanvas;
+
+use std::fmt::Debug;
 
 
 /// Input to the task, from the agent
@@ -38,7 +39,7 @@ pub struct TaskState<R> {
 
 pub trait Task {
     type Setup;
-    type Result;
+    type Result: Debug;
 
     fn new(setup: &Self::Setup) -> Self;
     fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<Self::Result>;
@@ -53,9 +54,3 @@ pub trait TaskEval: Task {
     fn fitness(results: Vec<Self::Result>) -> f32;
 }
 
-/// Implemented by a Task in order to define its visual representation.
-pub trait TaskRenderer {
-    fn render(&self, canvas: &mut WindowCanvas);
-
-    fn render_size() -> (i32, i32);
-}

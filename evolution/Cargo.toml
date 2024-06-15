@@ -13,3 +13,4 @@ log = "0.4.21"
 env_logger = "0.11.3"
 utils = { path = "../utils" }
 serde = "1.0.198"
+rayon = "1.10.0"

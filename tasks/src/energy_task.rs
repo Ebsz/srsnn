@@ -20,6 +20,7 @@ pub struct EnergyTaskSetup {
    input_duration: u32
 }
 
+#[derive(Debug)]
 pub struct EnergyTaskResult {
     t: u32
 }
