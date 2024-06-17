@@ -14,7 +14,7 @@ use rand::distributions::Uniform;
 
 
 /// Output of a neuron is multiplied by this; determines the impact of a single spike.
-const SYNAPTIC_INPUT_SCALING: f32 = 18.0; // 15.0;
+const SYNAPTIC_INPUT_SCALING: f32 = 15.0;
 
 const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 
