@@ -63,7 +63,6 @@ pub fn main_config(config_name: Option<String>) -> MainConfig {
 
     // Deserialize into MainConfig.
     let config = CONFIG.with(|c| c.borrow().clone()).unwrap();
-
     match MainConfig::new(config) {
         Ok(config) => { config },
         Err(e) => {
@@ -80,7 +79,7 @@ pub fn get_config<C: Configurable>() -> C::Config {
     match config.get::<C::Config>(C::Config::name().as_str()) {
         Ok(c) => c,
         Err(e) => {
-            println!("Error loading genome config: {e}");
+            println!("Error loading config: {e}");
 
             std::process::exit(-1);
         }

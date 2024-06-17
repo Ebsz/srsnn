@@ -88,10 +88,9 @@ impl Process for EvolutionProcess {
 
         let evolved = population.evolve();
 
-        //analyze_individual::<M, T>(evolved);
-        //plot_evolution_stats(&population.stats);
-        //let task = T::new(&T::eval_setups()[0]);
-        //visualize_genome_on_task(task, evolved_genome, &env);
+        let repr = evolved.phenotype.as_ref().unwrap();
+
+        log::info!("best fitness: {:?}", evolved.fitness.unwrap());
     }
 }
 
@@ -112,35 +111,6 @@ impl EvolutionProcess {
         Evaluator::new(batch_config, base_eval)
     }
 }
-
-struct AnalysisProcess;
-
-impl Process for AnalysisProcess {
-    fn run<G: Model, T: Task + TaskEval>(config: MainConfig) {
-        log::info!("Running analysis");
-
-
-    }
-}
-
-///// Analyzes a genome resulting from an evolutionary process
-//#[allow(dead_code)]
-//fn analyze_genome(g: &Genome, env: &EvolutionEnvironment) {
-//    log::info!("Analyzing genome");
-//    let mut phenotype = Phenotype::from_genome(g, env);
-//    phenotype.enable_recording();
-//
-//    let task = CatchingTask::new( CatchingTaskSetup {
-//        target_pos: 450
-//    });
-//
-//    let mut runner = TaskRunner::new(task, &mut phenotype);
-//
-//    runner.run();
-//
-//    generate_plots(&phenotype.record);
-//}
-
 
 fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {
     let mut stopped = false;
@@ -179,5 +149,4 @@ fn main() {
     log::debug!("seed is {}", SEED);
 
     EvolutionProcess::init(config);
-    //AnalysisProcess::init(config);
 }
