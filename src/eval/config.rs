@@ -1,10 +1,12 @@
 use serde::Deserialize;
 
-use utils::config::ConfigSection;
+use utils::config::{Configurable, ConfigSection};
 
-#[derive(Deserialize)]
+
+#[derive(Debug, Deserialize)]
 pub struct TrialConfig {
     pub trials: usize,
+    pub batch_size: Option<usize>
 }
 
 impl ConfigSection for TrialConfig {
@@ -13,8 +15,19 @@ impl ConfigSection for TrialConfig {
     }
 }
 
-#[derive(Deserialize)]
-pub struct BatchSetup {
-    pub batch_size: usize,
-    pub batch_index: usize,
+
+#[derive(Debug, Deserialize)]
+pub struct BatchConfig {
+    pub batch_size: usize
+}
+
+impl ConfigSection for BatchConfig {
+    fn name() -> String {
+        "batch".to_string()
+    }
+}
+
+pub struct Batch;
+impl Configurable for Batch {
+    type Config = BatchConfig;
 }

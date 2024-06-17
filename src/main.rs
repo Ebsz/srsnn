@@ -1,11 +1,10 @@
 //! luna/src/main.rs
 
+use luna::config::{get_config, main_config, MainConfig};
+
 use luna::eval::trial::{SingleTrialEvaluator, MultiTrialEvaluator};
 use luna::eval::{Evaluator, MainEvaluator};
-use luna::eval::config::BatchSetup;
-
-use luna::visual::plots::{plot_evolution_stats};
-use luna::config::{get_config, main_config, MainConfig};
+use luna::eval::config::{Batch, BatchConfig};
 
 use luna::models::Model;
 use luna::models::stochastic::main_model::MainStochasticModel;
@@ -72,14 +71,12 @@ struct EvolutionProcess;
 impl Process for EvolutionProcess {
     fn run<M: Model, T: Task + TaskEval>(config: MainConfig) {
         log::info!("EvolutionProcess");
-        log::info!("Model: {}", config.model);
-        log::info!("Task: {}", config.task);
-
         let env = Self::environment::<T>();
 
-        let evaluator: Evaluator<T> = Self::get_evaluator(&config);
-
         let genome_config = get_config::<M>();
+        log_config::<M>(&config, &genome_config);
+
+        let evaluator: Evaluator<T> = Self::get_evaluator(&config);
 
         let mut population = Population::<_, M, DefaultRepresentation>
             ::new(env.clone(), config.evolution, genome_config, evaluator);
@@ -104,12 +101,25 @@ impl EvolutionProcess {
         };
 
         let batch_config = match config.task.as_str() {
-            "mnist" => Some(BatchSetup { batch_size: 10, batch_index: 0 }),
+            "mnist" => {
+                let bc = get_config::<Batch>();
+
+                log::info!("Batch config:\n{:#?}", bc);
+
+                Some(BatchConfig {batch_size: bc.batch_size})
+            },
              _ => None
         };
 
         Evaluator::new(batch_config, base_eval)
     }
+}
+
+fn log_config<M: Model>(main_config: &MainConfig, genome_config: &M::Config) {
+    log::info!("Model: {}", main_config.model);
+    log::info!("Task: {}", main_config.task);
+    log::info!("evolution config:\n{:#?}", main_config.evolution);
+    log::info!("model config:\n{:#?}", genome_config);
 }
 
 fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {

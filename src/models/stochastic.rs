@@ -21,7 +21,7 @@ impl<S: StochasticModel> Model for S {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct StochasticGenomeConfig {
     pub max_neurons: usize
 }

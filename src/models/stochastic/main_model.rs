@@ -225,7 +225,7 @@ impl Configurable for MainStochasticModel {
     type Config = MainModelConfig;
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct MainModelConfig {
     pub n: usize,
     pub k: usize,

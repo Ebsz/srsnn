@@ -2,7 +2,7 @@ pub mod config;
 pub mod trial;
 
 use crate::eval::trial::{SingleTrialEvaluator, MultiTrialEvaluator};
-use crate::eval::config::BatchSetup;
+use crate::eval::config::BatchConfig;
 
 use crate::models::Model;
 use crate::runnable::RunnableNetwork;
@@ -15,6 +15,11 @@ use evolution::Evaluate;
 use model::network::representation::DefaultRepresentation;
 use model::network::builder::NetworkBuilder;
 
+
+struct BatchSetup {
+    pub batch_size: usize,
+    pub batch_index: usize,
+}
 
 /// Performs the actual evaluating
 pub trait BaseEvaluator<M, T: Task + TaskEval> {
@@ -42,7 +47,16 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for Evalua
 }
 
 impl<T: Task + TaskEval> Evaluator<T> {
-    pub fn new(batch_setup: Option<BatchSetup>, main: MainEvaluator) -> Evaluator<T> {
+    pub fn new(batch_config: Option<BatchConfig>, main: MainEvaluator) -> Evaluator<T> {
+        let batch_setup = match batch_config {
+            Some(conf) => Some(BatchSetup {
+                batch_size: conf.batch_size,
+                batch_index: 0
+
+            }),
+            _ => None
+        };
+
         Evaluator {
             main,
             batch_setup,
@@ -107,8 +121,6 @@ fn evaluate_on_task<T: Task + TaskEval, R: Runnable> (
     }
 
     let f = T::fitness(results);
-
-    log::trace!("eval: {}", f);
 
     f
 }
