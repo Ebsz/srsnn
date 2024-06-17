@@ -20,6 +20,16 @@ thread_local! {
     static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));
 }
 
+pub fn set_seed(seed: u64) {
+    RNG.replace(StdRng::seed_from_u64(seed));
+}
+
+pub fn random_seed() {
+    let seed: u64 = rand::random();
+
+    RNG.replace(StdRng::seed_from_u64(seed));
+}
+
 
 /// Applies bounded and weighted gaussian noise.
 pub fn gaussian(x: f32, w: f32, bounds: (f32, f32)) -> f32 {
