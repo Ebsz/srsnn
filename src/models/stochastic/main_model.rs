@@ -75,12 +75,26 @@ impl Genome for MainStochasticModel {
         self.normalize_type_prevalence();
     }
 
-    fn crossover(&self, _other: &Self) -> Self {
-        // TODO: implement for real
+    fn crossover(&self, other: &Self) -> Self {
+
+        // Randomly select types from each
+        let mut types = Vec::new();
+        for i in 0..self.types.len() {
+            if random::random_range((0.0, 1.0)) < 0.5 {
+                types.push(self.types[i].clone());
+            } else {
+                types.push(other.types[i].clone());
+            }
+        }
+
+        let mut type_connection_probabilities = self.type_connection_probabilities
+            .point_crossover(&other.type_connection_probabilities);
 
         MainStochasticModel {
-            types: self.types.clone(),
-            type_connection_probabilities: self.type_connection_probabilities.clone(),
+            types,
+            type_connection_probabilities,
+
+            type_weights: self.type_weights.clone(),
             n: self.n,
 
             ..*self
@@ -246,7 +260,7 @@ impl ConfigSection for MainModelConfig {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct NeuronType {
     prevalence: f32,
     params: NeuronTypeParams,
@@ -271,7 +285,7 @@ impl NeuronType {
 }
 
 /// Parameters dictating the dynamics of a neuron type
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct NeuronTypeParams {
     a: f32,
     b: f32,
@@ -316,6 +330,49 @@ impl NeuronTypeParams {
             2 =>  { self.c = math::clamp(self.c + delta, min_val, max_val); },
             3 =>  { self.d = math::clamp(self.d + delta, min_val, max_val); },
             _ => {panic!("mutating non-existent neuron param")}
+        }
+    }
+}
+
+
+#[cfg(test)]
+mod testing {
+    use super::*;
+
+    fn mainmodel() -> MainStochasticModel {
+        let env = EvolutionEnvironment {
+            inputs: 0,
+            outputs: 0,
+        };
+        MainStochasticModel::new(&env, &main_conf())
+    }
+
+    fn main_conf() -> MainModelConfig {
+        MainModelConfig {
+            n: 128,
+            k: 50,
+
+            n_mutations: 2,
+
+            initial_probability_range: (0.0, 0.5),
+
+            type_inhibitory_probability: 0.3,
+            mutate_type_cpm_probability: 0.2,
+            mutate_params_probability: 0.1,
+            mutate_type_ratio_probability: 0.69,
+            mutate_type_weights_probability: 0.01
+        }
+    }
+
+    #[test]
+    fn main_model_crossover_types_equal_to_either_parent() {
+        let a = mainmodel();
+        let b = mainmodel();
+
+        let c = a.crossover(&b);
+
+        for i in 0..c.types.len() {
+            assert!(c.types[i] == a.types[i] || c.types[i] == b.types[i]);
         }
     }
 }
