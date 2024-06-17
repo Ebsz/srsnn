@@ -128,13 +128,15 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
         log::debug!("Evaluating population");
 
         let start_time = Instant::now();
-        for g in &mut self.population {
+
+        self.population.iter_mut().for_each(|g| {
             if g.fitness == None {
                 let eval = self.evaluator.eval(&g.genome);
                 g.fitness = Some(eval.0);
                 g.phenotype = Some(eval.1);
             }
-        }
+        });
+
         let eval_time = start_time.elapsed().as_secs_f32();
 
         self.evaluator.next();
@@ -147,6 +149,8 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
             .map(|g| (g.id, g.fitness.unwrap())).collect();
 
         sorted_fitness.sort_by(|x, y| y.1.partial_cmp(&x.1).unwrap());
+
+        assert!(sorted_fitness.windows(2).all(|f| f[0].1 >= f[1].1));
 
         sorted_fitness
     }
