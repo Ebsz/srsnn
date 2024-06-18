@@ -1,4 +1,3 @@
-pub mod plots;
 pub mod window;
 pub mod tasks;
 pub mod task_window;

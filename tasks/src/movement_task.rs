@@ -28,6 +28,7 @@ pub struct MovementTask {
     pub ticks: u32,
 }
 
+#[derive(Clone)]
 pub struct MovementTaskSetup { }
 
 #[derive(Debug)]

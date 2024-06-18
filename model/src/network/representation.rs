@@ -8,6 +8,7 @@ use ndarray::{Array1, Array2};
 
 pub type DefaultRepresentation = NetworkRepresentation<NeuronDescription<Izhikevich>>;
 
+#[derive(Clone)]
 pub struct NetworkRepresentation<N> {
     pub n: usize,
     pub neurons: Array1<N>,

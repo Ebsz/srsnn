@@ -1,8 +1,8 @@
 pub mod config;
-pub mod trial;
+pub mod setups;
 
-use crate::eval::trial::{SingleTrialEvaluator, MultiTrialEvaluator};
-use crate::eval::config::BatchConfig;
+use crate::eval::config::{BatchConfig, TrialConfig};
+use crate::eval::setups::{EvalSetup, BatchSetup};
 
 use crate::models::Model;
 use crate::runnable::RunnableNetwork;
@@ -15,76 +15,120 @@ use evolution::Evaluate;
 use model::network::representation::DefaultRepresentation;
 use model::network::builder::NetworkBuilder;
 
+use utils::math;
+use utils::config::Configurable;
 
-struct BatchSetup {
-    pub batch_size: usize,
-    pub batch_index: usize,
+use std::thread;
+use std::sync::{Arc, Mutex};
+
+use crossbeam::queue::ArrayQueue;
+
+const N_THREADS: usize = 10;
+
+
+type Trial = (u32, DefaultRepresentation);
+type Evaluation = (u32, f32, DefaultRepresentation);
+
+pub struct MultiEvaluator<T: Task + TaskEval> {
+    setup: EvalSetup<T>,
+    trials: usize,
 }
 
-/// Performs the actual evaluating
-pub trait BaseEvaluator<M, T: Task + TaskEval> {
-    fn evaluate(&self, m: &M, setups: &[T::Setup]) -> (f32, DefaultRepresentation);
-}
+impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiEvaluator<T> {
+    fn eval(&mut self, genomes: &[(u32, &M)]) -> Vec<Evaluation> {
+        let n_samples = genomes.len() * self.trials;
 
-pub struct Evaluator<T: Task + TaskEval> {
-    main: MainEvaluator,
+        let input_queue: Arc<ArrayQueue<Trial>> = Arc::new(ArrayQueue::new(n_samples));
+        let output_queue: Arc<ArrayQueue<(u32, f32, DefaultRepresentation)>> = Arc::new(ArrayQueue::new(n_samples));
 
-    setups: Vec<T::Setup>,
-    batch_setup: Option<BatchSetup>
-}
-
-impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for Evaluator<T> {
-    fn eval(&self, m: &M) -> (f32, DefaultRepresentation) {
-        self.main.evaluate::<M, T>(m, self.eval_setup())
-    }
-
-    fn next(&mut self) {
-        if let Some(bs) = &mut self.batch_setup {
-            bs.batch_index = (bs.batch_index + bs.batch_size) % self.setups.len();
-            log::trace!("using next batch with index {}", bs.batch_index);
+        for g in genomes {
+            for _ in 0..self.trials {
+                input_queue.push((g.0, g.1.develop()));
+            }
         }
+
+        assert!(input_queue.len() == n_samples);
+
+        let setup = (*(self.setup.get()).clone()).to_vec();
+
+        let mut handles: Vec<thread::JoinHandle<()>> = vec![];
+        // Spawn threads
+        thread::scope(|s| {
+            for _ in 0..N_THREADS {
+                let iq = input_queue.clone();
+                let oq = output_queue.clone();
+
+                let sref = &setup[..];
+
+                s.spawn(move || {
+                    while let Some(t) = iq.pop() {
+                        let eval = evaluate_network_representation::<T>(&t.1, sref);
+
+                        oq.push((t.0, eval, t.1));
+                    }
+                });
+            }
+        });
+
+        let mut evals = vec![];
+        while let Some(e) = output_queue.pop() {
+            evals.push(e);
+        }
+
+        // handle multitrial evals
+        if self.trials > 1 {
+            evals = self.multitrial_evals(evals, genomes.len());
+        }
+
+        self.setup.next();
+
+        assert!(evals.len() == genomes.len());
+        evals
     }
 }
 
-impl<T: Task + TaskEval> Evaluator<T> {
-    pub fn new(batch_config: Option<BatchConfig>, main: MainEvaluator) -> Evaluator<T> {
-        let batch_setup = match batch_config {
-            Some(conf) => Some(BatchSetup {
-                batch_size: conf.batch_size,
-                batch_index: 0
-
-            }),
-            _ => None
+impl<T: Task + TaskEval> MultiEvaluator<T> {
+    pub fn new(config: Option<TrialConfig>, batch_config: Option<BatchConfig>) -> MultiEvaluator<T> {
+        let setup = match batch_config {
+            Some(bc) => EvalSetup::Batched(BatchSetup::new(T::eval_setups(), bc.batch_size)),
+            None => EvalSetup::Base(T::eval_setups())
         };
 
-        Evaluator {
-            main,
-            batch_setup,
-            setups: T::eval_setups(),
+        let mut trials = 1;
+        if let Some(tc) = config {
+            trials = tc.trials;
+        }
+
+        MultiEvaluator {
+            setup,
+            trials
         }
     }
 
-    fn eval_setup(&self) -> &[T::Setup] {
-        if let Some(bc) = &self.batch_setup{
-            &self.setups[bc.batch_index..(bc.batch_index + bc.batch_size)]
-        } else {
-            &self.setups
+    pub fn multitrial_evals(&self, mut e: Vec<Evaluation>, genomes: usize) -> Vec<Evaluation> {
+        e.sort_by_key(|x| x.0);
+
+        let mut evals = vec![];
+        for i in 0..genomes {
+            let ix = i * self.trials;
+            let genome_evals = &e[ix..ix+self.trials];
+
+            // 1. find the best one to return
+            let best_index = math::max_index(genome_evals.iter().map(|x| x.1));
+
+            // 2. calculate average fitness
+            let avg_eval: f32 = genome_evals.iter().map(|x| x.1).sum::<f32>() /  self.trials as f32;
+
+            evals.push((genome_evals[0].0, avg_eval, genome_evals[best_index].2.clone()));
+
         }
+
+        evals
     }
 }
 
-pub enum MainEvaluator {
-    SingleTrial(SingleTrialEvaluator),
-    MultiTrial(MultiTrialEvaluator),
-}
-
-impl MainEvaluator {
-    fn evaluate<M: Model, T: Task + TaskEval>(&self, m: &M, setups: &[T::Setup]) -> (f32, DefaultRepresentation) {
-        match self {
-            MainEvaluator::SingleTrial(s) => <SingleTrialEvaluator as BaseEvaluator<M, T>>::evaluate(s, m, setups),
-            MainEvaluator::MultiTrial(s) => <MultiTrialEvaluator as BaseEvaluator<M, T>>::evaluate(s, m, setups),
-        }
-    }
+impl<T: Task + TaskEval> Configurable for MultiEvaluator<T> {
+    type Config = TrialConfig;
 }
 
 fn evaluate_network_representation<T: Task + TaskEval> (

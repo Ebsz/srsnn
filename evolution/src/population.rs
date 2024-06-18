@@ -129,19 +129,22 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
 
         let start_time = Instant::now();
 
-        self.population.iter_mut().for_each(|g| {
-            if g.fitness == None {
-                let eval = self.evaluator.eval(&g.genome);
-                g.fitness = Some(eval.0);
-                g.phenotype = Some(eval.1);
-            }
-        });
+        let genomes = self.population
+            .iter()
+            .filter_map(|i| if  i.fitness == None { Some((i.id, &i.genome)) } else { None } )
+            .collect::<Vec<(u32, &G)>>();
+        let evals = self.evaluator.eval(&genomes[..]);
+
+        // Update population with the new evals
+        for eval in evals {
+            let mut g = self.population.iter_mut().find(|g| g.id == eval.0).unwrap();
+            g.fitness = Some(eval.1);
+            g.phenotype = Some(eval.2);
+        }
 
         let eval_time = start_time.elapsed().as_secs_f32();
 
-        self.evaluator.next();
-
-        log::trace!("Evaluated population in {}s", eval_time);
+        log::debug!("Evaluated population in {}s", eval_time);
     }
 
     fn get_sorted_fitness(&self) -> Vec<(u32, f32)> {

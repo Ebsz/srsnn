@@ -5,10 +5,7 @@ pub mod stats;
 
 
 pub trait Evaluate<G, P> {
-    fn eval(&self, g: &G) -> (f32, P);
-
-    /// Called at the end of the eval
-    fn next(&mut self);
+    fn eval(&mut self, g: &[(u32, &G)]) -> Vec<(u32, f32, P)>;
 }
 
 #[derive(Debug, Clone)]

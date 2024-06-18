@@ -38,7 +38,7 @@ pub struct TaskState<R> {
 }
 
 pub trait Task {
-    type Setup;
+    type Setup: Clone + Send + Sync;
     type Result: Debug;
 
     fn new(setup: &Self::Setup) -> Self;

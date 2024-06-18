@@ -40,7 +40,10 @@ const CP_FRICTION: f64 = 0.001; // Cart-pole friction
 const POLE_LEN: f64 = 100.0;
 
 
+#[derive(Clone)]
 pub struct PoleBalancingSetup { }
+
+#[derive(Debug)]
 pub struct PoleBalancingResult {
     pub t: u32
 }

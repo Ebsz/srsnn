@@ -43,8 +43,9 @@ fn evolve_genome(n: usize, g: u32) {
 
     struct TestEvaluator;
     impl Evaluate<MatrixModel, ()> for TestEvaluator {
-        fn eval(&self, _: &MatrixModel) -> (f32, ()) { (0.0, ()) }
-        fn next(&mut self) {}
+        fn eval(&mut self, m: &[(u32, &MatrixModel)]) -> Vec<(u32, f32, ())> {
+            m.iter().map(|x| (x.0, 0.0, ())).collect()
+        }
     }
 
     let mut population = Population::new(env, main_config.evolution, genome_config, TestEvaluator {});

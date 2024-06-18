@@ -6,7 +6,6 @@ use utils::config::{Configurable, ConfigSection};
 #[derive(Debug, Deserialize)]
 pub struct TrialConfig {
     pub trials: usize,
-    pub batch_size: Option<usize>
 }
 
 impl ConfigSection for TrialConfig {
@@ -14,7 +13,6 @@ impl ConfigSection for TrialConfig {
         "eval".to_string()
     }
 }
-
 
 #[derive(Debug, Deserialize)]
 pub struct BatchConfig {

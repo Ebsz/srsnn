@@ -2,8 +2,7 @@
 
 use luna::config::{get_config, main_config, MainConfig};
 
-use luna::eval::trial::{SingleTrialEvaluator, MultiTrialEvaluator};
-use luna::eval::{Evaluator, MainEvaluator};
+use luna::eval::MultiEvaluator;
 use luna::eval::config::{Batch, BatchConfig};
 
 use luna::models::Model;
@@ -76,7 +75,7 @@ impl Process for EvolutionProcess {
         let genome_config = get_config::<M>();
         log_config::<M>(&config, &genome_config);
 
-        let evaluator: Evaluator<T> = Self::get_evaluator(&config);
+        let evaluator: MultiEvaluator<T> = Self::get_evaluator(&config);
 
         let mut population = Population::<_, M, DefaultRepresentation>
             ::new(env.clone(), config.evolution, genome_config, evaluator);
@@ -92,12 +91,10 @@ impl Process for EvolutionProcess {
 }
 
 impl EvolutionProcess {
-    fn get_evaluator<T: Task + TaskEval>(config: &MainConfig) -> Evaluator<T> {
-        let base_eval = match config.model.as_str() {
-            "main" =>  MainEvaluator::MultiTrial(MultiTrialEvaluator {
-                config: get_config::<MultiTrialEvaluator>()
-            }),
-            _ => MainEvaluator::SingleTrial(SingleTrialEvaluator),
+    fn get_evaluator<T: Task + TaskEval>(config: &MainConfig) -> MultiEvaluator<T> {
+        let trial_config = match config.model.as_str() {
+            "main" => Some(get_config::<MultiEvaluator<T>>()),
+            _ => None
         };
 
         let batch_config = match config.task.as_str() {
@@ -111,7 +108,7 @@ impl EvolutionProcess {
              _ => None
         };
 
-        Evaluator::new(batch_config, base_eval)
+        MultiEvaluator::new(trial_config, batch_config)
     }
 }
 
