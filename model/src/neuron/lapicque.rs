@@ -6,6 +6,8 @@ use crate::neuron::NeuronModel;
 
 use ndarray::{Array, Array1};
 
+use serde::{Serialize, Deserialize};
+
 
 const DEFAULT_R: f32 = 5e7f32;
 const DEFAULT_C: f32 = 1e-10f32;
@@ -63,7 +65,7 @@ impl NeuronModel for Lapicque {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub struct LapicqueParameters {
     pub r: f32,
     pub c: f32,

@@ -3,3 +3,4 @@ pub mod random;
 pub mod config;
 pub mod math;
 pub mod encoding;
+pub mod data;

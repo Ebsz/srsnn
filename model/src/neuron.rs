@@ -5,10 +5,13 @@ use crate::spikes::Spikes;
 
 use ndarray::Array1;
 
+use serde::Serialize;
+use serde::de::DeserializeOwned;
+
 
 /// Defines a model of a neuron
 pub trait NeuronModel {
-    type Parameters: Default + Copy + Clone;
+    type Parameters: Default + Copy + Clone + Serialize + DeserializeOwned;
 
     fn new(n: usize, params: Vec<Self::Parameters>) -> Self;
     fn step(&mut self, input: Array1<f32>) -> Spikes;

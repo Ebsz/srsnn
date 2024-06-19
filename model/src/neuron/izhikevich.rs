@@ -3,6 +3,9 @@ use crate::spikes::Spikes;
 
 use ndarray::Array1;
 
+use serde::{Serialize, Deserialize};
+
+
 /*
  * The Izhikevich model captures the dynamics of neurons in a computationally feasible way,
  * and is described by the equations
@@ -27,7 +30,7 @@ pub struct Izhikevich {
     d: Array1<f32>,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub struct IzhikevichParameters {
     pub a: f32,
     pub b: f32,

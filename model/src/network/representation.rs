@@ -5,10 +5,12 @@ use crate::neuron::izhikevich::Izhikevich;
 
 use ndarray::{Array1, Array2};
 
+use serde::{Serialize, Deserialize};
+
 
 pub type DefaultRepresentation = NetworkRepresentation<NeuronDescription<Izhikevich>>;
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct NetworkRepresentation<N> {
     pub n: usize,
     pub neurons: Array1<N>,
@@ -65,7 +67,7 @@ impl<N> NetworkRepresentation<N> {
     }
 }
 
-#[derive(Copy, Debug)]
+#[derive(Copy, Debug, Deserialize, Serialize)]
 pub struct NeuronDescription<N: NeuronModel> {
     pub id: u32,
     pub params: Option<N::Parameters>,
@@ -95,7 +97,7 @@ impl<N: NeuronModel> Clone for NeuronDescription<N> {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum NeuronRole {
     Input,
     Output,

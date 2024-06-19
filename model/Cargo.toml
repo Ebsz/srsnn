@@ -7,9 +7,10 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
-ndarray = "0.15.6"
+ndarray = { version = "0.15.6", features = ["serde"] }
 ndarray-rand = "0.14.0"
 log = "0.4.21"
 env_logger = "0.11.3"
 petgraph = "0.6.5"
 utils = { path= "../utils" }
+serde = { version = "1.0", features = ["derive"] }
