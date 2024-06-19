@@ -4,11 +4,12 @@ use utils::config::{Configurable, ConfigSection};
 
 
 #[derive(Debug, Deserialize)]
-pub struct TrialConfig {
+pub struct EvalConfig {
+    pub max_threads: usize,
     pub trials: usize,
 }
 
-impl ConfigSection for TrialConfig {
+impl ConfigSection for EvalConfig {
     fn name() -> String {
         "eval".to_string()
     }

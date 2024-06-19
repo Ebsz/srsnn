@@ -92,11 +92,6 @@ impl Process for EvolutionProcess {
 
 impl EvolutionProcess {
     fn get_evaluator<T: Task + TaskEval>(config: &MainConfig) -> MultiEvaluator<T> {
-        let trial_config = match config.model.as_str() {
-            "main" => Some(get_config::<MultiEvaluator<T>>()),
-            _ => None
-        };
-
         let batch_config = match config.task.as_str() {
             "mnist" => {
                 let bc = get_config::<Batch>();
@@ -108,7 +103,10 @@ impl EvolutionProcess {
              _ => None
         };
 
-        MultiEvaluator::new(trial_config, batch_config)
+        let config = get_config::<MultiEvaluator<T>>();
+        log::info!("Eval config:\n{:#?}", config);
+
+        MultiEvaluator::new(config, batch_config)
     }
 }
 

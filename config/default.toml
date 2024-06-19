@@ -11,6 +11,7 @@ max_generations = 50
 n_stale_before_reset = 0 # =0 disables resetting
 
 [eval]
+max_threads = 16
 trials = 1
 
 [matrix_genome]
