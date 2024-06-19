@@ -23,6 +23,7 @@ serde = "1.0.198"
 ctrlc = "3.4.4"
 rayon = "1.10.0"
 crossbeam = "0.8.4"
+petgraph = "0.6.5"
 
 [dev-dependencies]
 criterion = { version = "0.4", features = ["html_reports"] }
