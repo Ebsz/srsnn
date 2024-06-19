@@ -14,8 +14,8 @@ pub fn minf(data: &Vec<f32>) -> f32 {
 }
 
 /// Return the index of the entry in the array with the max value
-pub fn max_index<T: PartialOrd>(data: &Array1<T>) -> usize {
-    data.iter().enumerate().max_by(|a,b| a.1.partial_cmp(b.1).expect("")).map(|(k, _)| k).unwrap()
+pub fn max_index<T: PartialOrd, I: IntoIterator<Item = T>>(data: I) -> usize {
+    data.into_iter().enumerate().max_by(|a,b| a.1.partial_cmp(&b.1).expect("")).map(|(k, _)| k).unwrap()
 }
 
 pub fn clamp<T: PartialOrd>(val: T, min: T, max: T) -> T {
@@ -58,6 +58,8 @@ pub fn distribute(n: usize, p: &Vec<f32>) -> Vec<usize> {
 mod tests {
     use super::*;
 
+    use ndarray::array;
+
     #[test]
     fn test_clamp_value() {
         assert!(clamp(0, 0, 1) == 0);
@@ -77,5 +79,14 @@ mod tests {
             let dist = distribute(n, &k);
             assert!(dist.iter().sum::<usize>() == n);
         }
+    }
+
+    #[test]
+    fn test_max_index() {
+        let v = vec![0,1,2,3,4,5,6,7,8,9];
+        let a = array![0,1,2,3,4,5,6,7,8,9];
+
+        assert!(max_index(v) == 9);
+        assert!(max_index(a) == 9);
     }
 }
