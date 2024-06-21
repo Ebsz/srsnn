@@ -24,7 +24,7 @@ use tasks::xor_task::XORTask;
 use tasks::pole_balancing_task::PoleBalancingTask;
 
 use utils::logger::init_logger;
-use utils::random::SEED;
+use utils::random;
 
 use std::env;
 use std::sync::Arc;
@@ -84,9 +84,11 @@ impl Process for EvolutionProcess {
 
         let evolved = population.evolve();
 
-        let repr = evolved.phenotype.as_ref().unwrap();
-
         log::info!("best fitness: {:?}", evolved.fitness.unwrap());
+
+        let network = evolved.phenotype.as_ref().unwrap().clone();
+
+        Self::save_evolved_network(network, &config);
     }
 }
 
@@ -107,6 +109,18 @@ impl EvolutionProcess {
         log::info!("Eval config:\n{:#?}", config);
 
         MultiEvaluator::new(config, batch_config)
+    }
+
+    fn save_evolved_network(network: DefaultRepresentation, config: &MainConfig) {
+        let filename = format!("out/evolved_{}_{}_{}.json",
+            config.model, config.task, random::random_range((0,1000000)).to_string());
+
+        let r = utils::data::save::<DefaultRepresentation>(network, filename.as_str());
+
+        match r {
+            Ok(_) => {log::info!("Model saved to {}", filename);},
+            Err(e) => { log::error!("Could not save model: {e}"); }
+        }
     }
 }
 
@@ -151,7 +165,7 @@ fn main() {
     init_logger(config.log_level.clone());
 
     log::info!("Using config: {}", config_name.unwrap_or("default".to_string()));
-    log::debug!("seed is {}", SEED);
+    log::debug!("seed is {}", random::SEED);
 
     EvolutionProcess::init(config);
 }
