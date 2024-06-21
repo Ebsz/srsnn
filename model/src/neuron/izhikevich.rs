@@ -81,14 +81,10 @@ impl NeuronModel for Izhikevich {
 
         self.reset_spiking();
 
-        const INTEGRATION_STEPS: usize = 2;
+        *&mut self.v = &self.v + 0.5 * (0.04 * (&self.v * &self.v) + 5.0 * &self.v + 140.0 - &self.u + &input);
+        *&mut self.v = &self.v + 0.5 * (0.04 * (&self.v * &self.v) + 5.0 * &self.v + 140.0 - &self.u + &input);
 
-        // Numerically integrate the model
-        for _ in 0..INTEGRATION_STEPS {
-            *&mut self.v = &self.v + 1.0/(INTEGRATION_STEPS as f32) * (0.04 * (&self.v * &self.v) + 5.0 * &self.v + 140.0 - &self.u + &input);
-        }
-
-        *&mut self.u = &self.a * (&self.b * &self.v - &self.u);
+        *&mut self.u = &self.u + &self.a * (&self.b * &self.v - &self.u);
 
         // Ensure potentials do not exceed the threshold value.
         // This has no effect on the model, but is necessary when using
@@ -103,7 +99,7 @@ impl NeuronModel for Izhikevich {
     /// Reset all neurons to their initial state
     fn reset(&mut self) {
         self.v = self.c.to_owned();
-        self.u = (&self.b * &self.v).to_owned();
+        self.u = (&self.b + &self.v).to_owned();
     }
 
     fn potentials(&self) -> Array1<f32> {
