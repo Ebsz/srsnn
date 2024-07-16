@@ -60,6 +60,27 @@ pub mod representation {
             }
         }
 
+        /// Crossover where for each row, we select the first k elements
+        /// from the first genome and the len-k elements from the second genome
+        pub fn point_row_crossover(&self, other: &Self) -> Self {
+            let len = self.data.shape()[0];
+
+            let mut new_data = Array::zeros((len, len));
+
+            for i in 0..len {
+                let k = random::random_range((0, len));
+
+                new_data.slice_mut(s![i,..k])
+                    .assign(&self.data.slice(s![i,..k]));
+                new_data.slice_mut(s![i,k..])
+                    .assign(&other.data.slice(s![i,k..]));
+            }
+
+            MatrixGene {
+                data: new_data
+            }
+        }
+
         /// Crossover by randomly selecting rows from each matrix
         pub fn row_crossover(&self, other: &Self) -> Self {
             let len = self.data.shape()[0];
