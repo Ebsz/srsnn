@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 
-fn main () {
+fn main() {
     const TASKNAME: &str = "pole_balancing";
 
     let mut input_map: HashMap<Keycode, u32> = HashMap::new();

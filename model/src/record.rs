@@ -2,18 +2,19 @@ use ndarray::Array1;
 use std::collections::HashMap;
 
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum RecordType {
     Spikes,
     Potentials
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum RecordDataType {
     Spikes(Array1<f32>),
     Potentials(Array1<f32>)
 }
 
+#[derive(Clone)]
 pub struct Record {
     records: HashMap<RecordType, Vec<RecordDataType>>
 }

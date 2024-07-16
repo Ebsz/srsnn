@@ -10,6 +10,7 @@ use model::neuron::NeuronModel;
 use model::network::representation::{NetworkRepresentation, NeuronDescription};
 use model::network::builder::NetworkBuilder;
 
+
 pub fn visualize_network_on_task<N: NeuronModel, T: Task + TaskRenderer>(task: T, repr: &NetworkRepresentation<NeuronDescription<N>>) {
     log::info!("Visualizing genome behavior on task");
 

@@ -19,7 +19,6 @@ impl<T: Task + TaskEval> EvalSetup<T> {
     pub fn next(&mut self) {
         if let EvalSetup::Batched(b) = self {
             b.batch_index = (b.batch_index + b.batch_size) % b.setups.len();
-            log::info!("Next batch, ix: {}", b.batch_index);
         }
     }
 }
