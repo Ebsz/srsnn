@@ -2,6 +2,7 @@ pub mod genome;
 pub mod config;
 pub mod population;
 pub mod stats;
+pub mod evolvable;
 
 
 pub trait Evaluate<G, P> {

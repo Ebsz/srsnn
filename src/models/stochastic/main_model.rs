@@ -3,7 +3,7 @@
 //! NOTE: The model is parameterized by N neurons, which encompass all non-input
 //! neurons. The number of neurons in a sampled network is (N + env.inputs)
 //!
-//! TODO: Because type_connection_probabilities also contains the input type, mutation will also
+//! TODO: Because t_cpm also contains the input type, mutation will also
 //! mutate the entries of the matrix containing connections to input neurons. While this shouldn't
 //! affect how the network runs, it still means that certain mutations will be "wasted" - which is
 //! not ideal.
@@ -18,7 +18,7 @@ use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
 
 use evolution::EvolutionEnvironment;
 use evolution::genome::Genome;
-use evolution::genome::representation::MatrixGene;
+use evolution::evolvable::MatrixGene;
 
 use utils::random;
 use utils::math;
@@ -32,17 +32,16 @@ use ndarray_rand::rand_distr::StandardNormal;
 
 /// types contains the specified neuron types, excluding the input type.
 ///
-/// type_connection_probabilities is a connection matrix of size (K + 1) containing the connection
+/// t_cpm is a connection probability matrix of size (K + 1) containing the connection
 /// probabilities between all types, including the input type
 pub struct MainStochasticModel {
-    pub n: usize, // NOTE: does not include inputs
+    pub n: usize, // NOTE: Number of recurrent neurons, aka. excluding input neurons
     pub inputs: usize,
     pub outputs: usize,
 
     pub types: Vec<(u32, NeuronType)>,
-    pub type_connection_probabilities: MatrixGene,
+    pub t_cpm: MatrixGene
 }
-
 
 impl Genome for MainStochasticModel {
     fn new(env: &EvolutionEnvironment, config: &MainModelConfig) -> MainStochasticModel {
@@ -57,14 +56,14 @@ impl Genome for MainStochasticModel {
             inputs: env.inputs,
             outputs: env.outputs,
             types,
-            type_connection_probabilities: MatrixGene::init_random(n_types, config.initial_probability_range)
+            t_cpm: MatrixGene::init_random(n_types, config.initial_probability_range)
         }
     }
 
     fn mutate(&mut self, config: &MainModelConfig) {
         for _ in 0..config.n_mutations {
             if random::random_range((0.0, 1.0)) <  config.mutate_type_cpm_probability {
-                self.type_connection_probabilities.mutate_single_value(0.1, (0.0, 1.0));
+                self.t_cpm.mutate_single_value(0.1, (0.0, 1.0));
             }
 
             // randomly choose a type and mutate it
@@ -76,7 +75,6 @@ impl Genome for MainStochasticModel {
     }
 
     fn crossover(&self, other: &Self) -> Self {
-
         // Randomly select types from each
         let mut types = Vec::new();
         for i in 0..self.types.len() {
@@ -87,14 +85,13 @@ impl Genome for MainStochasticModel {
             }
         }
 
-        let mut type_connection_probabilities = self.type_connection_probabilities
-            .point_crossover(&other.type_connection_probabilities);
+        let mut t_cpm = self.t_cpm
+            .point_crossover(&other.t_cpm);
 
         MainStochasticModel {
             types,
-            type_connection_probabilities,
+            t_cpm,
 
-            type_weights: self.type_weights.clone(),
             n: self.n,
 
             ..*self
@@ -135,7 +132,6 @@ impl MainStochasticModel {
             t.prevalence = t.prevalence / p_sum;
         }
     }
-
 
     fn get_neuron_distribution(&self) -> Array1<usize> {
         let prevalences: Vec<f32> = self.types.iter().map(|(_, t)| t.prevalence).collect();
@@ -188,7 +184,7 @@ impl MainStochasticModel {
         let n = self.n + self.inputs;
         let mut cpm = Array::ones((n,n));
 
-        let p = &self.type_connection_probabilities.data;
+        let p = &self.t_cpm.data;
         let n_types = ndist.shape()[0];
 
         let mut k: usize = 0;

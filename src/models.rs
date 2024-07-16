@@ -1,5 +1,6 @@
 pub mod stochastic;
 pub mod matrix;
+pub mod srsnn;
 
 use model::neuron::izhikevich::Izhikevich;
 use model::network::representation::{NetworkRepresentation, NeuronDescription};
