@@ -8,8 +8,9 @@ use crate::synapse::Synapse;
 use crate::record::{Record, RecordType, RecordDataType};
 
 use utils::random;
+use utils::environment::Environment;
 
-use ndarray::{s, Array1};
+use ndarray::{s, Array1, Array2};
 use rand::distributions::Uniform;
 
 
@@ -34,8 +35,9 @@ pub trait Network {
 pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
     pub neurons: N,
     pub synapse: S,
-    pub inputs: usize,
-    pub outputs: usize,
+    pub env: Environment,
+
+    pub input_matrix: Array2<f32>,
 
     pub record: Record,
     pub recording: bool,
@@ -49,15 +51,18 @@ pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
 
 impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
     fn step(&mut self, input: Spikes) -> Spikes {
-        assert!(input.len() == self.inputs);
+        assert!(input.len() == self.env.inputs);
 
-        let full_network_state = self.get_full_network_state(input);
-        assert!(full_network_state.len() == self.synapse.neuron_count());
+        let external_input = self.input_matrix.dot(&input.as_float());
+        let synaptic_input = self.synapse.step(&self.network_state);
 
-        let synaptic_input = self.synapse.step(&full_network_state) * SYNAPTIC_INPUT_SCALING;
+        let mut total_input = (synaptic_input + external_input) * SYNAPTIC_INPUT_SCALING;
 
-        let network_input = self.get_network_input(&synaptic_input);
-        self.network_state = self.neurons.step(network_input);
+        if let Some(n) = self.noise_input {
+            total_input += &(random::random_vector(self.neurons.len(), Uniform::new(n.0, n.1)));
+        }
+
+        self.network_state = self.neurons.step(total_input);
 
         if self.random_firing {
             self.add_random_output_firing();
@@ -78,7 +83,7 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
 }
 
 impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
-    pub fn new(neurons: N, synapse: S, inputs: usize, outputs: usize) -> SpikingNetwork<N, S> {
+    pub fn new(neurons: N, synapse: S, input_matrix: Array2<f32>, env: Environment) -> SpikingNetwork<N, S> {
         let noise_input = None;
         let random_firing = false;
 
@@ -87,8 +92,8 @@ impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
         SpikingNetwork {
             neurons,
             synapse,
-            inputs,
-            outputs,
+            env,
+            input_matrix,
 
             network_state: Spikes::new(network_size),
 
@@ -98,28 +103,6 @@ impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
             record: Record::new(),
             recording: false
         }
-    }
-
-    /// Get network state including the spikes from input neurons
-    fn get_full_network_state(&mut self, input: Spikes) -> Spikes {
-        let mut state = Spikes::new(self.synapse.neuron_count());
-
-        // Add network state
-        state.data.slice_mut(s![(-(self.inputs as i32))..]).assign(&input.data);
-        state.data.slice_mut(s![0..self.neurons.len()]).assign(&self.network_state.data);
-
-        state
-    }
-
-    fn get_network_input(&mut self, synaptic_input: &Array1<f32>) -> Array1<f32> {
-        // Get input only for network neurons
-        let mut network_input = synaptic_input.slice(s![0..self.neurons.len()]).to_owned();
-
-        if let Some(n) = self.noise_input {
-            network_input += &(random::random_vector(self.neurons.len(), Uniform::new(n.0, n.1)));
-        }
-
-        network_input
     }
 
     fn add_random_output_firing(&mut self) {

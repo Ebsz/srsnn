@@ -48,10 +48,9 @@ impl<N: Network> RunnableNetwork<N> {
         let mut task_inputs: Vec<TaskInput> = Vec::new();
 
         // Parse the firing state of output neurons to commands
-        for i in 0..self.outputs {
-            // TODO: unnecessary cast; make phenotype.outputs be usize
+        for i in 0..self.outputs as usize {
             // If the neurons assigned to be output fire, add the corresponding input
-            if network_state.data[i as usize] {
+            if network_state.data[i] {
                 task_inputs.push(TaskInput { input_id: i as u32});
             }
         }

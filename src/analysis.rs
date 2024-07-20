@@ -33,7 +33,7 @@ impl<N> From<&NetworkRepresentation<N>> for Graph {
             rank: item.n,
             size: item.edges().len(),
 
-            matrix: item.connection_mask.clone()
+            matrix: item.network_cm.clone()
         }
     }
 }

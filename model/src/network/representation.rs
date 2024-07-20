@@ -3,6 +3,8 @@
 use crate::neuron::NeuronModel;
 use crate::neuron::izhikevich::Izhikevich;
 
+use utils::environment::Environment;
+
 use ndarray::{Array1, Array2};
 
 use serde::{Serialize, Deserialize};
@@ -15,46 +17,64 @@ pub struct NetworkRepresentation<N> {
     pub n: usize,
     pub neurons: Array1<N>,
 
-    pub connection_mask: Array2<u32>,
-    pub weights: Array2<f32>,
+    pub network_cm: Array2<u32>,
+    pub network_w: Array2<f32>,
 
-    pub inputs: usize,
-    pub outputs: usize,
+    pub input_cm: Array2<u32>,
+    pub input_w: Array2<f32>,
+
+    pub env: Environment,
 }
 
 impl<N> NetworkRepresentation<N> {
-    pub fn new(neurons: Array1<N>,
-        connection_mask: Array2<u32>,
-        weights: Array2<f32>,
-        inputs: usize,
-        outputs: usize)
+    pub fn new(
+        neurons: Array1<N>,
+        network_cm: Array2<u32>,
+        network_w: Array2<f32>,
+
+        input_cm: Array2<u32>,
+        input_w: Array2<f32>,
+
+        env: Environment)
         -> NetworkRepresentation<N>
     {
+        // TODO: Fix matrix model and uncomment this
+        // Ensure weights are non-negative
+        //assert!(network_w.iter().filter(|x| **x < 0.0).collect::<Vec<&f32>>().len() == 0,
+        //    "network weight matrix contains negative entries");
+        //assert!(input_w.iter().filter(|x| **x < 0.0).collect::<Vec<&f32>>().len() == 0,
+        //    "input weight matrix contains negative entries");
 
-        // TODO: Implement using non-square matrices and use this
-        //let network_neurons = neurons.shape()[0] - inputs;
-        //assert!(connection_mask.shape()[0] == network_neurons,
-        //    "connection mask dim 1 was {:?}, expected {network_neurons}", connection_mask.shape()[0]);
+        let n = neurons.shape()[0];
 
-        assert!(neurons.shape()[0] == connection_mask.shape()[0],
-            "# neurons ({:?}) != matrix size ({:?})", neurons.shape()[0], connection_mask.shape());
-        assert!(weights.shape()[0] == connection_mask.shape()[0],
-            "neurons: {:?}, matrix: {:?}", weights.shape()[0], connection_mask.shape()[0]);
+        // |n| == |cm|
+        assert!(network_cm.shape() == [n,n],
+            "# neurons ({:?}) != network connection matrix: ({:?})", neurons.shape()[0], network_cm.shape());
+
+        // |input_cm| == [n x n_in]
+        assert!(input_cm.shape() == [n, env.inputs]);
+
+        // |cm| == |w|
+        assert!(network_cm.shape() == network_w.shape());
+        assert!(input_cm.shape() == input_w.shape());
 
         NetworkRepresentation {
             n: neurons.shape()[0],
             neurons,
-            connection_mask,
-            weights,
-            inputs,
-            outputs
+            network_cm,
+            network_w,
+
+            input_cm,
+            input_w,
+
+            env,
         }
     }
 
     pub fn edges(&self) -> Vec<(u32, u32)> {
         let mut edges = Vec::new();
 
-        for (i, d) in self.connection_mask.iter().enumerate() {
+        for (i, d) in self.network_cm.iter().enumerate() {
             let x = i / self.n;
             let y = i % self.n;
 
@@ -70,18 +90,16 @@ impl<N> NetworkRepresentation<N> {
 #[derive(Copy, Debug, Deserialize, Serialize)]
 pub struct NeuronDescription<N: NeuronModel> {
     pub id: u32,
-    pub params: Option<N::Parameters>,
+    pub params: N::Parameters,
     pub inhibitory: bool,
-    pub role: NeuronRole,
 }
 
 impl<N: NeuronModel> NeuronDescription<N> {
-    pub fn new(id: u32, params: Option<N::Parameters>, inhibitory: bool, role: NeuronRole) -> NeuronDescription<N> {
+    pub fn new(id: u32, params: N::Parameters, inhibitory: bool) -> NeuronDescription<N> {
         NeuronDescription {
             id,
             params,
             inhibitory,
-            role
         }
     }
 }
@@ -92,14 +110,6 @@ impl<N: NeuronModel> Clone for NeuronDescription<N> {
             id: self.id,
             params: self.params,
             inhibitory: self.inhibitory,
-            role: self.role
         }
     }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Deserialize, Serialize)]
-pub enum NeuronRole {
-    Input,
-    Output,
-    Network,
 }

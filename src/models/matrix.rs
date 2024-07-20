@@ -1,5 +1,5 @@
 use crate::models::Model;
-use model::network::representation::{NetworkRepresentation, NeuronDescription, NeuronRole};
+use model::network::representation::{NetworkRepresentation, NeuronDescription};
 
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};
 
@@ -8,6 +8,7 @@ use evolution::EvolutionEnvironment;
 
 use utils::random::{random_range, random_sample, random_choice};
 use utils::config::{Configurable, ConfigSection};
+use utils::environment::Environment;
 
 use ndarray::{s, Array, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
@@ -297,15 +298,7 @@ impl MatrixModel {
     }
 
     fn get_neuron_description(&self) -> Vec<NeuronDescription<Izhikevich>> {
-        let mut neurons: Vec<NeuronDescription<Izhikevich>> = self.neurons.iter().map( |n| n.to_description() ).collect();
-
-        let mut input_neurons = (0..self.inputs).map(|i: usize| {
-            NeuronDescription::<Izhikevich>::new((self.network_size() + i) as u32, None, false, NeuronRole::Input)
-        }).collect();
-
-        neurons.append(&mut input_neurons);
-
-        neurons
+        self.neurons.iter().map( |n| n.to_description() ).collect()
     }
 }
 
@@ -318,12 +311,7 @@ pub struct NeuronGene {
 
 impl NeuronGene {
     fn to_description(&self) -> NeuronDescription<Izhikevich> {
-        let role = match self.ntype {
-            NeuronType::Network => NeuronRole::Network,
-            NeuronType::Output => NeuronRole::Output
-        };
-
-        NeuronDescription::new(self.id, Some(IzhikevichParameters::default()), self.inhibitory, role)
+        NeuronDescription::new(self.id, IzhikevichParameters::default(), self.inhibitory)
     }
 }
 
@@ -337,22 +325,27 @@ impl Model for MatrixModel {
     fn develop(&self) -> NetworkRepresentation<NeuronDescription<Izhikevich>> {
         let neurons = self.get_neuron_description();
 
-        // Pack the connections matrix, which is sized after the max # of neurons, to the correct size.
         let network_size = self.network_size();
-        let new_size = network_size + self.inputs;
 
-        // Take network connections
-        let mut new_connections = self.connections.slice(s![..new_size, ..new_size]).to_owned();
+        let network_connections = self.connections.slice(s![..network_size, ..network_size]).to_owned();
+        let network_cm: Array2<u32> = network_connections.map(|c| if c.0 { 1 } else { 0 } );
+        let network_w: Array2<f32> = network_connections.map(|c| c.1);
 
-        // Assign the input connections
-        let input_connections = self.connections.slice(s![..network_size, (self.connections.shape()[0] - self.inputs)..]);
-        new_connections.slice_mut(s![..network_size, network_size..])
-            .assign(&input_connections);
+        let input_connections = self.connections
+            .slice(s![..network_size, (self.connections.shape()[0] - self.inputs)..]).to_owned();
+        let input_cm: Array2<u32> = input_connections.map(|c| if c.0 { 1 } else { 0 } );
+        let input_w: Array2<f32> = input_connections.map(|c| c.1);
 
-        let connection_mask: Array2<u32> = new_connections.map(|c| if c.0 { 1 } else { 0 } );
-        let weights: Array2<f32> = new_connections.map(|c| c.1);
+        let env = Environment { inputs: self.inputs, outputs: self.outputs };
 
-        NetworkRepresentation::new(Array::from_vec(neurons), connection_mask, weights, self.inputs, self.outputs)
+        NetworkRepresentation::new(
+            Array::from_vec(neurons),
+            network_cm,
+            network_w,
+            input_cm,
+            input_w,
+            env,
+       )
     }
 }
 

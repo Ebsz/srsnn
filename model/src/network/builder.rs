@@ -9,6 +9,8 @@ use crate::synapse::BaseSynapse;
 
 use crate::synapse::representation::{NeuronType, MatrixRepresentation};
 
+use utils::environment::Environment;
+
 
 pub struct NetworkBuilder;
 
@@ -18,15 +20,15 @@ impl NetworkBuilder {
         let neuron_params = Self::parse_neuron_params(desc);
         let neuron_types = Self::parse_neuron_types(desc);
 
-        let n_network_neurons = desc.n - desc.inputs;
+        let model = N::new(desc.n, neuron_params);
 
-        let model = N::new(n_network_neurons, neuron_params);
+        let synapse_matrix = &(desc.network_cm.mapv(|v| v as f32)) * &desc.network_w;
+        let input_matrix = &(desc.input_cm.mapv(|v| v as f32)) * &desc.input_w;
 
-        let synapse_matrix = &(desc.connection_mask.mapv(|v| v as f32)) * &desc.weights;
         let representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
         let synapse = BaseSynapse::new(representation);
 
-        SpikingNetwork::new(model, synapse, desc.inputs, desc.outputs)
+        SpikingNetwork::new(model, synapse, input_matrix, desc.env.clone())
     }
 
     fn parse_neuron_types<N: NeuronModel> (desc: &NetworkRepresentation<NeuronDescription<N>>) -> NeuronType {
@@ -34,6 +36,6 @@ impl NetworkBuilder {
     }
 
     fn parse_neuron_params<N: NeuronModel> (desc: &NetworkRepresentation<NeuronDescription<N>>) -> Vec<N::Parameters> {
-        desc.neurons.iter().filter_map(|n| n.params).collect()
+        desc.neurons.iter().map(|n| n.params).collect()
     }
 }

@@ -133,8 +133,8 @@ fn evaluate_network_representation<T: Task + TaskEval> (
 
     let mut runnable = RunnableNetwork {
         network,
-        inputs: repr.inputs,
-        outputs: repr.outputs,
+        inputs: repr.env.inputs,
+        outputs: repr.env.outputs,
     };
 
     evaluate_on_task::<T, _>(&mut runnable, setups)
