@@ -34,7 +34,7 @@ impl SRSNN for ERModel {
 
     fn dynamics(&self) -> DynamicsSet {
         DynamicsSet { f: Arc::new(
-            move |i| array![0.02, 0.2, -65.0, 2.0, 0.0]
+            move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
         )}
     }
 }

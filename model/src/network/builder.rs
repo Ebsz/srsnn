@@ -9,8 +9,6 @@ use crate::synapse::BaseSynapse;
 
 use crate::synapse::representation::{NeuronType, MatrixRepresentation};
 
-use utils::environment::Environment;
-
 
 pub struct NetworkBuilder;
 

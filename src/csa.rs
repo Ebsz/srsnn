@@ -1,7 +1,6 @@
 use utils::random;
-use utils::math;
 
-use ndarray::{array, Array1, Array, Array2};
+use ndarray::{Array1, Array, Array2};
 
 use std::sync::Arc;
 use std::fmt::Debug;

@@ -1,10 +1,4 @@
-use crate::models::Model;
-
-use tasks::{Task, TaskEval};
-
-use evolution::population::Individual;
-
-use model::network::representation::{NetworkRepresentation, DefaultRepresentation};
+use model::network::representation::NetworkRepresentation;
 
 use ndarray::{s, Axis, Array, Array1, Array2};
 
@@ -106,8 +100,6 @@ impl GraphAnalysis {
 
         let mut dst = 0;
 
-        let mut n = 0;
-
         for i in 0..g.rank {
             for j in (i+1)..g.rank {
                 let a = Self::path_length(&mg, i as u16, j as u16);
@@ -123,7 +115,7 @@ impl GraphAnalysis {
     /// Calculate the shortest path from vertice s to vertice j,
     /// returning 0 if no such path exists.
     fn path_length(mg: &MatrixGraph<(),()>, s: u16, j: u16) -> u32 {
-        let path = astar(&mg, s.into(), |finish| finish == j.into(), |e| 1, |_| 0);
+        let path = astar(&mg, s.into(), |finish| finish == j.into(), |_| 1, |_| 0);
 
         if let Some(res) = path {
             return res.0;
@@ -181,7 +173,7 @@ impl GraphAnalysis {
     }
 }
 
-mod spikedata {
+pub mod spikedata {
     use super::*;
 
     pub type SpikeSeries = Array2<f32>;

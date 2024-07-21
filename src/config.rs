@@ -1,5 +1,4 @@
 use evolution::config::EvolutionConfig;
-use evolution::genome::Genome;
 
 use utils::config::{Configurable, ConfigSection};
 

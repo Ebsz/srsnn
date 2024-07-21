@@ -11,7 +11,7 @@ const DEFAULT_OUT_DIR: &str = "out";
 pub fn save<T: Serialize>(x: T, path: &str) -> std::io::Result<()> {
     let serialized_string = serde_json::to_string(&x).unwrap();
 
-    fs::create_dir_all(DEFAULT_OUT_DIR);
+    fs::create_dir_all(DEFAULT_OUT_DIR)?;
 
     write_file(serialized_string, path)?;
 
@@ -29,7 +29,7 @@ pub fn load<T: DeserializeOwned>(path: &str) -> std::io::Result<T> {
 fn write_file(data: String, path: &str) -> std::io::Result<()> {
     let mut file = File::create(path)?;
 
-    file.write_all(data.as_bytes());
+    file.write_all(data.as_bytes())?;
 
     Ok(())
 }

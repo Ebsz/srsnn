@@ -137,7 +137,7 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
 
         // Update population with the new evals
         for eval in evals {
-            let mut g = self.population.iter_mut().find(|g| g.id == eval.0).unwrap();
+            let g = self.population.iter_mut().find(|g| g.id == eval.0).unwrap();
             g.fitness = Some(eval.1);
             g.phenotype = Some(eval.2);
         }

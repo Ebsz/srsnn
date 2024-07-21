@@ -1,7 +1,7 @@
 use crate::neuron::NeuronModel;
 use crate::spikes::Spikes;
 
-use ndarray::{Array, Array1};
+use ndarray::Array1;
 
 use serde::{Serialize, Deserialize};
 

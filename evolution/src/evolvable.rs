@@ -7,20 +7,20 @@ use ndarray::{s, Array1, Array, Array2};
 use ndarray_rand::rand_distr::Uniform;
 
 
-trait EvolvableParameter {
-}
-
-pub struct VectorParameter<T> {
-    data: Array1<T>
-}
-
-impl<T> EvolvableParameter for VectorParameter<T> { }
-
-pub struct MatrixParameter<T> {
-    data: Array2<T>
-}
-
-impl<T> EvolvableParameter for MatrixParameter<T> { }
+//trait EvolvableParameter {
+//}
+//
+//pub struct VectorParameter<T> {
+//    data: Array1<T>
+//}
+//
+//impl<T> EvolvableParameter for VectorParameter<T> { }
+//
+//pub struct MatrixParameter<T> {
+//    data: Array2<T>
+//}
+//
+//impl<T> EvolvableParameter for MatrixParameter<T> { }
 
 
 

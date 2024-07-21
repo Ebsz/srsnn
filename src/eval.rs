@@ -13,15 +13,13 @@ use tasks::task_runner::{TaskRunner, Runnable};
 use evolution::Evaluate;
 
 use model::DefaultNetwork;
-use model::network::SpikingNetwork;
 use model::network::representation::DefaultRepresentation;
-use model::network::builder::NetworkBuilder;
 
 use utils::math;
 use utils::config::Configurable;
 
 use std::thread;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use crossbeam::queue::ArrayQueue;
 
@@ -61,25 +59,25 @@ pub struct MultiEvaluator<T: Task + TaskEval> {
 }
 
 impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiEvaluator<T> {
-    fn eval(&mut self, genomes: &[(u32, &M)]) -> Vec<Evaluation> {
-        let n_samples = genomes.len() * self.config.trials;
+    fn eval(&mut self, models: &[(u32, &M)]) -> Vec<Evaluation> {
+        let n_samples = models.len() * self.config.trials;
 
         let input_queue: Arc<ArrayQueue<Trial>> = Arc::new(ArrayQueue::new(n_samples));
         let output_queue: Arc<ArrayQueue<(u32, f32, DefaultRepresentation)>> = Arc::new(ArrayQueue::new(n_samples));
 
-        for g in genomes {
+        for m in models {
             for _ in 0..self.config.trials {
-                input_queue.push((g.0, g.1.develop()));
+                let _ = input_queue.push((m.0, m.1.develop()));
             }
         }
 
         assert!(input_queue.len() == n_samples);
 
-        let setup = (*(self.setup.get()).clone()).to_vec();
+        let setup = (*(self.setup.get())).to_vec();
 
-        let mut handles: Vec<thread::JoinHandle<()>> = vec![];
+        // Don't create more threads than there are objects to evaluate
+        let n_threads = std::cmp::min(self.config.max_threads, models.len());
 
-        let n_threads = std::cmp::min(self.config.max_threads, genomes.len());
         thread::scope(|s| {
             for _ in 0..n_threads {
                 let iq = input_queue.clone();
@@ -91,7 +89,7 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
                     while let Some(t) = iq.pop() {
                         let eval = evaluate_on_task::<T>(&t.1, sref);
 
-                        oq.push((t.0, eval, t.1));
+                        let _ = oq.push((t.0, eval, t.1));
                     }
                 });
             }
@@ -104,12 +102,12 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
 
         // handle multitrial evals
         if self.config.trials > 1 {
-            evals = self.multitrial_evals(evals, genomes.len());
+            evals = self.multitrial_evals(evals, models.len());
         }
 
         self.setup.next();
 
-        assert!(evals.len() == genomes.len());
+        assert!(evals.len() == models.len());
         evals
     }
 }
@@ -127,22 +125,21 @@ impl<T: Task + TaskEval> MultiEvaluator<T> {
         }
     }
 
-    pub fn multitrial_evals(&self, mut e: Vec<Evaluation>, genomes: usize) -> Vec<Evaluation> {
+    pub fn multitrial_evals(&self, mut e: Vec<Evaluation>, n_models: usize) -> Vec<Evaluation> {
         e.sort_by_key(|x| x.0);
 
         let mut evals = vec![];
-        for i in 0..genomes {
+        for i in 0..n_models {
             let ix = i * self.config.trials;
-            let genome_evals = &e[ix..ix+self.config.trials];
+            let model_evals = &e[ix..ix+self.config.trials];
 
             // 1. find the best one to return
-            let best_index = math::max_index(genome_evals.iter().map(|x| x.1));
+            let best_index = math::max_index(model_evals.iter().map(|x| x.1));
 
             // 2. calculate average fitness
-            let avg_eval: f32 = genome_evals.iter().map(|x| x.1).sum::<f32>() /  self.config.trials as f32;
+            let avg_eval: f32 = model_evals.iter().map(|x| x.1).sum::<f32>() /  self.config.trials as f32;
 
-            evals.push((genome_evals[0].0, avg_eval, genome_evals[best_index].2.clone()));
-
+            evals.push((model_evals[0].0, avg_eval, model_evals[best_index].2.clone()));
         }
 
         evals

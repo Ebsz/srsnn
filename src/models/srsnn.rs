@@ -1,10 +1,7 @@
 pub mod er_model;
 
-use crate::csa;
 use crate::csa::DynamicsSet;
 use crate::csa::mask::Mask;
-
-use crate::models::Model;
 
 use model::network::representation::{DefaultRepresentation, NetworkRepresentation, NeuronDescription};
 use model::neuron::izhikevich::IzhikevichParameters;

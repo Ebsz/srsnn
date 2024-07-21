@@ -58,8 +58,7 @@ impl Task for PoleBalancingTask {
     type Setup = PoleBalancingSetup;
     type Result = PoleBalancingResult;
 
-
-    fn new(setup: &Self::Setup) -> PoleBalancingTask {
+    fn new(_setup: &Self::Setup) -> PoleBalancingTask {
         PoleBalancingTask {
             cart: Cart::new(),
             pole: Pole::new(),

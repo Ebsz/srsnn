@@ -156,7 +156,7 @@ pub fn plot_degree_distribution(data: &Array1<u32>) {
 }
 
 
-mod plt {
+pub mod plt {
     use super::*;
     use utils::math;
 
@@ -268,8 +268,8 @@ mod plt {
         caption: &str)
         -> Result<(), Box<dyn std::error::Error>> {
 
-        let xs: Vec<f32> = points.iter().map(|(x,y)| *x).collect();
-        let ys: Vec<f32> = points.iter().map(|(x,y)| *y).collect();
+        let xs: Vec<f32> = points.iter().map(|(x,_)| *x).collect();
+        let ys: Vec<f32> = points.iter().map(|(_,y)| *y).collect();
 
         let max_x: f32 = math::maxf(&xs);
         let max_y: f32 = math::maxf(&ys);

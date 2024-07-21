@@ -1,6 +1,6 @@
 use crate::{Task, TaskEval, TaskInput, TaskOutput, TaskState, TaskEnvironment};
 
-use utils::{math, random, encoding};
+use utils::{math, encoding};
 
 use ndarray::{s, Axis, Array, Array1, Array2};
 
