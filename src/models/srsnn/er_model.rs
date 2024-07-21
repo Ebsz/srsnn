@@ -1,3 +1,5 @@
+//! Model based on the Erdős-Rényi random graph, which generates SRSNNs similar to its namesake.
+
 use crate::csa;
 use crate::csa::DynamicsSet;
 use crate::csa::mask::Mask;
@@ -8,8 +10,8 @@ use utils::config::{ConfigSection, Configurable};
 use serde::Deserialize;
 use std::sync::Arc;
 
-
 use ndarray::array;
+
 
 pub struct ERModel {
     pub p: f32
