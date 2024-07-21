@@ -1,11 +1,14 @@
 //! Wraps a Network to enable running on tasks
 
-
 use model::network::Network;
 use model::spikes::Spikes;
 
 use tasks::{TaskInput, TaskOutput};
 use tasks::task_runner::Runnable;
+
+use model::DefaultNetwork;
+use model::network::representation::DefaultRepresentation;
+use model::network::builder::NetworkBuilder;
 
 use ndarray::Array1;
 
@@ -30,7 +33,18 @@ impl<N: Network> Runnable for RunnableNetwork<N> {
     }
 }
 
+
 impl<N: Network> RunnableNetwork<N> {
+    pub fn build(repr: &DefaultRepresentation) -> RunnableNetwork<DefaultNetwork> {
+        let network = NetworkBuilder::build(repr);
+
+        RunnableNetwork {
+            network,
+            inputs: repr.env.inputs,
+            outputs: repr.env.outputs,
+        }
+    }
+
     fn task_output_to_network_input(&self, output: TaskOutput) -> Spikes {
         // Ensure that the sensor input is boolean
         let task_data: Array1<bool> = output.data.mapv(|x| if x != 0.0 { true } else { false });

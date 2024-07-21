@@ -12,6 +12,8 @@ use tasks::task_runner::{TaskRunner, Runnable};
 
 use evolution::Evaluate;
 
+use model::DefaultNetwork;
+use model::network::SpikingNetwork;
 use model::network::representation::DefaultRepresentation;
 use model::network::builder::NetworkBuilder;
 
@@ -22,6 +24,32 @@ use std::thread;
 use std::sync::{Arc, Mutex};
 
 use crossbeam::queue::ArrayQueue;
+
+
+/// Evaluate a network on a number of different setups, returning the evaluation over them.
+pub fn evaluate_on_task<T: Task + TaskEval> (
+    repr: &DefaultRepresentation,
+    setups: &[T::Setup]
+) -> f32 {
+    let mut r = RunnableNetwork::<DefaultNetwork>::build(repr);
+
+    let mut results: Vec<T::Result> = Vec::new();
+
+    for s in setups {
+        let task = T::new(s);
+
+        let mut runner = TaskRunner::new(task, &mut r);
+        let result = runner.run();
+
+        results.push(result);
+
+        r.reset();
+    }
+
+    let f = T::fitness(results);
+
+    f
+}
 
 
 type Trial = (u32, DefaultRepresentation);
@@ -61,7 +89,7 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
 
                 s.spawn(move || {
                     while let Some(t) = iq.pop() {
-                        let eval = evaluate_network_representation::<T>(&t.1, sref);
+                        let eval = evaluate_on_task::<T>(&t.1, sref);
 
                         oq.push((t.0, eval, t.1));
                     }
@@ -125,40 +153,3 @@ impl<T: Task + TaskEval> Configurable for MultiEvaluator<T> {
     type Config = EvalConfig;
 }
 
-fn evaluate_network_representation<T: Task + TaskEval> (
-    repr: &DefaultRepresentation,
-    setups: &[T::Setup]
-) -> f32 {
-    let network = NetworkBuilder::build(repr);
-
-    let mut runnable = RunnableNetwork {
-        network,
-        inputs: repr.env.inputs,
-        outputs: repr.env.outputs,
-    };
-
-    evaluate_on_task::<T, _>(&mut runnable, setups)
-}
-
-/// Evaluate a Runnable on a number of different setups, returning the evaluation over them.
-fn evaluate_on_task<T: Task + TaskEval, R: Runnable> (
-    r: &mut R,
-    setups: &[T::Setup]
-) -> f32 {
-    let mut results: Vec<T::Result> = Vec::new();
-
-    for s in setups {
-        let task = T::new(s);
-
-        let mut runner = TaskRunner::new(task, r);
-        let result = runner.run();
-
-        results.push(result);
-
-        r.reset();
-    }
-
-    let f = T::fitness(results);
-
-    f
-}
