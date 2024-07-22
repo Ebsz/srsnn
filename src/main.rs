@@ -13,6 +13,7 @@ use model::network::representation::DefaultRepresentation;
 
 use evolution::EvolutionEnvironment;
 use evolution::population::Population;
+use evolution::genome::Genome;
 
 use tasks::{Task, TaskEval};
 use tasks::mnist_task::MNISTTask;
@@ -32,17 +33,17 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 
 trait Process {
-    fn run<M: Model, T: Task + TaskEval>(conf: MainConfig);
+    fn run<M: Model + Genome, T: Task + TaskEval>(conf: MainConfig);
 
     fn init(config: MainConfig) {
         match config.model.as_str() {
-            "main" => { Self::resolve_t::<MainStochasticModel>(config); },
+            //"main" => { Self::resolve_t::<MainStochasticModel>(config); },
             "matrix" => { Self::resolve_t::<MatrixModel>(config); },
             _ => { println!("Unknown model: {}", config.model); }
         }
     }
 
-    fn resolve_t<M: Model>(config: MainConfig) {
+    fn resolve_t<M: Model + Genome>(config: MainConfig) {
         match config.task.as_str() {
             "polebalance" => { Self::run::<M, PoleBalancingTask>(config); },
             "catching"    => { Self::run::<M, CatchingTask>(config); },
@@ -68,7 +69,7 @@ trait Process {
 struct EvolutionProcess;
 
 impl Process for EvolutionProcess {
-    fn run<M: Model, T: Task + TaskEval>(config: MainConfig) {
+    fn run<M: Model + Genome, T: Task + TaskEval>(config: MainConfig) {
         log::info!("EvolutionProcess");
         let env = Self::environment::<T>();
 

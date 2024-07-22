@@ -5,9 +5,9 @@ pub mod srsnn;
 use model::neuron::izhikevich::Izhikevich;
 use model::network::representation::{NetworkRepresentation, NeuronDescription};
 
-use evolution::genome::Genome;
+use utils::config::Configurable;
 
 
-pub trait Model<N=NeuronDescription<Izhikevich>>: Genome + Sync{
+pub trait Model<N=NeuronDescription<Izhikevich>>: Configurable + Sync {
     fn develop(&self) -> NetworkRepresentation<N>;
 }

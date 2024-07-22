@@ -12,15 +12,16 @@ use utils::environment::Environment;
 use ndarray::{Array, Array2};
 
 
-struct Dynamics {
-    a: f32,
-    b: f32,
-    c: f32,
-    d: f32,
-    i: bool,
-}
+//struct Dynamics {
+//    a: f32,
+//    b: f32,
+//    c: f32,
+//    d: f32,
+//    i: bool,
+//}
 
-pub trait SRSNN: Configurable {
+// stochastic recurrent spiking neural network
+pub trait SRSNN: Configurable + Sync {
     fn new(c: Self::Config) -> Self;
 
     fn dynamics(&self) -> DynamicsSet;
