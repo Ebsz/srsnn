@@ -7,32 +7,76 @@ use ndarray::{s, Array1, Array, Array2};
 use ndarray_rand::rand_distr::Uniform;
 
 
-//trait EvolvableParameter {
+
+//pub trait Genome {
+//    fn mutate();
+//    fn crossover();
 //}
 //
-//pub struct VectorParameter<T> {
-//    data: Array1<T>
-//}
 //
-//impl<T> EvolvableParameter for VectorParameter<T> { }
 //
-//pub struct MatrixParameter<T> {
+//pub struct Matrix<T> {
 //    data: Array2<T>
 //}
 //
-//impl<T> EvolvableParameter for MatrixParameter<T> { }
+//trait EvolvableParameter { }
+//
+//impl<T> EvolvableParameter for Scalar<T> { }
+//impl<T> EvolvableParameter for Vector<T> { }
+//impl<T> EvolvableParameter for Matrix<T> { }
 
 
+pub trait Parameterized {
+    fn parameter_set() -> ParameterSet;
+}
+
+pub struct ParameterSet(Vec<Box<dyn Parameter>>);
+
+impl ParameterSet {
+    pub fn size(&self) -> usize {
+        self.0.iter().map(|p| p.len()).sum()
+    }
+}
+
+trait Parameter {
+    fn len(&self) -> usize;
+}
+
+pub struct Scalar<T> {
+    data: T
+}
+
+impl<T> Parameter for Scalar<T> {
+    fn len(&self) -> usize {
+        1
+    }
+}
+
+impl<T> Parameter for Vector<T> {
+    fn len(&self) -> usize {
+        self.data.len()
+    }
+}
+
+impl<T> Parameter for Matrix<T> {
+    fn len(&self) -> usize {
+        self.data.len()
+    }
+}
+
+pub struct Vector<T> {
+    data: Array1<T>
+}
 
 /// Generic matrix representation for arbitrary kinds of data,
 #[derive(Clone, Debug)]
-pub struct MatrixGene {
-    pub data: Array2<f32>,
+pub struct Matrix<T> {
+    pub data: Array2<T>,
 }
 
-impl MatrixGene {
-    pub fn init_random(n: usize, range: (f32, f32)) -> MatrixGene {
-        MatrixGene {
+impl Matrix<f32> {
+    pub fn init_random(n: usize, range: (f32, f32)) -> Matrix<f32> {
+        Matrix {
             data: random::random_matrix((n, n), Uniform::new(range.0, range.1))
         }
     }
@@ -57,7 +101,7 @@ impl MatrixGene {
         new_data.slice_mut(s![0..x, y..]).assign(&other.data.slice(s![0..x, y..]));
         new_data.slice_mut(s![x.., 0..y]).assign(&other.data.slice(s![x.., 0..y]));
 
-        MatrixGene {
+        Matrix {
             data: new_data
         }
     }
@@ -78,7 +122,7 @@ impl MatrixGene {
                 .assign(&other.data.slice(s![i,k..]));
         }
 
-        MatrixGene {
+        Matrix {
             data: new_data
         }
     }
@@ -99,7 +143,7 @@ impl MatrixGene {
             }
         }
 
-        MatrixGene {
+        Matrix {
             data: new_data
         }
     }
@@ -122,7 +166,7 @@ mod tests {
 
     #[test]
     fn matrix_gene_single_value_mutation() {
-        let m1 = MatrixGene {data: Array::ones((N, N))};
+        let m1 = Matrix {data: Array::ones((N, N))};
         let mut m2 = m1.clone();
 
         for _ in 0..100 {
@@ -134,7 +178,7 @@ mod tests {
 
     #[test]
     fn matrix_gene_mutate_within_bounds() {
-        let mut m = MatrixGene {data: Array::ones((N, N))};
+        let mut m = Matrix {data: Array::ones((N, N))};
 
         for _ in 0..100 {
             let (x, y) = m.mutate_single_value(0.1, (0.0, 1.0));
@@ -144,8 +188,8 @@ mod tests {
 
     #[test]
     fn matrix_gene_point_crossover_results_in_differing_rows() {
-        let m1 = MatrixGene {data: Array::ones((N, N))};
-        let m2 = MatrixGene {data: Array::zeros((N, N))};
+        let m1 = Matrix {data: Array::ones((N, N))};
+        let m2 = Matrix {data: Array::zeros((N, N))};
 
         let m3 = m1.point_crossover(&m2);
 
@@ -157,8 +201,8 @@ mod tests {
 
     #[test]
     fn matrix_gene_row_crossover_results_in_identical_rows() {
-        let m1 = MatrixGene {data: Array::ones((N, N))};
-        let m2 = MatrixGene {data: Array::zeros((N, N))};
+        let m1 = Matrix {data: Array::ones((N, N))};
+        let m2 = Matrix {data: Array::zeros((N, N))};
 
         let m3 = m1.row_crossover(&m2);
 

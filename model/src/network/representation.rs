@@ -59,7 +59,7 @@ impl<N> NetworkRepresentation<N> {
         assert!(input_cm.shape() == input_w.shape());
 
         NetworkRepresentation {
-            n: neurons.shape()[0],
+            n,
             neurons,
             network_cm,
             network_w,

@@ -23,8 +23,7 @@ use std::sync::Arc;
 
 use crossbeam::queue::ArrayQueue;
 
-
-/// Evaluate a network on a number of different setups, returning the evaluation over them.
+/// Evaluates a network on one or more setups and returns the evaluation over them.
 pub fn evaluate_on_task<T: Task + TaskEval> (
     repr: &DefaultRepresentation,
     setups: &[T::Setup]
@@ -48,7 +47,6 @@ pub fn evaluate_on_task<T: Task + TaskEval> (
 
     f
 }
-
 
 type Trial = (u32, DefaultRepresentation);
 type Evaluation = (u32, f32, DefaultRepresentation);
