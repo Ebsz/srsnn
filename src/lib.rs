@@ -7,6 +7,7 @@ pub mod models;
 pub mod runnable;
 pub mod plots;
 pub mod csa;
+pub mod optimization;
 
 #[cfg(feature = "visual")]
 pub mod visual;

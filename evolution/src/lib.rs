@@ -1,8 +1,9 @@
+pub mod algorithm;
 pub mod genome;
 pub mod config;
 pub mod population;
 pub mod stats;
-pub mod parameters;
+pub mod evolvable;
 
 
 #[derive(Debug, Clone)]

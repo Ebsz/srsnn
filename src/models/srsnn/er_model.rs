@@ -1,50 +1,57 @@
-//! Model based on the Erdős-Rényi random graph, which generates SRSNNs similar to its namesake.
-
 use crate::csa;
 use crate::csa::DynamicsSet;
 use crate::csa::mask::Mask;
+use crate::models::rsnn::RSNN;
 
-use crate::models::srsnn::SRSNN;
+use utils::parameters::{Parameter, ParameterSet};
+use utils::config::{Configurable, ConfigSection};
 
-use utils::config::{ConfigSection, Configurable};
 use serde::Deserialize;
-use std::sync::Arc;
 
 use ndarray::array;
 
+use std::sync::Arc;
 
-pub struct ERModel {
-    pub p: f32
-}
 
-impl Configurable for ERModel {
-    type Config = ERModelConfig;
-}
+#[derive(Clone, Debug)]
+pub struct ERModel;
 
-impl SRSNN for ERModel {
-    fn new(c: Self::Config) -> Self {
-        ERModel {
-            p: c.p
-        }
-    }
-
-    fn connectivity(&self) -> Mask {
-        csa::mask::random(self.p)
-    }
-
-    fn dynamics(&self) -> DynamicsSet {
+impl RSNN for ERModel {
+    fn dynamics(config: &Self::Config, params: &ParameterSet) -> DynamicsSet {
         DynamicsSet { f: Arc::new(
             move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
         )}
     }
+
+    fn connectivity(config: &Self::Config, params: &ParameterSet) -> Mask {
+        assert!(params.set.len() == 1);
+
+        let p: f32 = match &params.set[0] {
+            Parameter::Scalar(x) => {*x},
+            _ => { panic!("invalid parameter set") }
+        };
+
+        csa::mask::random(p)
+    }
+
+    fn params(config: &Self::Config) -> ParameterSet {
+        let p = Parameter::Scalar(0.0);
+
+        ParameterSet {
+            set: vec![p],
+        }
+    }
 }
 
-#[derive(Debug, Deserialize)]
-pub struct ERModelConfig {
-    pub p: f32
+impl Configurable for ERModel {
+    type Config = ERConfig;
 }
 
-impl ConfigSection for ERModelConfig {
+#[derive(Clone, Debug, Deserialize)]
+pub struct ERConfig {
+}
+
+impl ConfigSection for ERConfig {
     fn name() -> String {
         "er_model".to_string()
     }

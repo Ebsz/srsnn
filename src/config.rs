@@ -1,5 +1,3 @@
-use evolution::config::EvolutionConfig;
-
 use utils::config::{Configurable, ConfigSection};
 
 use config::{Config, ConfigError, File};
@@ -15,15 +13,16 @@ thread_local! {
     static CONFIG: RefCell<Option<Config>> = RefCell::new(None);
 }
 
+
+
 #[derive(Debug, Deserialize)]
-pub struct MainConfig {
+pub struct BaseConfig {
     pub task: String,
     pub model: String,
     pub log_level: Option<String>,
-    pub evolution: EvolutionConfig
 }
 
-impl MainConfig {
+impl BaseConfig {
     fn new(config: Config) -> Result<Self, ConfigError> {
         config.try_deserialize()
     }
@@ -40,7 +39,7 @@ fn read_config(path: Option<String>) -> Result<Config, ConfigError>{
     Ok(builder.build()?)
 }
 
-pub fn main_config(config_name: Option<String>) -> MainConfig {
+pub fn base_config(config_name: Option<String>) -> BaseConfig {
     let mut path: Option<String> = None;
 
     // Parse config path from name
@@ -60,9 +59,9 @@ pub fn main_config(config_name: Option<String>) -> MainConfig {
         }
     }
 
-    // Deserialize into MainConfig.
+    // Deserialize into BaseConfig.
     let config = CONFIG.with(|c| c.borrow().clone()).unwrap();
-    match MainConfig::new(config) {
+    match BaseConfig::new(config) {
         Ok(config) => { config },
         Err(e) => {
             println!("Could not load config: {e}");

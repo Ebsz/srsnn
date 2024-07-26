@@ -1,28 +1,20 @@
-model = "matrix"
+model = "er_model"
 task = "catching"
+algorithm = "nes"
 
-[evolution]
+log_level = "trace"
+
+[nes]
 population_size = 50
-parent_fraction = 0.3
-elites = 2
-fitness_goal = 999999.0
-max_generations = 50
-
-n_stale_before_reset = 0 # =0 disables resetting
+alpha = 0.001
+sigma = 0.1
 
 [eval]
 max_threads = 16
 trials = 1
 
-[matrix_genome]
-max_neurons =  25
-initial_neuron_count_range = [3, 15]
-initial_connection_count_range = [4, 20]
 
-n_mutations = 2
-mutate_connection_probability = 0.8
-mutate_toggle_connection_probability = 0.3
-mutate_add_connection_probability = 0.03
-mutate_add_neuron_probability = 0.02
+[rsnn]
+n = 32
 
-inhibitory_probability = 0.0
+[rsnn.model]

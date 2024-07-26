@@ -1,4 +1,4 @@
-use crate::models::Model;
+use model::Model;
 use model::network::representation::{NetworkRepresentation, NeuronDescription};
 
 use model::neuron::izhikevich::{Izhikevich, IzhikevichParameters};

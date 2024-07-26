@@ -34,9 +34,9 @@ members = [ "evolution", "model", "tasks", "utils", "visual" ]
 [features]
 viz = ["visual"]
 
-[[bin]]
-name = "viz"
-required_features = [ "viz" ]
+#[[bin]]
+#name = "viz"
+#required_features = [ "viz" ]
 
 [[bench]]
 name = "benchmarks"

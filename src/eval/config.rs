@@ -3,7 +3,7 @@ use serde::Deserialize;
 use utils::config::{Configurable, ConfigSection};
 
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct EvalConfig {
     pub max_threads: usize,
     pub trials: usize,
@@ -15,7 +15,7 @@ impl ConfigSection for EvalConfig {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct BatchConfig {
     pub batch_size: usize
 }

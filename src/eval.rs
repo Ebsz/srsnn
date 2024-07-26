@@ -4,7 +4,7 @@ pub mod setups;
 use crate::eval::config::{BatchConfig, EvalConfig};
 use crate::eval::setups::{EvalSetup, BatchSetup};
 
-use crate::models::Model;
+use model::Model;
 use crate::runnable::RunnableNetwork;
 
 use tasks::{Task, TaskEval};
@@ -22,6 +22,10 @@ use std::thread;
 use std::sync::Arc;
 
 use crossbeam::queue::ArrayQueue;
+
+
+pub type Trial = (u32, DefaultRepresentation);
+pub type Evaluation = (u32, f32, DefaultRepresentation);
 
 /// Evaluates a network on one or more setups and returns the evaluation over them.
 pub fn evaluate_on_task<T: Task + TaskEval> (
@@ -48,8 +52,6 @@ pub fn evaluate_on_task<T: Task + TaskEval> (
     f
 }
 
-type Trial = (u32, DefaultRepresentation);
-type Evaluation = (u32, f32, DefaultRepresentation);
 
 pub struct MultiEvaluator<T: Task + TaskEval> {
     setup: EvalSetup<T>,
@@ -61,7 +63,7 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
         let n_samples = models.len() * self.config.trials;
 
         let input_queue: Arc<ArrayQueue<Trial>> = Arc::new(ArrayQueue::new(n_samples));
-        let output_queue: Arc<ArrayQueue<(u32, f32, DefaultRepresentation)>> = Arc::new(ArrayQueue::new(n_samples));
+        let output_queue: Arc<ArrayQueue<Evaluation>> = Arc::new(ArrayQueue::new(n_samples));
 
         for m in models {
             for _ in 0..self.config.trials {

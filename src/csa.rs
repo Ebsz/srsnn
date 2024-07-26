@@ -8,7 +8,6 @@ use std::fmt::Debug;
 use mask::Mask;
 
 
-
 pub struct DynamicsSet {
     pub f: Arc<dyn Fn(u32) -> Array1<f32>>
 }
