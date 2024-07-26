@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{s, Array, Array1, Array2, Array3};
 use model::record::{Record, RecordType, RecordDataType};
 
 use evolution::stats::EvolutionStatistics;
@@ -333,6 +333,34 @@ pub mod plt {
         root.present()?;
 
         log::info!("Plot saved to {}", filename);
+
+        Ok(())
+    }
+
+    pub fn plot_3d(
+        data: &Array3<u32>,
+        filename: &str,
+        caption: &str)
+        -> Result<(), Box<dyn std::error::Error>> {
+
+        let min_x = 0.0;
+        let min_y = 0.0;
+        let max_z = 0.0;
+        let max_x = 1.0;
+        let max_y = 1.0;
+        let max_z = 1.0;
+
+        let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
+        root.fill(&WHITE)?;
+
+        let mut chart = ChartBuilder::on(&root)
+            .caption(caption, ("sans-serif", 30).into_font())
+            .margin(5)
+            .x_label_area_size(30)
+            .y_label_area_size(35)
+            .build_cartesian_3d(min_x..max_x, min_y..max_y, min_x..max_x)?;
+
+        chart.configure_axes().draw()?;
 
         Ok(())
     }
