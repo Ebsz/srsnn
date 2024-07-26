@@ -7,6 +7,8 @@ use std::fmt;
 use petgraph::matrix_graph::MatrixGraph;
 use petgraph::algo::astar;
 
+use petgraph::dot;
+
 
 pub struct Graph {
     pub rank: usize,
@@ -15,11 +17,57 @@ pub struct Graph {
     pub matrix: Array2<u32>
 }
 
-impl fmt::Display for Graph {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "G(V={}, E={})", self.rank, self.size)
+impl Graph {
+    /// Return a reduced Graph with isolated vertices removed
+    pub fn reduce(g: &Graph) -> Graph {
+        let i_vtc = GraphAnalysis::isolated_vertices(g);
+
+        let rank = g.rank - i_vtc.len();
+
+        let mut mx: Array2<u32> =  Array::zeros((g.rank, 0));
+        for (i, c) in g.matrix.columns().into_iter().enumerate() {
+            if !i_vtc.contains(&(i as u32)) {
+                mx.push_column(c);
+            }
+        }
+
+        let mut matrix: Array2<u32> = Array::zeros((0, mx.shape()[1]));
+        for (i, r) in mx.rows().into_iter().enumerate() {
+            if !i_vtc.contains(&(i as u32)) {
+                matrix.push_row(r);
+            }
+        }
+
+        Graph {
+            rank,
+            size: g.size,
+            matrix,
+        }
+    }
+
+    pub fn dot(&self) {
+        let mg: petgraph::Graph<(), ()> = self.into();
+
+        let dot = dot::Dot::with_config(&mg, &[dot::Config::EdgeNoLabel, dot::Config::NodeNoLabel]);
+        println!("{:?}", dot);
+    }
+
+    pub fn edges(&self) -> Vec<(u32, u32)> {
+        let mut edges = Vec::new();
+
+        for (i, d) in self.matrix.iter().enumerate() {
+            let x = i / self.rank;
+            let y = i % self.rank;
+
+            if *d == 1 {
+                edges.push((x as u32, y as u32));
+            }
+        }
+
+        edges
     }
 }
+
 
 impl<N> From<&NetworkRepresentation<N>> for Graph {
     fn from(item: &NetworkRepresentation<N>) -> Graph {
@@ -49,6 +97,29 @@ impl Into<MatrixGraph<(), ()>> for &Graph {
     }
 }
 
+impl Into<petgraph::Graph<(), ()>> for &Graph {
+    fn into(self) -> petgraph::Graph<(), ()> {
+        let mut edges = Vec::new();
+
+        for (i, d) in self.matrix.iter().enumerate() {
+            let x = i / self.rank;
+            let y = i % self.rank;
+
+            if *d == 1 {
+                edges.push((x as u32, y as u32));
+            }
+        }
+
+        petgraph::Graph::<(), ()>::from_edges(&edges)
+    }
+}
+
+impl fmt::Display for Graph {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "G(V={}, E={})", self.rank, self.size)
+    }
+}
+
 pub struct GraphAnalysis {
     pub rank: usize,
     pub size: usize,
@@ -59,6 +130,18 @@ pub struct GraphAnalysis {
     pub small_world_coefficient: f32,
     pub clustering_coefficient: f32,
     pub avg_path_len: f32,
+}
+
+impl fmt::Display for GraphAnalysis {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "rank: {}\n\
+            average degree: {:.3}\n\n\
+            small world: {:.3}\n\
+            clustering: {}\n\
+            average path length: {}",
+            self.rank, self.avg_degree, self.small_world_coefficient,
+            self.clustering_coefficient, self.avg_path_len)
+    }
 }
 
 impl GraphAnalysis {
@@ -81,6 +164,19 @@ impl GraphAnalysis {
             clustering_coefficient: h,
             avg_path_len: l
         }
+    }
+
+
+    pub fn isolated_vertices(g: &Graph) -> Vec<u32> {
+        let mut i_vtc = Vec::new();
+
+        for v in 0..g.rank {
+            if g.matrix.slice(s![v,..]).sum() + g.matrix.slice(s![..,v]).sum() == 0 {
+                i_vtc.push(v as u32);
+            }
+        }
+
+        i_vtc
     }
 
     /// Calculate the small-world coefficient
