@@ -1,7 +1,7 @@
 use utils::parameters::Parameter;
 
 
-trait Evolvable {
+pub trait Evolvable {
     fn mutate(&mut self);
 
     fn crossover(&self, other: &Self) -> Self;
@@ -14,7 +14,7 @@ impl Evolvable for Parameter {
 
     }
 
-    fn crossover(&self, other: &Self) -> Self {
+    fn crossover(&self, _other: &Self) -> Self {
 
         self.clone()
     }

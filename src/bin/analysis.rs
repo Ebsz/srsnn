@@ -1,6 +1,6 @@
 //! Spiking network analysis.
 
-use luna::analysis::{Graph, GraphAnalysis};
+use luna::analysis::graph::{Graph, GraphAnalysis};
 use model::network::representation::DefaultRepresentation;
 use utils::data;
 

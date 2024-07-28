@@ -1,6 +1,5 @@
 use crate::csa;
 use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
-use crate::csa::mask::Mask;
 use crate::models::rsnn::RSNN;
 
 use utils::parameters::{Parameter, ParameterSet};
@@ -8,20 +7,18 @@ use utils::config::{Configurable, ConfigSection};
 
 use serde::Deserialize;
 
-use ndarray::{array, Array};
-
-use std::sync::Arc;
+use ndarray::Array;
 
 
 #[derive(Clone, Debug)]
 pub struct ERModel;
 
 impl RSNN for ERModel {
-    fn dynamics(config: &Self::Config, _params: &ParameterSet) -> DynamicsSet {
+    fn dynamics(_config: &Self::Config, _params: &ParameterSet) -> DynamicsSet {
         Self::default_dynamics()
     }
 
-    fn connectivity(config: &Self::Config, params: &ParameterSet) -> ConnectionSet {
+    fn connectivity(_config: &Self::Config, params: &ParameterSet) -> ConnectionSet {
         assert!(params.set.len() == 1);
 
         let p: f32 = match &params.set[0] {
@@ -35,7 +32,7 @@ impl RSNN for ERModel {
         }
     }
 
-    fn params(config: &Self::Config) -> ParameterSet {
+    fn params(_config: &Self::Config) -> ParameterSet {
         let p = Parameter::Scalar(0.0);
 
         ParameterSet {

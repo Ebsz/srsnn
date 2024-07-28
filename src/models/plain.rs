@@ -1,15 +1,10 @@
 //! The traditional model, where where the connections and synapses of the network are defined
 //! explicitly.
 //!
-// Vanilla Pure Default Direct Plain Plain
 
-use crate::csa;
 use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
 use crate::csa::mask::Mask;
-
 use crate::models::rsnn::RSNN;
-
-use model::Model;
 
 use utils::parameters::{Parameter, ParameterSet};
 use utils::config::{Configurable, ConfigSection};
@@ -27,11 +22,11 @@ pub struct PlainModel;
 
 impl RSNN for PlainModel {
 
-    fn dynamics(config: &Self::Config, p: &ParameterSet) -> DynamicsSet {
+    fn dynamics(_config: &Self::Config, _p: &ParameterSet) -> DynamicsSet {
         Self::default_dynamics()
     }
 
-    fn connectivity(config: &Self::Config, p: &ParameterSet) -> ConnectionSet {
+    fn connectivity(_config: &Self::Config, p: &ParameterSet) -> ConnectionSet {
         let a = match &p.set[0] {
             Parameter::Matrix(x) => { x.clone() },
             _ => { panic!("invalid parameter set") }

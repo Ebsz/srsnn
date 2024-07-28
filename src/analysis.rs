@@ -54,14 +54,14 @@ pub mod graph {
             let mut mx: Array2<u32> =  Array::zeros((g.rank, 0));
             for (i, c) in g.matrix.columns().into_iter().enumerate() {
                 if !i_vtc.contains(&(i as u32)) {
-                    mx.push_column(c);
+                    let _ = mx.push_column(c);
                 }
             }
 
             let mut matrix: Array2<u32> = Array::zeros((0, mx.shape()[1]));
             for (i, r) in mx.rows().into_iter().enumerate() {
                 if !i_vtc.contains(&(i as u32)) {
-                    matrix.push_row(r);
+                    let _ = matrix.push_row(r);
                 }
             }
 

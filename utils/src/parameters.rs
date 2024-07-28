@@ -53,8 +53,8 @@ impl ParameterSet {
             a += p.len();
 
             match p {
-                Parameter::Scalar(s) => { ps.push(Parameter::Scalar(d[0])); },
-                Parameter::Vector(v) => { ps.push(Parameter::Vector(d.into_owned())); },
+                Parameter::Scalar(_) => { ps.push(Parameter::Scalar(d[0])); },
+                Parameter::Vector(_) => { ps.push(Parameter::Vector(d.into_owned())); },
                 Parameter::Matrix(m) => {
                     let a = m.shape()[0];
                     let b = m.shape()[1];
@@ -79,12 +79,17 @@ impl ParameterSet {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use ndarray::array;
     #[test]
     fn test_linearize() {
         let a = array![0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
 
-        let tc = TypedConfig { n: 16, k: 2 };
-        let p = TypedModel::params(&tc).assign(&a);
+        let m = Parameter::Matrix(Array::zeros((2, 2)));
+        let p = Parameter::Vector(Array::zeros(2));
+
+        let mut p = ParameterSet { set: vec![m, p] };
+        p.assign(&a);
 
         let lin = p.linearize();
         let re = p.assign(&lin);

@@ -226,9 +226,9 @@ mod tests {
     }
 
     //#[test]
-    fn mask_block_op() {
-        let mask = mask::one_to_one();
+    //fn mask_block_op() {
+    //    let mask = mask::one_to_one();
 
-        let bm = op::block(2, m);
-    }
+    //    let bm = op::block(2, m);
+    //}
 }

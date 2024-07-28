@@ -27,8 +27,6 @@ use utils::logger::init_logger;
 use utils::environment::Environment;
 
 use std::env;
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 
 
 trait Process {

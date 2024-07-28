@@ -1,13 +1,11 @@
 use crate::csa;
 use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
-use crate::csa::mask::Mask;
 use crate::models::rsnn::RSNN;
 
 use utils::math;
 use utils::config::{ConfigSection, Configurable};
 
 use utils::parameters::{Parameter, ParameterSet};
-use utils::parameters::Parameter::{Matrix, Vector};
 
 use serde::Deserialize;
 use ndarray::{array, Array, Array1, Array2};

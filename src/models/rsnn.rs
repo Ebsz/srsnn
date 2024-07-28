@@ -2,7 +2,6 @@
 
 use crate::csa;
 use crate::csa::{ConnectionSet, DynamicsSet, ValueSet};
-use crate::csa::mask::Mask;
 
 use model::Model;
 use model::network::representation::{DefaultRepresentation, NetworkRepresentation, NeuronDescription};

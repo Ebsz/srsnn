@@ -1,6 +1,6 @@
 pub mod nes;
 
-use utils::config::{ConfigSection, Configurable};
+use utils::config::Configurable;
 use utils::parameters::ParameterSet;
 
 use model::Model;

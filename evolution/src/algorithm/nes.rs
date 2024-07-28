@@ -7,7 +7,7 @@ use utils::random;
 use utils::config::{Configurable, ConfigSection};
 
 use ndarray::{s, Array, Array1, Array2};
-use ndarray_rand::rand_distr::{Uniform, StandardNormal};
+use ndarray_rand::rand_distr::StandardNormal;
 
 use serde::Deserialize;
 
