@@ -40,10 +40,10 @@ impl<N> NetworkRepresentation<N> {
     {
         // TODO: Fix matrix model and uncomment this
         // Ensure weights are non-negative
-        //assert!(network_w.iter().filter(|x| **x < 0.0).collect::<Vec<&f32>>().len() == 0,
-        //    "network weight matrix contains negative entries");
-        //assert!(input_w.iter().filter(|x| **x < 0.0).collect::<Vec<&f32>>().len() == 0,
-        //    "input weight matrix contains negative entries");
+        assert!(network_w.iter().filter(|x| **x < 0.0).collect::<Vec<&f32>>().len() == 0,
+            "network weight matrix contains negative entries");
+        assert!(input_w.iter().filter(|x| **x < 0.0).collect::<Vec<&f32>>().len() == 0,
+            "input weight matrix contains negative entries");
 
         let n = neurons.shape()[0];
 
