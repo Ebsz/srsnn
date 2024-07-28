@@ -1,6 +1,6 @@
 use crate::csa;
 use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
-use crate::models::rsnn::RSNN;
+use crate::models::rsnn::{RSNN, RSNNConfig};
 
 use utils::parameters::{Parameter, ParameterSet};
 use utils::config::{Configurable, ConfigSection};
@@ -14,11 +14,11 @@ use ndarray::Array;
 pub struct ERModel;
 
 impl RSNN for ERModel {
-    fn dynamics(_config: &Self::Config, _params: &ParameterSet) -> DynamicsSet {
+    fn dynamics(_params: &ParameterSet, _config: &RSNNConfig<Self>) -> DynamicsSet {
         Self::default_dynamics()
     }
 
-    fn connectivity(_config: &Self::Config, params: &ParameterSet) -> ConnectionSet {
+    fn connectivity(params: &ParameterSet, config: &RSNNConfig<Self>) -> ConnectionSet {
         assert!(params.set.len() == 1);
 
         let p: f32 = match &params.set[0] {
@@ -28,11 +28,11 @@ impl RSNN for ERModel {
 
         ConnectionSet {
             m: csa::mask::random(p),
-            v: vec![ValueSet(Array::ones((1, 1)))]
+            v: vec![]
         }
     }
 
-    fn params(_config: &Self::Config) -> ParameterSet {
+    fn params(_config: &RSNNConfig<Self>) -> ParameterSet {
         let p = Parameter::Scalar(0.0);
 
         ParameterSet {

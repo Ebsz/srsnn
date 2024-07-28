@@ -1,20 +1,25 @@
 use luna::eval::MultiEvaluator;
 use luna::eval::config::{Batch, BatchConfig};
 use luna::config::{get_config, base_config, BaseConfig};
-use luna::process::Process;
-use luna::optimization::{optimize, MainConf};
+use luna::process::{Process, MainConf};
+use luna::optimization::Optimizer;
+
+use luna::experiment;
 
 use model::Model;
 use model::network::representation::DefaultRepresentation;
 
 use tasks::{Task, TaskEval};
 
+use evolution::algorithm::Algorithm;
 use evolution::algorithm::nes::NES;
 
 use utils::random;
 use utils::logger::init_logger;
 
 use std::env;
+use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
 
 //struct EvolutionProcess;
@@ -57,11 +62,14 @@ fn save_network(network: DefaultRepresentation, config: &BaseConfig) {
     }
 }
 
-fn log_config<M: Model>(main_config: &BaseConfig, genome_config: &M::Config) {
-    log::info!("Model: {}", main_config.model);
-    log::info!("Task: {}", main_config.task);
-    //log::info!("evolution config:\n{:#?}", main_config.evolution);
-    log::info!("model config:\n{:#?}", genome_config);
+fn log_config<M: Model, A: Algorithm>(base_config: &BaseConfig, main_config: &MainConf<M, A>) {
+    log::info!("Model: {}", base_config.model);
+    log::info!("Task: {}", base_config.task);
+    log::info!("\n[Configs] \n\
+            model = {:#?}\n\
+            algorithm = {:#?}\n\
+            eval = {:#?}",
+            main_config.model, main_config.algorithm, main_config.eval);
 }
 
 fn parse_config_name_from_args() -> Option<String> {
@@ -77,20 +85,17 @@ fn parse_config_name_from_args() -> Option<String> {
 struct OptimizationProcess;
 impl Process for OptimizationProcess {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {
-        log::info!("OptimizationProcess");
+        let main_conf = Self::main_conf::<M, T, NES>();
 
-        log::info!("Model: {}", conf.model);
-        log::info!("Task: {}", conf.task);
+        log_config(&conf, &main_conf);
 
-        let main_conf: MainConf::<M, NES> = MainConf {
-            model: get_config::<M>(),
-            algorithm: get_config::<NES>(),
-        };
-
-        let evaluator: MultiEvaluator<T> = Self::evaluator(&conf);
+        let evaluator: MultiEvaluator<T> = Self::evaluator(&conf, &main_conf.eval);
         let env = Self::environment::<T>();
 
-        optimize::<M, T, NES>(main_conf, evaluator, env);
+        let stop_signal = Arc::new(AtomicBool::new(false));
+        Self::init_ctrl_c_handler(stop_signal.clone());
+
+        Optimizer::optimize::<M, T, NES>(evaluator, &main_conf, env, stop_signal);
     }
 }
 
@@ -102,5 +107,7 @@ fn main() {
     log::debug!("Using config: {}", config_name.unwrap_or("default".to_string()));
     log::debug!("seed is {}", random::SEED);
 
-    OptimizationProcess::init(config);
+    //OptimizationProcess::init(config);
+
+    experiment::HyperOptimization::init(config);
 }

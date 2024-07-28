@@ -23,8 +23,8 @@ pub struct NES {
     conf: <Self as Configurable>::Config,
 }
 
-impl<M: Model> Algorithm<M> for NES {
-    fn new(conf: Self::Config, m_conf: &M::Config) -> Self {
+impl Algorithm for NES {
+    fn new<M: Model>(conf: Self::Config, m_conf: &M::Config) -> Self {
         let params = M::params(m_conf);
         let n_params = params.size();
 
@@ -94,9 +94,9 @@ impl Configurable for NES {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct NESConfig {
-    population_size: usize,
-    alpha: f32,             // learning rate
-    sigma: f32,             // noise stddev
+    pub population_size: usize,
+    pub alpha: f32,             // learning rate
+    pub sigma: f32,             // noise stddev
 }
 impl ConfigSection for NESConfig {
     fn name() -> String {

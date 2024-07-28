@@ -1,8 +1,17 @@
 use std::collections::HashMap;
 
+use ndarray::Array1;
+
 
 pub const P_TOLERANCE: f32 = 1.0001;
 
+pub fn softmax(x: &Array1<f32>) -> Array1<f32> {
+    let mut s = x.mapv(f32::exp);
+
+    s /= s.sum();
+
+    s
+}
 
 pub fn sigmoid(x: f32) -> f32 {
     1.0 / (1.0 + f32::exp(-x))

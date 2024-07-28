@@ -20,21 +20,24 @@ use std::fmt::Debug;
 
 
 pub trait RSNN: Configurable + Clone + Debug + Sync {
-    fn dynamics(config: &Self::Config, p: &ParameterSet) -> DynamicsSet;
-    fn connectivity(config: &Self::Config, p: &ParameterSet) -> ConnectionSet;
-
-    fn params(config: &Self::Config) -> ParameterSet;
+    fn dynamics(p: &ParameterSet, config: &RSNNConfig<Self>) -> DynamicsSet;
+    fn connectivity(p: &ParameterSet, config: &RSNNConfig<Self>) -> ConnectionSet;
+    fn params(config: &RSNNConfig<Self>) -> ParameterSet;
 
     fn default_dynamics() -> DynamicsSet {
         DynamicsSet { f: Arc::new(
             move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
         )}
     }
+
+    fn default_weights(n: usize) -> ValueSet {
+        ValueSet(Array::ones((n, n)))
+    }
 }
 
 pub struct RSNNModel<R: RSNN> {
     n: usize,
-    conf: R::Config,
+    conf: RSNNConfig<R>,
 
     params: ParameterSet,
     env: Environment,
@@ -42,7 +45,7 @@ pub struct RSNNModel<R: RSNN> {
 
 impl<R: RSNN> Model for RSNNModel<R> {
     fn new(
-        conf: &<RSNNModel<R> as Configurable>::Config,
+        conf: &RSNNConfig<R>,
         params: &ParameterSet,
         env: &Environment) -> Self {
         RSNNModel {
@@ -50,15 +53,15 @@ impl<R: RSNN> Model for RSNNModel<R> {
             params: params.clone(),
             env: env.clone(),
 
-            conf: conf.model.clone()
+            conf: conf.clone()
         }
     }
 
     fn develop(&self) -> DefaultRepresentation {
-        let connection_set = R::connectivity(&self.conf, &self.params);
-        let mask = connection_set.m;
+        let connection_set = R::connectivity(&self.params, &self.conf);
+        let dynamics = R::dynamics(&self.params, &self.conf);
 
-        let dynamics = R::dynamics(&self.conf, &self.params);
+        let mask = connection_set.m;
 
         // Self connections are always removed
         let network_cm = (mask - csa::mask::one_to_one()).matrix(self.n);
@@ -96,7 +99,7 @@ impl<R: RSNN> Model for RSNNModel<R> {
     }
 
     fn params(config: &RSNNConfig<R>) -> ParameterSet {
-        R::params(&config.model)
+        R::params(config)
     }
 }
 
@@ -106,8 +109,8 @@ impl<R: RSNN> Configurable for RSNNModel<R> {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct RSNNConfig<R: RSNN> {
-    n: usize,
-    model: R::Config
+    pub n: usize,
+    pub model: R::Config
 }
 
 impl<R: RSNN> ConfigSection for RSNNConfig<R> {

@@ -1,11 +1,16 @@
-model = "plain"
+model = "typed"
 task = "catching"
 algorithm = "nes"
 
-log_level = "trace"
+log_level = "debug"
+
+[optimizer]
+max_generations = 1000
+min_gen_before_restart= 100
+max_gen_without_improvement= 20
 
 [nes]
-population_size = 50
+population_size = 100
 alpha = 0.001
 sigma = 0.1
 

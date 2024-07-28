@@ -1,6 +1,6 @@
 use tasks::{Task, TaskEval};
 
-
+#[derive(Clone)]
 pub enum EvalSetup<T: Task + TaskEval> {
     Base(Vec<T::Setup>),
     Batched(BatchSetup<T>),
@@ -23,6 +23,7 @@ impl<T: Task + TaskEval> EvalSetup<T> {
     }
 }
 
+#[derive(Clone)]
 pub struct BatchSetup<T: Task + TaskEval> {
     setups: Vec<T::Setup>,
     batch_size: usize,

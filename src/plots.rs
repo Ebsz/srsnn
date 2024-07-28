@@ -64,8 +64,8 @@ pub fn plot_all_potentials(record: &Record) {
 pub fn plot_evolution_stats(stats: &EvolutionStatistics) {
     log::info!("Plotting evolution stats");
 
-    let _ = plt::plot_single_variable(stats.generation_best_fitness.clone(), "Generation best", "Evolution", "evolution_best.png", &BLUE);
-    let _ = plt::plot_single_variable(stats.generation_mean_fitness.clone(), "Generation mean", "Evolution", "evolution_mean.png", &BLUE);
+    let _ = plt::plot_single_variable(stats.runs[0].best_fitness.clone(), "Generation best", "Evolution", "evolution_best.png", &BLUE);
+    let _ = plt::plot_single_variable(stats.runs[0].mean_fitness.clone(), "Generation mean", "Evolution", "evolution_mean.png", &BLUE);
 }
 
 pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {

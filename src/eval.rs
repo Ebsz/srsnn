@@ -52,7 +52,7 @@ pub fn evaluate_on_task<T: Task + TaskEval> (
     f
 }
 
-
+#[derive(Clone)]
 pub struct MultiEvaluator<T: Task + TaskEval> {
     setup: EvalSetup<T>,
     config: EvalConfig,

@@ -4,7 +4,7 @@
 
 use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
 use crate::csa::mask::Mask;
-use crate::models::rsnn::RSNN;
+use crate::models::rsnn::{RSNN, RSNNConfig};
 
 use utils::math;
 use utils::parameters::{Parameter, ParameterSet};
@@ -24,11 +24,11 @@ pub struct PlainModel;
 
 impl RSNN for PlainModel {
 
-    fn dynamics(_config: &Self::Config, _p: &ParameterSet) -> DynamicsSet {
+    fn dynamics(_p: &ParameterSet, _config: &RSNNConfig<Self>) -> DynamicsSet {
         Self::default_dynamics()
     }
 
-    fn connectivity(_config: &Self::Config, p: &ParameterSet) -> ConnectionSet {
+    fn connectivity(p: &ParameterSet, _config: &RSNNConfig<Self>) -> ConnectionSet {
         let a = match &p.set[0] {
             Parameter::Matrix(x) => { x.clone() },
             _ => { panic!("invalid parameter set") }
@@ -52,7 +52,7 @@ impl RSNN for PlainModel {
         }
     }
 
-    fn params(config: &Self::Config) -> ParameterSet {
+    fn params(config: &RSNNConfig<Self>) -> ParameterSet {
         let cm = Parameter::Matrix(Array::zeros((config.n, config.n)));
         let w = Parameter::Matrix(Array::zeros((config.n, config.n)));
 
@@ -67,7 +67,6 @@ impl Configurable for PlainModel {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct PlainModelConfig {
-    n: usize,
 }
 
 

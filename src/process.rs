@@ -1,12 +1,12 @@
 use crate::eval::MultiEvaluator;
-use crate::eval::config::{Batch, BatchConfig};
+use crate::eval::config::{Batch, BatchConfig, EvalConfig};
 use crate::config::{get_config, BaseConfig};
+use crate::optimization::{Optimizer, OptimizationConfig};
 
 use crate::models::rsnn::RSNNModel;
 use crate::models::srsnn::er_model::ERModel;
 use crate::models::srsnn::typed::TypedModel;
 use crate::models::plain::PlainModel;
-
 
 use model::Model;
 
@@ -19,10 +19,15 @@ use tasks::energy_task::EnergyTask;
 use tasks::xor_task::XORTask;
 use tasks::pole_balancing_task::PoleBalancingTask;
 
+use evolution::algorithm::Algorithm;
+
 use utils::environment::Environment;
 
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
-pub trait Process {
+
+pub trait Process: Sync {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig);
 
     fn init(config: BaseConfig) {
@@ -31,9 +36,9 @@ pub trait Process {
 
     fn resolve_m(config: BaseConfig) {
         match config.model.as_str() {
-            "er_model" => { Self::resolve_t::<RSNNModel<ERModel>>(config); },
-            "typed_model" => { Self::resolve_t::<RSNNModel<TypedModel>>(config); },
-            "plain" => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
+            "plain"         => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
+            "er_model"      => { Self::resolve_t::<RSNNModel<ERModel>>(config); },
+            "typed"   => { Self::resolve_t::<RSNNModel<TypedModel>>(config); },
             //"main" => { Self::resolve_t::<MainStochasticModel>(config); },
             //"matrix" => { Self::resolve_t::<MatrixModel>(config); },
             //"rsnn" => { Self::resolve_t::<RSNNModel>(config); },
@@ -54,6 +59,15 @@ pub trait Process {
         }
     }
 
+    fn main_conf<M: Model, T: Task + TaskEval, A: Algorithm>() -> MainConf<M, A> {
+        MainConf {
+            model: get_config::<M>(),
+            algorithm: get_config::<A>(),
+            eval: get_config::<MultiEvaluator<T>>(),
+            optimizer: get_config::<Optimizer>(),
+        }
+    }
+
     fn environment<T: Task>() -> Environment {
         let e = T::environment();
 
@@ -63,8 +77,8 @@ pub trait Process {
         }
     }
 
-    fn evaluator<T: Task + TaskEval>(config: &BaseConfig) -> MultiEvaluator<T> {
-        let batch_config = match config.task.as_str() {
+    fn evaluator<T: Task + TaskEval>(base_conf: &BaseConfig, eval_conf: &EvalConfig) -> MultiEvaluator<T> {
+        let batch_conf = match base_conf.task.as_str() {
             "mnist" => {
                 let bc = get_config::<Batch>();
 
@@ -75,9 +89,42 @@ pub trait Process {
              _ => None
         };
 
-        let config = get_config::<MultiEvaluator<T>>();
-        log::info!("Eval config:\n{:#?}", config);
-
-        MultiEvaluator::new(config, batch_config)
+        MultiEvaluator::new(eval_conf.clone(), batch_conf)
     }
+
+    fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {
+        let mut stopped = false;
+
+        ctrlc::set_handler(move || {
+            if stopped {
+                std::process::exit(1);
+            } else {
+                log::info!("Stopping..");
+
+                stopped = true;
+                stop_signal.store(true, Ordering::SeqCst);
+            }
+        }).expect("Error setting Ctrl-C handler");
+
+        log::info!("Use Ctrl-C to stop gracefully");
+    }
+
+    fn log_config<M: Model, A: Algorithm>(base_config: &BaseConfig, main_config: &MainConf<M, A>) {
+        log::info!("Model: {}", base_config.model);
+        log::info!("Task: {}", base_config.task);
+        log::info!("\n[Configs] \n\
+                model = {:#?}\n\
+                algorithm = {:#?}\n\
+                eval = {:#?}",
+                main_config.model, main_config.algorithm, main_config.eval);
+    }
+}
+
+// TODO: Rename to something else
+#[derive(Debug, Clone)]
+pub struct MainConf<M: Model, A: Algorithm> {
+    pub model: M::Config,
+    pub algorithm: A::Config,
+    pub eval: EvalConfig,
+    pub optimizer: OptimizationConfig
 }

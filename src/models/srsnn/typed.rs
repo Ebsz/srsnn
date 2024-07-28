@@ -1,6 +1,6 @@
 use crate::csa;
 use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
-use crate::models::rsnn::RSNN;
+use crate::models::rsnn::{RSNN, RSNNConfig};
 
 use utils::math;
 use utils::config::{ConfigSection, Configurable};
@@ -27,16 +27,16 @@ pub struct TypedModel {
 }
 
 impl RSNN for TypedModel {
-    fn params(config: &Self::Config) -> ParameterSet {
-        let t_cpm = Parameter::Matrix(Array::zeros((config.k, config.k)));
-        let p = Parameter::Vector(Array::zeros(config.k));
+    fn params(config: &RSNNConfig<Self>) -> ParameterSet {
+        let t_cpm = Parameter::Matrix(Array::zeros((config.model.k, config.model.k)));
+        let p = Parameter::Vector(Array::zeros(config.model.k));
 
         ParameterSet {
             set: vec![t_cpm, p],
         }
     }
 
-    fn connectivity(config: &Self::Config, params: &ParameterSet) -> ConnectionSet {
+    fn connectivity(params: &ParameterSet, config: &RSNNConfig<Self>) -> ConnectionSet {
         let (t_cpm, p) = Self::parse_params(params);
 
         println!("{:?}", p);
@@ -44,15 +44,15 @@ impl RSNN for TypedModel {
 
         let dist = math::distribute(config.n, p.as_slice().unwrap());
 
-        let labels = csa::op::label(dist, config.k);
+        let labels = csa::op::label(dist, config.model.k);
 
         ConnectionSet {
             m: csa::op::sbm(labels, ValueSet(t_cpm.clone())), // Do we have to clone?
-            v: vec![ValueSet(Array::ones((config.n, config.n)))]
+            v: vec![Self::default_weights(config.n)]
         }
     }
 
-    fn dynamics(config: &Self::Config, p: &ParameterSet) -> DynamicsSet {
+    fn dynamics(p: &ParameterSet, config: &RSNNConfig<Self>) -> DynamicsSet {
         DynamicsSet { f: Arc::new(
             move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
         )}
@@ -80,7 +80,6 @@ impl Configurable for TypedModel {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct TypedConfig {
-    pub n: usize, // TODO: remove this
     pub k: usize,
 }
 
