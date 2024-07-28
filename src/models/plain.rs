@@ -31,15 +31,20 @@ impl RSNN for PlainModel {
         Self::default_dynamics()
     }
 
-    fn connectivity(config: &Self::Config, p: &ParameterSet) -> Mask {
+    fn connectivity(config: &Self::Config, p: &ParameterSet) -> ConnectionSet {
         let a = match &p.set[0] {
             Parameter::Matrix(x) => { x.clone() },
             _ => { panic!("invalid parameter set") }
         };
 
-        Mask { f: Arc::new(
+        let m = Mask { f: Arc::new(
             move |i,j| if a[[i as usize, j as usize]] > CONNECTIVITY_THRESHOLD { true } else { false }
-        )}
+        )};
+
+        ConnectionSet {
+            m,
+            v: vec![ValueSet(Array::ones((1, 1)))]
+        }
     }
 
     fn params(config: &Self::Config) -> ParameterSet {

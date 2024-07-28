@@ -1,6 +1,5 @@
 use crate::csa;
-use crate::csa::ValueSet;
-use crate::csa::DynamicsSet;
+use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
 use crate::csa::mask::Mask;
 use crate::models::rsnn::RSNN;
 
@@ -39,7 +38,7 @@ impl RSNN for TypedModel {
         }
     }
 
-    fn connectivity(config: &Self::Config, params: &ParameterSet) -> Mask {
+    fn connectivity(config: &Self::Config, params: &ParameterSet) -> ConnectionSet {
         let (t_cpm, p) = Self::parse_params(params);
 
         println!("{:?}", p);
@@ -49,7 +48,10 @@ impl RSNN for TypedModel {
 
         let labels = csa::op::label(dist, config.k);
 
-        csa::op::sbm(labels, ValueSet(t_cpm.clone())) // Do we have to clone?
+        ConnectionSet {
+            m: csa::op::sbm(labels, ValueSet(t_cpm.clone())), // Do we have to clone?
+            v: vec![ValueSet(Array::ones((config.n, config.n)))]
+        }
     }
 
     fn dynamics(config: &Self::Config, p: &ParameterSet) -> DynamicsSet {

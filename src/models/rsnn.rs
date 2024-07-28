@@ -1,7 +1,7 @@
 /// Generic model of a recurrent spiking neural network
 
 use crate::csa;
-use crate::csa::{DynamicsSet, ValueSet};
+use crate::csa::{ConnectionSet, DynamicsSet, ValueSet};
 use crate::csa::mask::Mask;
 
 use model::Model;
@@ -22,7 +22,7 @@ use std::fmt::Debug;
 
 pub trait RSNN: Configurable + Clone + Debug + Sync {
     fn dynamics(config: &Self::Config, p: &ParameterSet) -> DynamicsSet;
-    fn connectivity(config: &Self::Config, p: &ParameterSet) -> Mask;
+    fn connectivity(config: &Self::Config, p: &ParameterSet) -> ConnectionSet;
 
     fn params(config: &Self::Config) -> ParameterSet;
 
@@ -56,7 +56,10 @@ impl<R: RSNN> Model for RSNNModel<R> {
     }
 
     fn develop(&self) -> DefaultRepresentation {
-        let mask = R::connectivity(&self.conf, &self.params);
+        let connection_set = R::connectivity(&self.conf, &self.params);
+        let mask = connection_set.m;
+        //let weights = connection_set.v[0];
+
         let dynamics = R::dynamics(&self.conf, &self.params);
 
         // Self connections are always removed

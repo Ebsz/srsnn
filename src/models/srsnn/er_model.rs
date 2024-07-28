@@ -1,5 +1,5 @@
 use crate::csa;
-use crate::csa::DynamicsSet;
+use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
 use crate::csa::mask::Mask;
 use crate::models::rsnn::RSNN;
 
@@ -8,7 +8,7 @@ use utils::config::{Configurable, ConfigSection};
 
 use serde::Deserialize;
 
-use ndarray::array;
+use ndarray::{array, Array};
 
 use std::sync::Arc;
 
@@ -21,7 +21,7 @@ impl RSNN for ERModel {
         Self::default_dynamics()
     }
 
-    fn connectivity(config: &Self::Config, params: &ParameterSet) -> Mask {
+    fn connectivity(config: &Self::Config, params: &ParameterSet) -> ConnectionSet {
         assert!(params.set.len() == 1);
 
         let p: f32 = match &params.set[0] {
@@ -29,7 +29,10 @@ impl RSNN for ERModel {
             _ => { panic!("invalid parameter set") }
         };
 
-        csa::mask::random(p)
+        ConnectionSet {
+            m: csa::mask::random(p),
+            v: vec![ValueSet(Array::ones((1, 1)))]
+        }
     }
 
     fn params(config: &Self::Config) -> ParameterSet {

@@ -24,8 +24,11 @@ impl DynamicsSet  {
         s
     }
     //pub fn matrix(&self, n: usize) -> Array1<Array1<f32>>
-
 }
+
+pub struct ConnectionSet {
+    pub m: Mask,
+    pub v: Vec<ValueSet> }
 
 #[derive(Debug)]
 pub struct ValueSet(pub Array2<f32>);
