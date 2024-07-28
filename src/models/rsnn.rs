@@ -57,7 +57,6 @@ impl<R: RSNN> Model for RSNNModel<R> {
     fn develop(&self) -> DefaultRepresentation {
         let connection_set = R::connectivity(&self.conf, &self.params);
         let mask = connection_set.m;
-        //let weights = connection_set.v[0];
 
         let dynamics = R::dynamics(&self.conf, &self.params);
 
@@ -82,7 +81,8 @@ impl<R: RSNN> Model for RSNNModel<R> {
             ));
         }
 
-        let network_w = network_cm.mapv(|v| v as f32);
+        let network_w = connection_set.v[0].0.clone(); // TODO: This clone should be avoided.
+        //let network_w = network_cm.mapv(|v| v as f32);
 
         let mut input_cm: Array2<u32> = Array::zeros((self.n, self.env.inputs));
 

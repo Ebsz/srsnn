@@ -6,6 +6,7 @@ use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
 use crate::csa::mask::Mask;
 use crate::models::rsnn::RSNN;
 
+use utils::math;
 use utils::parameters::{Parameter, ParameterSet};
 use utils::config::{Configurable, ConfigSection};
 
@@ -16,6 +17,7 @@ use std::sync::Arc;
 
 
 const CONNECTIVITY_THRESHOLD: f32 = 1.0;
+const W_WEIGHTING: f32 = 3.0;
 
 #[derive(Clone, Debug)]
 pub struct PlainModel;
@@ -32,13 +34,21 @@ impl RSNN for PlainModel {
             _ => { panic!("invalid parameter set") }
         };
 
+        let b = match &p.set[1] {
+            Parameter::Matrix(x) => { x },
+            _ => { panic!("invalid parameter set") }
+        };
+
         let m = Mask { f: Arc::new(
             move |i,j| if a[[i as usize, j as usize]] > CONNECTIVITY_THRESHOLD { true } else { false }
         )};
 
+        // Create weights
+        let w = b.mapv(|x| math::sigmoid(x) * W_WEIGHTING);
+
         ConnectionSet {
             m,
-            v: vec![ValueSet(Array::ones((1, 1)))]
+            v: vec![ValueSet(w)]
         }
     }
 

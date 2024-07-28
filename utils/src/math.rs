@@ -3,6 +3,11 @@ use std::collections::HashMap;
 
 pub const P_TOLERANCE: f32 = 1.0001;
 
+
+pub fn sigmoid(x: f32) -> f32 {
+    1.0 / (1.0 + f32::exp(-x))
+}
+
 // min/max for floats
 pub fn maxf(data: &Vec<f32>) -> f32 {
     data.iter().fold(0.0f32, |acc, &x| if x > acc {x} else {acc})
