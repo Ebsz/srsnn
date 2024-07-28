@@ -1,4 +1,4 @@
-model = "er_model"
+model = "plain"
 task = "catching"
 algorithm = "nes"
 

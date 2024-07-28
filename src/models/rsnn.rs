@@ -1,6 +1,7 @@
 /// Generic model of a recurrent spiking neural network
 
-use crate::csa::DynamicsSet;
+use crate::csa;
+use crate::csa::{DynamicsSet, ValueSet};
 use crate::csa::mask::Mask;
 
 use model::Model;
@@ -58,7 +59,9 @@ impl<R: RSNN> Model for RSNNModel<R> {
         let mask = R::connectivity(&self.conf, &self.params);
         let dynamics = R::dynamics(&self.conf, &self.params);
 
-        let network_cm = mask.matrix(self.n);
+        // Self connections are always removed
+        let network_cm = (mask - csa::mask::one_to_one()).matrix(self.n);
+
         let d = dynamics.vec(self.n);
 
         let mut neurons = Vec::new();

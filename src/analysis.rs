@@ -124,6 +124,7 @@ pub struct GraphAnalysis {
     pub rank: usize,
     pub size: usize,
 
+    pub density: f32,
     pub avg_degree: f32,
     pub degree_dist: Array1<u32>, // Number of edges for each vertice
 
@@ -135,17 +136,22 @@ pub struct GraphAnalysis {
 impl fmt::Display for GraphAnalysis {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "rank: {}\n\
-            average degree: {:.3}\n\n\
+            size: {}\n\
+            density: {}\n\n\
+            average degree: {:.3}\n\
             small world: {:.3}\n\
             clustering: {}\n\
             average path length: {}",
-            self.rank, self.avg_degree, self.small_world_coefficient,
-            self.clustering_coefficient, self.avg_path_len)
+            self.rank, self.size, self.density, self.avg_degree,
+            self.small_world_coefficient, self.clustering_coefficient,
+            self.avg_path_len)
     }
 }
 
 impl GraphAnalysis {
     pub fn analyze(g: &Graph) -> GraphAnalysis {
+        let density = Self::density(g);
+
         let h = Self::avg_clustering(g);
         let l = Self::avg_path_length(g);
 
@@ -157,6 +163,7 @@ impl GraphAnalysis {
             rank: g.rank,
             size: g.size,
 
+            density,
             avg_degree,
             degree_dist,
 
@@ -164,6 +171,10 @@ impl GraphAnalysis {
             clustering_coefficient: h,
             avg_path_len: l
         }
+    }
+
+    pub fn density(g: &Graph) -> f32 {
+        g.size as f32 / (g.rank as f32).powf(2.0)
     }
 
 

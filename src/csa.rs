@@ -145,13 +145,11 @@ pub mod op {
         }
     }
 
-    pub fn label(dist: Vec<usize>, k: usize, p: Vec<f32>) -> LabelFn {
+    pub fn label(dist: Vec<usize>, k: usize) -> LabelFn {
         let mut dist_map = vec![];
         for l in 0..k {
             dist_map.append(&mut vec![l; dist[l]]);
         }
-
-        assert!(p.len() == k, "|p|= {} != k = {}", p.len(), k);
 
         Arc::new(move |i| dist_map[i as usize] as u32)
     }

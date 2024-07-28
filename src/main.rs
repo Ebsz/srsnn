@@ -6,6 +6,7 @@ use luna::eval::config::{Batch, BatchConfig};
 use luna::models::rsnn::RSNNModel;
 use luna::models::srsnn::er_model::ERModel;
 use luna::models::srsnn::typed::TypedModel;
+use luna::models::plain::PlainModel;
 
 use tasks::{Task, TaskEval};
 use tasks::mnist_task::MNISTTask;
@@ -37,6 +38,7 @@ trait Process {
         match config.model.as_str() {
             "er_model" => { Self::resolve_t::<RSNNModel<ERModel>>(config); },
             "typed_model" => { Self::resolve_t::<RSNNModel<TypedModel>>(config); },
+            "plain" => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
             //"main" => { Self::resolve_t::<MainStochasticModel>(config); },
             //"matrix" => { Self::resolve_t::<MatrixModel>(config); },
             //"rsnn" => { Self::resolve_t::<RSNNModel>(config); },
@@ -131,23 +133,6 @@ fn log_config<M: Model>(main_config: &BaseConfig, genome_config: &M::Config) {
     log::info!("Task: {}", main_config.task);
     //log::info!("evolution config:\n{:#?}", main_config.evolution);
     log::info!("model config:\n{:#?}", genome_config);
-}
-
-fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {
-    let mut stopped = false;
-
-    ctrlc::set_handler(move || {
-        if stopped {
-            std::process::exit(1);
-        } else {
-            log::info!("Stopping evolution..");
-
-            stopped = true;
-            stop_signal.store(true, Ordering::SeqCst);
-        }
-    }).expect("Error setting Ctrl-C handler");
-
-    log::info!("Use Ctrl-C to stop evolution");
 }
 
 fn parse_config_name_from_args() -> Option<String> {

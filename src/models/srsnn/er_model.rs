@@ -17,10 +17,8 @@ use std::sync::Arc;
 pub struct ERModel;
 
 impl RSNN for ERModel {
-    fn dynamics(config: &Self::Config, params: &ParameterSet) -> DynamicsSet {
-        DynamicsSet { f: Arc::new(
-            move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
-        )}
+    fn dynamics(config: &Self::Config, _params: &ParameterSet) -> DynamicsSet {
+        Self::default_dynamics()
     }
 
     fn connectivity(config: &Self::Config, params: &ParameterSet) -> Mask {

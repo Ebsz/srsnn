@@ -1,3 +1,6 @@
+use crate::eval::Evaluation;
+use crate::analysis::{Graph, GraphAnalysis};
+
 use model::Model;
 use model::network::representation::DefaultRepresentation;
 
@@ -7,12 +10,9 @@ use evolution::Evaluate;
 use evolution::algorithm::Algorithm;
 
 use utils::environment::Environment;
-use crate::eval::Evaluation;
 
-
-//use std::time::Instant;
-
-
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 
 pub fn optimize<M: Model, T: Task, A: Algorithm<M>>(
@@ -20,12 +20,13 @@ pub fn optimize<M: Model, T: Task, A: Algorithm<M>>(
     mut eval: impl Evaluate<M, DefaultRepresentation>,
     env: Environment)
 {
-    //log::info!("Algorithm: {}", A::name());
-
     let mut algo = A::new(conf.algorithm, &conf.model);
 
+    let stop_signal = Arc::new(AtomicBool::new(false));
+    init_ctrl_c_handler(stop_signal.clone());
+
     let mut gen = 0;
-    loop {
+    while !stop_signal.load(Ordering::SeqCst) {
         let ps = algo.parameter_sets();
         // Create models from parameter sets
         let mut models = vec![];
@@ -35,20 +36,35 @@ pub fn optimize<M: Model, T: Task, A: Algorithm<M>>(
             models.push(m);
         }
 
-        let mut e = vec![];
-        for (i, m) in models.iter().enumerate() {
-            e.push((i as u32, m));
-        }
+        let e: Vec<(u32, &M)> = models.iter().enumerate()
+            .map(|(i, m)| (i as u32, m)).collect();
 
         let evaluations = eval.eval(&e);
         let fitness: Vec<f32> = evaluations.iter().map(|e| e.1).collect();
 
-        log_generation(gen, &sorted_fitness(evaluations));
+        log_generation(gen, &evaluations);
 
         algo.step(fitness);
 
         gen += 1
     }
+}
+
+fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {
+    let mut stopped = false;
+
+    ctrlc::set_handler(move || {
+        if stopped {
+            std::process::exit(1);
+        } else {
+            log::info!("Stopping..");
+
+            stopped = true;
+            stop_signal.store(true, Ordering::SeqCst);
+        }
+    }).expect("Error setting Ctrl-C handler");
+
+    log::info!("Use Ctrl-C to stop gracefully");
 }
 
 // TODO: Rename to something else
@@ -57,7 +73,7 @@ pub struct MainConf<M: Model, A: Algorithm<M>> {
     pub algorithm: A::Config
 }
 
-fn sorted_fitness(evals: Vec<Evaluation>) -> Vec<(u32, f32)> {
+fn sorted_fitness(evals: &[Evaluation]) -> Vec<(u32, f32)> {
     let mut sorted_fitness: Vec<(u32, f32)> = evals.iter()
         .map(|g| (g.0, g.1)).collect();
 
@@ -68,12 +84,28 @@ fn sorted_fitness(evals: Vec<Evaluation>) -> Vec<(u32, f32)> {
     sorted_fitness
 }
 
-fn log_generation(gen: usize, sorted_fitness: &Vec<(u32, f32)>) {
-    let mean_fitness: f32 = sorted_fitness.iter().map(|(_, f)| f).sum::<f32>() / sorted_fitness.len() as f32;
-    let best_fitness: f32 = sorted_fitness[0].1;
+fn log_generation(gen: usize, evals: &[Evaluation]) {
+    let sorted = sorted_fitness(evals);
+
+    let mean_fitness: f32 = sorted.iter().map(|(_, f)| f).sum::<f32>() / sorted.len() as f32;
+    let best_fitness: f32 = sorted[0].1;
+
+    let best: &DefaultRepresentation = evals.iter()
+        .filter_map(|(i,_,r)| if *i == sorted[0].0 {Some(r)} else {None})
+        .collect::<Vec<&DefaultRepresentation>>()[0];
+
+    analyze_model(best);
 
     log::info!("Generation {} - best fit: {}, mean: {}",
         gen, best_fitness, mean_fitness);
 
     //stats.log_generation(best_fitness, mean_fitness);
+}
+
+fn analyze_model(r: &DefaultRepresentation) {
+    let g: Graph = r.into();
+
+    let ga = GraphAnalysis::analyze(&g);
+
+    log::info!("Best graph: {}\n{}", g, ga);
 }
