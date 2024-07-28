@@ -4,8 +4,9 @@
 // Vanilla Pure Default Direct Plain Plain
 
 use crate::csa;
-use crate::csa::DynamicsSet;
+use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
 use crate::csa::mask::Mask;
+
 use crate::models::rsnn::RSNN;
 
 use model::Model;

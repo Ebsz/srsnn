@@ -1,12 +1,14 @@
 use crate::eval::Evaluation;
-use crate::analysis::{Graph, GraphAnalysis};
+use crate::analysis::run_analysis;
+use crate::analysis::graph::{Graph, GraphAnalysis};
 
 use model::Model;
 use model::network::representation::DefaultRepresentation;
 
-use tasks::Task;
+use tasks::{Task, TaskEval};
 
 use evolution::Evaluate;
+use evolution::stats::EvolutionStatistics;
 use evolution::algorithm::Algorithm;
 
 use utils::environment::Environment;
@@ -15,7 +17,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 
-pub fn optimize<M: Model, T: Task, A: Algorithm<M>>(
+pub fn optimize<M: Model, T: Task + TaskEval, A: Algorithm<M>>(
     conf: MainConf<M, A>,
     mut eval: impl Evaluate<M, DefaultRepresentation>,
     env: Environment)
@@ -24,6 +26,8 @@ pub fn optimize<M: Model, T: Task, A: Algorithm<M>>(
 
     let stop_signal = Arc::new(AtomicBool::new(false));
     init_ctrl_c_handler(stop_signal.clone());
+
+    let mut stats = EvolutionStatistics::new();
 
     let mut gen = 0;
     while !stop_signal.load(Ordering::SeqCst) {
@@ -42,12 +46,16 @@ pub fn optimize<M: Model, T: Task, A: Algorithm<M>>(
         let evaluations = eval.eval(&e);
         let fitness: Vec<f32> = evaluations.iter().map(|e| e.1).collect();
 
-        log_generation(gen, &evaluations);
+        log_generation::<T>(gen, &mut stats, &evaluations);
 
         algo.step(fitness);
 
         gen += 1
     }
+
+    let r = run_analysis::<T>(&stats.generation_best_network[0]);
+
+    crate::plots::generate_plots(&r);
 }
 
 fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {
@@ -84,7 +92,7 @@ fn sorted_fitness(evals: &[Evaluation]) -> Vec<(u32, f32)> {
     sorted_fitness
 }
 
-fn log_generation(gen: usize, evals: &[Evaluation]) {
+fn log_generation<T: Task + TaskEval>(gen: usize, stats: &mut EvolutionStatistics, evals: &[Evaluation]) {
     let sorted = sorted_fitness(evals);
 
     let mean_fitness: f32 = sorted.iter().map(|(_, f)| f).sum::<f32>() / sorted.len() as f32;
@@ -94,18 +102,19 @@ fn log_generation(gen: usize, evals: &[Evaluation]) {
         .filter_map(|(i,_,r)| if *i == sorted[0].0 {Some(r)} else {None})
         .collect::<Vec<&DefaultRepresentation>>()[0];
 
-    analyze_model(best);
+    analyze_model::<T>(best);
 
     log::info!("Generation {} - best fit: {}, mean: {}",
         gen, best_fitness, mean_fitness);
 
-    //stats.log_generation(best_fitness, mean_fitness);
+    stats.log_generation(best_fitness, mean_fitness, best.clone());
 }
 
-fn analyze_model(r: &DefaultRepresentation) {
-    let g: Graph = r.into();
+fn analyze_model<T: Task + TaskEval>(r: &DefaultRepresentation) {
+    log::debug!("Analyzing best network..");
 
+    let g: Graph = r.into();
     let ga = GraphAnalysis::analyze(&g);
 
-    log::info!("Best graph: {}\n{}", g, ga);
+    log::info!("Graph: {}\n{}", g, ga);
 }

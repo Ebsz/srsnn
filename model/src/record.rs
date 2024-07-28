@@ -16,7 +16,7 @@ pub enum RecordDataType {
 
 #[derive(Clone)]
 pub struct Record {
-    records: HashMap<RecordType, Vec<RecordDataType>>
+    pub records: HashMap<RecordType, Vec<RecordDataType>>
 }
 
 pub trait Recording {
