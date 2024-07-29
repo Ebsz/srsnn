@@ -9,62 +9,20 @@ pub trait Evolvable {
 
 
 impl Evolvable for Parameter {
-
     fn mutate(&mut self) {
-
+        //match self {
+        //    Parameter::Scalar(s) => { s* },
+        //    Parameter::Vector(v) => {  }
+        //    Parameter::Matrix(m) => {  }
+        //}
     }
 
     fn crossover(&self, _other: &Self) -> Self {
-
         self.clone()
     }
 }
 
-
-//pub struct ParameterSet(Vec<Box<dyn Parameter>>);
-//
-//impl ParameterSet {
-//    pub fn size(&self) -> usize {
-//        self.0.iter().map(|p| p.len()).sum()
-//    }
-//}
-//
-//trait Parameter {
-//    fn len(&self) -> usize;
-//}
-//
-//pub struct Scalar<T> {
-//    data: T
-//}
-//
-//impl<T> Parameter for Scalar<T> {
-//    fn len(&self) -> usize {
-//        1
-//    }
-//}
-//
-//impl<T> Parameter for Vector<T> {
-//    fn len(&self) -> usize {
-//        self.data.len()
-//    }
-//}
-//
-//impl<T> Parameter for Matrix<T> {
-//    fn len(&self) -> usize {
-//        self.data.len()
-//    }
-//}
-//
-//pub struct Vector<T> {
-//    data: Array1<T>
-//}
-//
-///// Generic matrix representation for arbitrary kinds of data,
-//#[derive(Clone, Debug)]
-//pub struct Matrix<T> {
-//    pub data: Array2<T>,
-//}
-//
+ 
 //impl Matrix<f32> {
 //    pub fn init_random(n: usize, range: (f32, f32)) -> Matrix<f32> {
 //        Matrix {
@@ -148,6 +106,54 @@ impl Evolvable for Parameter {
 //        (x, y)
 //    }
 //}
+
+
+
+
+//pub struct ParameterSet(Vec<Box<dyn Parameter>>);
+//
+//impl ParameterSet {
+//    pub fn size(&self) -> usize {
+//        self.0.iter().map(|p| p.len()).sum()
+//    }
+//}
+//
+//trait Parameter {
+//    fn len(&self) -> usize;
+//}
+//
+//pub struct Scalar<T> {
+//    data: T
+//}
+//
+//impl<T> Parameter for Scalar<T> {
+//    fn len(&self) -> usize {
+//        1
+//    }
+//}
+//
+//impl<T> Parameter for Vector<T> {
+//    fn len(&self) -> usize {
+//        self.data.len()
+//    }
+//}
+//
+//impl<T> Parameter for Matrix<T> {
+//    fn len(&self) -> usize {
+//        self.data.len()
+//    }
+//}
+//
+//pub struct Vector<T> {
+//    data: Array1<T>
+//}
+//
+///// Generic matrix representation for arbitrary kinds of data,
+//#[derive(Clone, Debug)]
+//pub struct Matrix<T> {
+//    pub data: Array2<T>,
+//}
+//
 //
 //#[cfg(test)]
 //mod tests {

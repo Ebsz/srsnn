@@ -1,5 +1,7 @@
 use model::network::representation::DefaultRepresentation;
 
+use utils::math;
+
 pub struct Run {
     pub generations: usize,
     pub mean_fitness: Vec<f32>,
@@ -29,6 +31,15 @@ impl Run {
         self.generations
     }
 
+    // Return the best individual of the run
+    fn best(&self) -> (f32, &DefaultRepresentation) {
+        let best_ix = math::max_index(&self.best_fitness);
+
+        (self.best_fitness[best_ix], &self.best_network[best_ix])
+
+        //self.best_fitness.iter().zip(best_network.iter()).
+
+    }
 }
 
 pub struct EvolutionStatistics {
@@ -54,7 +65,16 @@ impl EvolutionStatistics {
         self.runs.last().unwrap()
     }
 
+    /// Total number of generations
     pub fn sum_generations(&self) -> usize {
         self.runs.iter().map(|r| r.generations).sum()
+    }
+
+    pub fn best_fit(&self) -> Vec<f32> {
+        self.runs.iter().fold(vec![], |acc, x| [acc, x.best_fitness.clone()].concat())
+    }
+
+    pub fn best(&self) -> (f32, &DefaultRepresentation) {
+        self.runs.iter().map(|r| r.best()).max_by(|a,b| a.0.partial_cmp(&b.0).expect("")).unwrap()
     }
 }

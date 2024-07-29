@@ -19,7 +19,6 @@ const N_AGENT_CONTROLS: usize = 2;
 const APPLE_SPEED: i32 = 3;
 const AGENT_SPEED: i32 = 5;
 
-
 const N_SENSORS: usize = 7;
 const SENSOR_SPREAD: f32 = PI / 3.0; // The angle between the first and last sensor
 
@@ -231,7 +230,7 @@ impl TaskEval for CatchingTask {
             }
         }
 
-        log::debug!("{}/{} correct", correct, results.len());
+        //log::debug!("{}/{} correct", correct, results.len());
 
         total_fitness / results.len() as f32
     }

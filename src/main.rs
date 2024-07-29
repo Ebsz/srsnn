@@ -1,8 +1,8 @@
 use luna::eval::MultiEvaluator;
-use luna::eval::config::{Batch, BatchConfig};
-use luna::config::{get_config, base_config, BaseConfig};
+use luna::config::{base_config, BaseConfig};
 use luna::process::{Process, MainConf};
 use luna::optimization::Optimizer;
+use luna::plots;
 
 use luna::experiment;
 
@@ -13,6 +13,7 @@ use tasks::{Task, TaskEval};
 
 use evolution::algorithm::Algorithm;
 use evolution::algorithm::nes::NES;
+use evolution::stats::EvolutionStatistics;
 
 use utils::random;
 use utils::logger::init_logger;
@@ -95,8 +96,13 @@ impl Process for OptimizationProcess {
         let stop_signal = Arc::new(AtomicBool::new(false));
         Self::init_ctrl_c_handler(stop_signal.clone());
 
-        Optimizer::optimize::<M, T, NES>(evaluator, &main_conf, env, stop_signal);
+        let mut stats = Optimizer::optimize::<M, T, NES>(evaluator, &main_conf, env, stop_signal);
+        report(&mut stats);
     }
+}
+
+fn report(stats: &mut EvolutionStatistics) {
+    plots::plot_evolution_stats_all(stats);
 }
 
 fn main() {

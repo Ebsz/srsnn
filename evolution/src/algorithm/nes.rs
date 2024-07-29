@@ -1,3 +1,5 @@
+/// Natural Evolution Strategies
+
 use crate::algorithm::Algorithm;
 
 use model::Model;

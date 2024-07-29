@@ -31,7 +31,10 @@ pub trait RSNN: Configurable + Clone + Debug + Sync {
     }
 
     fn default_weights(n: usize) -> ValueSet {
-        ValueSet(Array::ones((n, n)))
+        ValueSet { f: Arc::new(
+            move |_i, _j| 1.0
+        )}
+        //ValueSet(Array::ones((n, n)))
     }
 }
 
@@ -84,7 +87,8 @@ impl<R: RSNN> Model for RSNNModel<R> {
             ));
         }
 
-        let network_w = connection_set.v[0].0.clone(); // TODO: This clone should be avoided.
+        //let network_w = connection_set.v[0].0.clone(); // TODO: This clone should be avoided.
+        let network_w = connection_set.v[0].matrix(self.n); // TODO: This clone should be avoided.
         //let network_w = network_cm.mapv(|v| v as f32);
 
         let mut input_cm: Array2<u32> = Array::zeros((self.n, self.env.inputs));

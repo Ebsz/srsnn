@@ -61,11 +61,25 @@ pub fn plot_all_potentials(record: &Record) {
     }
 }
 
+pub fn plot_evolution_stats_all(stats: &EvolutionStatistics) {
+    let best: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.best_fitness.clone()).collect();
+    let mean: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.mean_fitness.clone()).collect();
+
+    let _ = plt::plot_multiple_series(best,
+        "Generation best", "Evolution", "evolution_best_multi.png");
+    let _ = plt::plot_multiple_series(mean,
+        "Generation mean", "Evolution", "evolution_mean_multi.png");
+
+}
+
 pub fn plot_evolution_stats(stats: &EvolutionStatistics) {
     log::info!("Plotting evolution stats");
 
-    let _ = plt::plot_single_variable(stats.runs[0].best_fitness.clone(), "Generation best", "Evolution", "evolution_best.png", &BLUE);
-    let _ = plt::plot_single_variable(stats.runs[0].mean_fitness.clone(), "Generation mean", "Evolution", "evolution_mean.png", &BLUE);
+    let _ = plt::plot_single_variable(stats.runs[0].best_fitness.clone(),
+        "Generation best", "Evolution", "evolution_best.png", &BLUE);
+
+    let _ = plt::plot_single_variable(stats.runs[0].mean_fitness.clone(),
+        "Generation mean", "Evolution", "evolution_mean.png", &BLUE);
 }
 
 pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {
@@ -154,7 +168,6 @@ fn to_spike_points(spikedata: &Vec<Array1<f32>>) -> Vec<(i32, i32)> {
 pub fn plot_degree_distribution(data: &Array1<u32>) {
     let _ = plt::histogram(data, "dgdist.png", "Degree distribution");
 }
-
 
 pub mod plt {
     use super::*;

@@ -12,7 +12,6 @@ use std::cmp::max;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-
 const STALE_THRESHOLD: f32 = 0.1;
 
 pub struct Population<E: Evaluate<G, P>, G: Genome, P> {
@@ -243,7 +242,7 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
         log::info!("Generation {} - best fit: {}, mean: {}",
             self.generation, best_fitness, mean_fitness);
 
-        self.stats.log_generation(best_fitness, mean_fitness);
+        //self.stats.log_generation(best_fitness, mean_fitness);
     }
 }
 

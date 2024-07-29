@@ -5,6 +5,7 @@ use crate::config::{get_config, BaseConfig};
 use crate::analysis::run_analysis;
 
 use model::Model;
+use model::network::representation::DefaultRepresentation;
 
 use evolution::algorithm::Algorithm;
 use evolution::algorithm::nes::NES;
@@ -51,7 +52,7 @@ impl Process for HyperOptimization {
 
         // Create params
         let alpha = Array::linspace(0.001, 0.01, 2).to_vec();
-        let sigma = Array::linspace(0.01, 3.0, 12).to_vec();
+        let sigma = Array::linspace(0.01, 1.5, 10).to_vec();
 
         // Cartesian of the parameters
         let params: Vec<(f32, f32)> = alpha.iter()
@@ -75,25 +76,26 @@ impl Process for HyperOptimization {
             }
         }
 
-        report(&mut stats, params.as_slice());
-
+        experiment_report::<T>(&mut stats, params.as_slice());
     }
 }
 
-fn report(stats: &mut [EvolutionStatistics], param_range: &[(f32, f32)]) {
-    log::info!("Optimization report:");
+fn experiment_report<T: Task + TaskEval>(stats: &mut [EvolutionStatistics], param_range: &[(f32, f32)]) {
+    log::info!("Experiment report:");
+
+    // Best eval for each experiment
+    let mut best: Vec<(f32, &DefaultRepresentation)> = stats.iter().map(|x| x.best()).collect();
 
 
-    // Find best eval for each experiment
-    let mut best: Vec<f32> = vec![];
-    for e in stats {
-        let b = math::maxf(&(e.runs.iter().map(|r| math::maxf(&r.best_fitness)).collect()));
-        best.push(b);
-    }
+    //for e in stats {
+    //    let b = //math::maxf(&(e.runs.iter().map(|r| math::maxf(&r.best_fitness)).collect()));
+    //    best.push(b);
+    //}
 
     //let best: Vec<f32> = stats.iter().map(|s| s.runs math::maxf(&s.runs[0].best_fitness)).collect();
 
-    let z: Vec<(f32, (f32, f32))> = best.iter().zip(param_range).map(|(a,b)| (*a,*b)).collect();
+    let z: Vec<(f32, (f32, f32))> = best.iter().map(|x| x.0).zip(param_range)
+                                        .map(|(a,b)| (a,*b)).collect();
 
     //log::info!("\nbest | alpha\n{:#?}", z);
     println!("\nbest | (alpha, sigma)");
@@ -101,6 +103,11 @@ fn report(stats: &mut [EvolutionStatistics], param_range: &[(f32, f32)]) {
         println!("{:.3} | {:?}", a, b);
     }
 
-    //let r = run_analysis::<T>(&stats.run().best_network[0]);
-    //crate::plots::generate_plots(&r);
+    let (e, r) = stats.iter().map(
+        |x| x.best()).max_by(|a,b| a.0.partial_cmp(&b.0).expect("")).unwrap();
+
+    println!("Best eval: {e}");
+
+    let r = run_analysis::<T>(&r);
+    crate::plots::generate_plots(&r);
 }

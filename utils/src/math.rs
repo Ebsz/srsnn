@@ -45,8 +45,8 @@ pub fn clamp<T: PartialOrd>(val: T, min: T, max: T) -> T {
 /// Distribute n items into k = |p| buckets with probability distribution p
 /// NOTE: This is not deterministic.
 pub fn distribute(n: usize, p: &[f32]) -> Vec<usize> {
-    assert!(p.iter().all(|p| *p >= 0.0 && *p <= 1.0));
-    assert!(p.iter().sum::<f32>() <= P_TOLERANCE, "expected p.sum <= 1.0, was {}", p.iter().sum::<f32>());
+    assert!(p.iter().all(|p| *p >= 0.0 && *p <= 1.0), "distribute: error in p: {:#?}", p);
+    assert!(p.iter().sum::<f32>() <= P_TOLERANCE, "distribute: expected p.sum <= 1.0, was {}", p.iter().sum::<f32>());
 
     let mut buckets: Vec<usize> = p.iter().map(|p| (p * n as f32).floor() as usize).collect();
     let sum_buckets = buckets.iter().sum::<usize>();

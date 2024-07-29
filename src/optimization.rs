@@ -23,6 +23,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 use ndarray::s;
 
+// Print log every _ generations
+const LOG_FREQ: usize = 20;
+
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct OptimizationConfig {
@@ -154,9 +157,10 @@ fn log_generation<T: Task + TaskEval>(gen: usize, stats: &mut EvolutionStatistic
 
     analyze_model::<T>(best);
 
-    log::info!("Generation {} - best fit: {:.3}, mean: {:.3} - ({}, {})",
-        gen, best_fitness, mean_fitness, stats.runs.len(), stats.sum_generations());
-
+    if gen % LOG_FREQ == 0 {
+        log::info!("Generation {} - best fit: {:.3}, mean: {:.3} - ({}, {})",
+            gen, best_fitness, mean_fitness, stats.runs.len(), stats.sum_generations());
+    }
 
     stats.log_generation(best_fitness, mean_fitness, best.clone());
 }
