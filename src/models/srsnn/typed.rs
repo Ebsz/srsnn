@@ -37,10 +37,12 @@ impl RSNN for TypedModel {
     }
 
     fn connectivity(params: &ParameterSet, config: &RSNNConfig<Self>) -> ConnectionSet {
-        let (t_cpm, p) = Self::parse_params(params);
+        let (m, v) = Self::parse_params(params);
 
-        println!("{:?}", p);
-        // Convert p from R^k to probability distribution over k
+        //let sigmoid = |x: Array1<f32>| 1.0 / (1.0 + f32::exp(-x));
+
+        let t_cpm = m.mapv(|x| math::sigmoid(x));
+        let p = math::softmax(v);
 
         let dist = math::distribute(config.n, p.as_slice().unwrap());
 

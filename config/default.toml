@@ -18,8 +18,8 @@ sigma = 0.1
 max_threads = 16
 trials = 1
 
-
 [rsnn]
 n = 32
 
 [rsnn.model]
+k = 8
