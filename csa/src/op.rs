@@ -1,4 +1,4 @@
-use crate::ValueSet;
+use crate::{ValueSet, NeuralSet};
 use crate::mask::Mask;
 
 use utils::random;
@@ -6,7 +6,7 @@ use utils::random;
 use std::sync::Arc;
 
 
-type LabelFn = Arc<dyn Fn(u32) -> u32>;
+pub type LabelFn = Arc<dyn Fn(u32) -> u32>;
 
 /// The operator version of \rho, operating on the value set of connection probabilities
 pub fn p(v: ValueSet) -> Mask {

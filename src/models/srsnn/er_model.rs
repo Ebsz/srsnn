@@ -1,4 +1,4 @@
-use csa::{ConnectionSet, NeuronSet};
+use csa::{ConnectionSet, NeuronSet, NeuralSet};
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
 use utils::parameters::{Parameter, ParameterSet};
@@ -11,6 +11,29 @@ use serde::Deserialize;
 pub struct ERModel;
 
 impl RSNN for ERModel {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> NeuralSet {
+        let cs = Self::connectivity(params, config);
+
+        let d = Self::dynamics(params, config);
+
+        NeuralSet {
+            m: cs.m,
+            v: cs.v,
+            d: vec![d]
+        }
+    }
+
+
+    fn params(_config: &RSNNConfig<Self>) -> ParameterSet {
+        let p = Parameter::Scalar(0.0);
+
+        ParameterSet {
+            set: vec![p],
+        }
+    }
+}
+
+impl ERModel {
     fn dynamics(_params: &ParameterSet, _config: &RSNNConfig<Self>) -> NeuronSet {
         Self::default_dynamics()
     }
@@ -26,14 +49,6 @@ impl RSNN for ERModel {
         ConnectionSet {
             m: csa::mask::random(p),
             v: vec![]
-        }
-    }
-
-    fn params(_config: &RSNNConfig<Self>) -> ParameterSet {
-        let p = Parameter::Scalar(0.0);
-
-        ParameterSet {
-            set: vec![p],
         }
     }
 }

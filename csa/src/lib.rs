@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 use mask::Mask;
 
+
 //pub struct NeuralSet {
 //    pub m: Mask,
 //    pub m_in: Mask,
@@ -55,6 +56,7 @@ impl ValueSet {
 
 pub type NeuronFn = Arc<dyn Fn(u32) -> Array1<f32>>;
 
+/// Neuron sets are functions on single neuron indices, and capture properties of individual neurons
 pub struct NeuronSet {
     pub f: NeuronFn
 }

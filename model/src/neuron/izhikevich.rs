@@ -38,6 +38,11 @@ pub struct IzhikevichParameters {
     pub d: f32,
 }
 
+impl IzhikevichParameters {
+    pub const RANGES: [(f32, f32); 4] =
+        [(0.02, 0.1), (0.2, 0.25), (-65.0, -50.0), (2.0, 8.0)];
+}
+
 impl Default for IzhikevichParameters {
     fn default() -> Self {
         const DEFAULTS: (f32, f32, f32, f32) = (0.02, 0.2, -65.0, 2.0);

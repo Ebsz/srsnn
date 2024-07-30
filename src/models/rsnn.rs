@@ -1,6 +1,6 @@
 /// Generic model of a recurrent spiking neural network
 
-use csa::{ConnectionSet, ValueSet, NeuronSet};
+use csa::{ConnectionSet, ValueSet, NeuronSet, NeuralSet};
 
 use model::Model;
 use model::network::representation::{DefaultRepresentation, NetworkRepresentation, NeuronDescription};
@@ -19,8 +19,7 @@ use std::fmt::Debug;
 
 
 pub trait RSNN: Configurable + Clone + Debug + Sync {
-    fn dynamics(p: &ParameterSet, config: &RSNNConfig<Self>) -> NeuronSet;
-    fn connectivity(p: &ParameterSet, config: &RSNNConfig<Self>) -> ConnectionSet;
+    fn get(p: &ParameterSet, config: &RSNNConfig<Self>) -> NeuralSet;
     fn params(config: &RSNNConfig<Self>) -> ParameterSet;
 
     fn default_dynamics() -> NeuronSet {
@@ -33,8 +32,10 @@ pub trait RSNN: Configurable + Clone + Debug + Sync {
         ValueSet { f: Arc::new(
             move |_i, _j| 1.0
         )}
-        //ValueSet(Array::ones((n, n)))
     }
+
+    /// 4 Izhikevich parameters + inhibitory flag
+    const N_DYNAMICAL_PARAMETERS: usize = 5;
 }
 
 pub struct RSNNModel<R: RSNN> {
@@ -60,10 +61,10 @@ impl<R: RSNN> Model for RSNNModel<R> {
     }
 
     fn develop(&self) -> DefaultRepresentation {
-        let connection_set = R::connectivity(&self.params, &self.conf);
-        let dynamics = R::dynamics(&self.params, &self.conf);
+        let neural_set = R::get(&self.params, &self.conf);
 
-        let mask = connection_set.m;
+        let mask = neural_set.m;
+        let dynamics = &neural_set.d[0];
 
         // Self connections are always removed
         let network_cm = (mask - csa::mask::one_to_one()).matrix(self.n);
@@ -86,9 +87,7 @@ impl<R: RSNN> Model for RSNNModel<R> {
             ));
         }
 
-        //let network_w = connection_set.v[0].0.clone(); // TODO: This clone should be avoided.
-        let network_w = connection_set.v[0].matrix(self.n); // TODO: This clone should be avoided.
-        //let network_w = network_cm.mapv(|v| v as f32);
+        let network_w = neural_set.v[0].matrix(self.n);
 
         let mut input_cm: Array2<u32> = Array::zeros((self.n, self.env.inputs));
 

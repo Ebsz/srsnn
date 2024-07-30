@@ -1,3 +1,6 @@
+pub mod optimize;
+pub mod hyper;
+
 use crate::eval::MultiEvaluator;
 use crate::eval::config::{Batch, BatchConfig, EvalConfig};
 use crate::config::{get_config, BaseConfig};

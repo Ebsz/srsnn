@@ -60,8 +60,6 @@ impl Optimizer {
         let mut stats = EvolutionStatistics::new();
 
         let mut gen = 0;
-        let mut run = 0;
-
         while !stop_signal.load(Ordering::SeqCst)
             && stats.sum_generations() < conf.optimizer.max_generations  {
 
@@ -71,7 +69,6 @@ impl Optimizer {
                 stats.new_run();
 
                 gen = 0;
-                run += 1;
 
                 continue;
             }

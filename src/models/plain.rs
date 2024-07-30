@@ -2,7 +2,7 @@
 //! explicitly.
 //!
 
-use csa::{ConnectionSet, ValueSet, NeuronSet};
+use csa::{ConnectionSet, ValueSet, NeuronSet, NeuralSet};
 use csa::mask::Mask;
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
@@ -23,7 +23,27 @@ const W_WEIGHTING: f32 = 3.0;
 pub struct PlainModel;
 
 impl RSNN for PlainModel {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> NeuralSet {
+        let cs = Self::connectivity(params, config);
 
+        let d = Self::dynamics(params, config);
+
+        NeuralSet {
+            m: cs.m,
+            v: cs.v,
+            d: vec![d]
+        }
+    }
+
+    fn params(config: &RSNNConfig<Self>) -> ParameterSet {
+        let cm = Parameter::Matrix(Array::zeros((config.n, config.n)));
+        let w = Parameter::Matrix(Array::zeros((config.n, config.n)));
+
+        ParameterSet { set: vec![cm, w] }
+    }
+}
+
+impl PlainModel {
     fn dynamics(_p: &ParameterSet, _config: &RSNNConfig<Self>) -> NeuronSet {
         Self::default_dynamics()
     }
@@ -50,13 +70,6 @@ impl RSNN for PlainModel {
             m,
             v: vec![ValueSet::from_value(w)]
         }
-    }
-
-    fn params(config: &RSNNConfig<Self>) -> ParameterSet {
-        let cm = Parameter::Matrix(Array::zeros((config.n, config.n)));
-        let w = Parameter::Matrix(Array::zeros((config.n, config.n)));
-
-        ParameterSet { set: vec![cm, w] }
     }
 }
 
