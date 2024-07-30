@@ -1,7 +1,6 @@
-use crate::csa;
-use crate::csa::object::CSAObject;
-use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
 use crate::models::rsnn::{RSNN, RSNNConfig};
+
+use csa::{ConnectionSet, ValueSet, NeuronSet};
 
 use utils::math;
 use utils::config::{ConfigSection, Configurable};
@@ -53,8 +52,8 @@ impl RSNN for TypedModel {
         }
     }
 
-    fn dynamics(p: &ParameterSet, config: &RSNNConfig<Self>) -> DynamicsSet {
-        DynamicsSet { f: Arc::new(
+    fn dynamics(p: &ParameterSet, config: &RSNNConfig<Self>) -> NeuronSet {
+        NeuronSet { f: Arc::new(
             move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
         )}
     }

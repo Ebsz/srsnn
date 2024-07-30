@@ -4,8 +4,6 @@ use luna::analysis::graph::{Graph, GraphAnalysis};
 use model::network::representation::DefaultRepresentation;
 use utils::data;
 
-use ndarray::Axis;
-
 use std::env;
 
 

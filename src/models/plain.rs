@@ -2,8 +2,8 @@
 //! explicitly.
 //!
 
-use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
-use crate::csa::mask::Mask;
+use csa::{ConnectionSet, ValueSet, NeuronSet};
+use csa::mask::Mask;
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
 use utils::math;
@@ -24,7 +24,7 @@ pub struct PlainModel;
 
 impl RSNN for PlainModel {
 
-    fn dynamics(_p: &ParameterSet, _config: &RSNNConfig<Self>) -> DynamicsSet {
+    fn dynamics(_p: &ParameterSet, _config: &RSNNConfig<Self>) -> NeuronSet {
         Self::default_dynamics()
     }
 

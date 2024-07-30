@@ -1,5 +1,4 @@
 use crate::eval::Evaluation;
-use crate::eval::config::EvalConfig;
 use crate::process::MainConf;
 use crate::analysis::graph::{Graph, GraphAnalysis};
 
@@ -63,8 +62,8 @@ impl Optimizer {
         let mut gen = 0;
         let mut run = 0;
 
-        while (!stop_signal.load(Ordering::SeqCst)
-            && stats.sum_generations() < conf.optimizer.max_generations)  {
+        while !stop_signal.load(Ordering::SeqCst)
+            && stats.sum_generations() < conf.optimizer.max_generations  {
 
             if Self::should_restart(&stats, &conf.optimizer) {
                 algo = A::new::<M>(conf.algorithm.clone(), &conf.model);

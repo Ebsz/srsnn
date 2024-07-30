@@ -1,7 +1,6 @@
 /// Generic model of a recurrent spiking neural network
 
-use crate::csa;
-use crate::csa::{ConnectionSet, DynamicsSet, ValueSet};
+use csa::{ConnectionSet, ValueSet, NeuronSet};
 
 use model::Model;
 use model::network::representation::{DefaultRepresentation, NetworkRepresentation, NeuronDescription};
@@ -20,12 +19,12 @@ use std::fmt::Debug;
 
 
 pub trait RSNN: Configurable + Clone + Debug + Sync {
-    fn dynamics(p: &ParameterSet, config: &RSNNConfig<Self>) -> DynamicsSet;
+    fn dynamics(p: &ParameterSet, config: &RSNNConfig<Self>) -> NeuronSet;
     fn connectivity(p: &ParameterSet, config: &RSNNConfig<Self>) -> ConnectionSet;
     fn params(config: &RSNNConfig<Self>) -> ParameterSet;
 
-    fn default_dynamics() -> DynamicsSet {
-        DynamicsSet { f: Arc::new(
+    fn default_dynamics() -> NeuronSet {
+        NeuronSet { f: Arc::new(
             move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
         )}
     }

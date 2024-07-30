@@ -22,7 +22,7 @@ impl Evolvable for Parameter {
     }
 }
 
- 
+
 //impl Matrix<f32> {
 //    pub fn init_random(n: usize, range: (f32, f32)) -> Matrix<f32> {
 //        Matrix {

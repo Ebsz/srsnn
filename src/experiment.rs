@@ -1,22 +1,18 @@
 use crate::eval::MultiEvaluator;
-use crate::process::{Process, MainConf};
+use crate::process::Process;
 use crate::optimization::Optimizer;
-use crate::config::{get_config, BaseConfig};
+use crate::config::BaseConfig;
 use crate::analysis::run_analysis;
 
 use model::Model;
 use model::network::representation::DefaultRepresentation;
 
-use evolution::algorithm::Algorithm;
 use evolution::algorithm::nes::NES;
 use evolution::stats::EvolutionStatistics;
 
 use tasks::{Task, TaskEval};
 
 use ndarray::Array;
-
-use utils::math;
-use utils::environment::Environment;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -71,28 +67,32 @@ fn experiment_report<T: Task + TaskEval>(stats: &mut [EvolutionStatistics], para
     // Best eval for each experiment
     let mut best: Vec<(f32, &DefaultRepresentation)> = stats.iter().map(|x| x.best()).collect();
 
-
-    //for e in stats {
-    //    let b = //math::maxf(&(e.runs.iter().map(|r| math::maxf(&r.best_fitness)).collect()));
-    //    best.push(b);
-    //}
-
-    //let best: Vec<f32> = stats.iter().map(|s| s.runs math::maxf(&s.runs[0].best_fitness)).collect();
-
     let z: Vec<(f32, (f32, f32))> = best.iter().map(|x| x.0).zip(param_range)
                                         .map(|(a,b)| (a,*b)).collect();
 
-    //log::info!("\nbest | alpha\n{:#?}", z);
     println!("\nbest | (alpha, sigma)");
     for (a,b) in z {
         println!("{:.3} | {:?}", a, b);
     }
 
-    let (e, r) = stats.iter().map(
+    let (e, repr) = stats.iter().map(
         |x| x.best()).max_by(|a,b| a.0.partial_cmp(&b.0).expect("")).unwrap();
 
     println!("Best eval: {e}");
 
-    let r = run_analysis::<T>(&r);
-    crate::plots::generate_plots(&r);
+    let record = run_analysis::<T>(&repr);
+    crate::plots::generate_plots(&record);
+
+    save_network(repr.clone());
+}
+
+fn save_network(network: DefaultRepresentation) {
+    let filename = format!("out/experiment_{}.json", utils::random::random_range((0,1000000)).to_string());
+
+    let r = utils::data::save::<DefaultRepresentation>(network, filename.as_str());
+
+    match r {
+        Ok(_) => {log::info!("Model saved to {}", filename);},
+        Err(e) => { log::error!("Could not save model: {e}"); }
+    }
 }

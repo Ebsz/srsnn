@@ -5,6 +5,7 @@ edition = "2021"
 default-run = "luna"
 
 [dependencies]
+csa = {path = "csa"}
 model = {path = "model"}
 evolution = {path = "evolution"}
 tasks = {path = "tasks"}
@@ -29,7 +30,7 @@ petgraph = "0.6.5"
 criterion = { version = "0.4", features = ["html_reports"] }
 
 [workspace]
-members = [ "evolution", "model", "tasks", "utils", "visual" ]
+members = [ "csa", "evolution", "model", "tasks", "utils", "visual" ]
 
 [features]
 viz = ["visual"]

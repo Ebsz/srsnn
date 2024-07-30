@@ -1,5 +1,4 @@
-use crate::csa;
-use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
+use csa::{ConnectionSet, NeuronSet};
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
 use utils::parameters::{Parameter, ParameterSet};
@@ -7,14 +6,12 @@ use utils::config::{Configurable, ConfigSection};
 
 use serde::Deserialize;
 
-use ndarray::Array;
-
 
 #[derive(Clone, Debug)]
 pub struct ERModel;
 
 impl RSNN for ERModel {
-    fn dynamics(_params: &ParameterSet, _config: &RSNNConfig<Self>) -> DynamicsSet {
+    fn dynamics(_params: &ParameterSet, _config: &RSNNConfig<Self>) -> NeuronSet {
         Self::default_dynamics()
     }
 
