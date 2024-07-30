@@ -2,7 +2,6 @@
 //! explicitly.
 //!
 
-use crate::csa::object::CSAObject;
 use crate::csa::{ConnectionSet, ValueSet, DynamicsSet};
 use crate::csa::mask::Mask;
 use crate::models::rsnn::{RSNN, RSNNConfig};

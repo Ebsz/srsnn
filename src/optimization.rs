@@ -62,6 +62,7 @@ impl Optimizer {
 
         let mut gen = 0;
         let mut run = 0;
+
         while (!stop_signal.load(Ordering::SeqCst)
             && stats.sum_generations() < conf.optimizer.max_generations)  {
 
@@ -114,7 +115,7 @@ impl Optimizer {
     //}
 
     fn should_restart(stats: &EvolutionStatistics, conf: &OptimizationConfig) -> bool {
-        let rs = RestartStrategy { d: 25, u: 0.0, };
+        let rs = RestartStrategy { d: 10, u: 0.0, };
         let run = stats.run();
         let bf = &run.best_fitness;
 
@@ -129,7 +130,6 @@ impl Optimizer {
                 return true;
             }
         }
-
         false
     }
 }

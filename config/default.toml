@@ -1,26 +1,29 @@
 ## Default
 model = "typed"
-task = "polebalance"
+task = "catching"
 algorithm = "nes"
 
 log_level = "debug"
 
 [optimizer]
-max_generations = 100
-min_gen_before_restart= 25 # minimum 25
+max_generations = 1000
+min_gen_before_restart= 50 # minimum 25
 
 [nes]
-population_size = 10
-alpha = 0.01 # 0.001
+population_size = 50
+alpha = 0.001 # 0.001
 sigma = 0.1 # 0.1
+
+init_mean =    0.0
+init_stddev =  1.0
 
 [eval]
 max_threads = 16
 trials = 1
 
 [rsnn]
-n = 32
+n = 64
 
 [rsnn.model]
 k = 8
-max_w = 10.0
+max_w = 1.0

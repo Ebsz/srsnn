@@ -14,13 +14,6 @@ use ndarray::{array, Array, Array1, Array2};
 use std::sync::Arc;
 
 
-//struct TypedParameters {
-//    n: Scalar<usize>,
-//    k: Scalar<usize>,
-//    t_cpm: Matrix<f32>,
-//    t_dist: Vector<f32>,
-//}
-
 #[derive(Clone, Debug)]
 pub struct TypedModel {
     //t_cpm: Array2<f32>,
@@ -44,7 +37,6 @@ impl RSNN for TypedModel {
         let t_cpm = m1.mapv(|x| math::sigmoid(x));
         let t_w = m2.mapv(|x| math::sigmoid(x) * config.model.max_w);
         let p = math::softmax(v);
-
 
         let dist = math::distribute(config.n, p.as_slice().unwrap());
 

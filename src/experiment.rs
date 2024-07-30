@@ -21,24 +21,9 @@ use utils::environment::Environment;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+
 /// Optimization of config parameters
 pub struct HyperOptimization;
-
-
-impl HyperOptimization {
-    //fn algorithm<M: Model, T: Task + TaskEval, A: Algorithm>(
-    //    conf: BaseConfig,
-    //    main_conf: MainConf<M,A>,
-    //    env: Environment,
-    //    stop_signal: Arc<AtomicBool>,
-    //    params: Vec<(f32, f32)>)
-    //    -> Vec<EvolutionStatistics> {
-
-    //
-
-    //    stats
-    //}
-}
 
 impl Process for HyperOptimization {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {

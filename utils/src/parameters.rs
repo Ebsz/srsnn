@@ -75,6 +75,10 @@ impl ParameterSet {
 
         Array::from_vec(v)
     }
+
+    pub fn is_nan(&self) -> bool {
+        self.set.iter().all(|a| a.linearize().iter().all(|x| x.is_nan()))
+    }
 }
 
 #[cfg(test)]

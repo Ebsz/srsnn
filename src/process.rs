@@ -110,7 +110,7 @@ pub trait Process: Sync {
     }
 
     fn log_config<M: Model, A: Algorithm>(base_config: &BaseConfig, main_config: &MainConf<M, A>) {
-        log::info!("Model: {}", base_config.model);
+        log::info!("Model: {} ({} params)", base_config.model, M::params(&main_config.model).size());
         log::info!("Task: {}", base_config.task);
         log::info!("\n[Configs] \n\
                 model = {:#?}\n\

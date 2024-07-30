@@ -23,34 +23,6 @@ use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 
 
-//struct EvolutionProcess;
-//
-//impl Process for EvolutionProcess {
-//    fn run<M: Model + Genome, T: Task + TaskEval>(config: BaseConfig) {
-//        log::info!("EvolutionProcess");
-//        let env = Self::environment::<T>();
-//
-//        let genome_config = get_config::<M>();
-//        log_config::<M>(&config, &genome_config);
-//
-//        let evaluator: MultiEvaluator<T> = Self::get_evaluator(&config);
-//
-//        let mut population = Population::<_, M, DefaultRepresentation>
-//            ::new(env.clone(), config.evolution, genome_config, evaluator);
-//
-//        init_ctrl_c_handler(population.stop_signal.clone());
-//
-//        let evolved = population.evolve();
-//
-//        log::info!("best fitness: {:?}", evolved.fitness.unwrap());
-//
-//        let network = evolved.phenotype.as_ref().unwrap().clone();
-//
-//        Self::save_evolved_network(network, &config);
-//    }
-//}
-//
-
 fn save_network(network: DefaultRepresentation, config: &BaseConfig) {
     let filename = format!("out/evolved_{}_{}_{}.json",
         config.model, config.task, random::random_range((0,1000000)).to_string());
