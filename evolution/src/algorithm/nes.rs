@@ -30,9 +30,11 @@ impl Algorithm for NES {
         let params = M::params(m_conf);
         let n_params = params.size();
 
-        let w = random::random_vector(n_params, Normal::new(conf.init_mean,conf.init_stddev).unwrap());
+        let dist = Normal::new(conf.init_mean,conf.init_stddev).unwrap();
 
-        let noise_samples = random::random_matrix((conf.population_size, n_params), StandardNormal);
+        let w = random::random_vector(n_params, dist);
+
+        let noise_samples = random::random_matrix((conf.population_size, n_params), dist);
 
         let population = Self::get_population(w.clone(), noise_samples.clone(), &conf, &params);
 
