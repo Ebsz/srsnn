@@ -1,3 +1,6 @@
+//! Hyperparameter optimization
+
+use crate::plots;
 use crate::eval::MultiEvaluator;
 use crate::process::Process;
 use crate::optimization::Optimizer;
@@ -33,7 +36,7 @@ impl Process for HyperOptimization {
 
         // Create params
         let alpha = Array::linspace(0.001, 0.01, 2).to_vec();
-        let sigma = Array::linspace(0.01, 1.5, 10).to_vec();
+        let sigma = Array::linspace(0.1, 1.5, 10).to_vec();
 
         // Cartesian of the parameters
         let params: Vec<(f32, f32)> = alpha.iter()
@@ -57,42 +60,37 @@ impl Process for HyperOptimization {
             }
         }
 
-        experiment_report::<T>(&mut stats, params.as_slice());
+        Self::experiment_report::<T>(&mut stats, params.as_slice());
     }
 }
 
-fn experiment_report<T: Task + TaskEval>(stats: &mut [EvolutionStatistics], param_range: &[(f32, f32)]) {
-    log::info!("Experiment report:");
+impl HyperOptimization {
+    fn experiment_report<T: Task + TaskEval>(stats: &mut [EvolutionStatistics], param_range: &[(f32, f32)]) {
+        log::info!("Experiment report:");
 
-    // Best eval for each experiment
-    let mut best: Vec<(f32, &DefaultRepresentation)> = stats.iter().map(|x| x.best()).collect();
+        // Best eval for each experiment
+        let mut best: Vec<(f32, &DefaultRepresentation)> = stats.iter().map(|x| x.best()).collect();
 
-    let z: Vec<(f32, (f32, f32))> = best.iter().map(|x| x.0).zip(param_range)
-                                        .map(|(a,b)| (a,*b)).collect();
+        let z: Vec<(f32, (f32, f32))> = best.iter().map(|x| x.0).zip(param_range)
+                                            .map(|(a,b)| (a,*b)).collect();
 
-    println!("\nbest | (alpha, sigma)");
-    for (a,b) in z {
-        println!("{:.3} | {:?}", a, b);
+        println!("\nbest | (alpha, sigma)");
+        for (a,b) in z {
+            println!("{:.3} | {:?}", a, b);
+        }
+
+        let (e, repr) = stats.iter().map(
+            |x| x.best()).max_by(|a,b| a.0.partial_cmp(&b.0).expect("")).unwrap();
+
+        println!("Best eval: {e}");
+        Self::analyze_network(&repr);
+
+        let record = run_analysis::<T>(&repr);
+        plots::generate_plots(&record);
+
+
+        Self::save_network(repr.clone(),
+            format!("experiment_{}", utils::random::random_range((0,1000000)).to_string()));
     }
 
-    let (e, repr) = stats.iter().map(
-        |x| x.best()).max_by(|a,b| a.0.partial_cmp(&b.0).expect("")).unwrap();
-
-    println!("Best eval: {e}");
-
-    let record = run_analysis::<T>(&repr);
-    crate::plots::generate_plots(&record);
-
-    save_network(repr.clone());
-}
-
-fn save_network(network: DefaultRepresentation) {
-    let filename = format!("out/experiment_{}.json", utils::random::random_range((0,1000000)).to_string());
-
-    let r = utils::data::save::<DefaultRepresentation>(network, filename.as_str());
-
-    match r {
-        Ok(_) => {log::info!("Model saved to {}", filename);},
-        Err(e) => { log::error!("Could not save model: {e}"); }
-    }
 }

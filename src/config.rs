@@ -17,6 +17,7 @@ thread_local! {
 
 #[derive(Debug, Deserialize)]
 pub struct BaseConfig {
+    pub process: String,
     pub task: String,
     pub model: String,
     pub log_level: Option<String>,

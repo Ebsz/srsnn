@@ -1,4 +1,6 @@
 ## Default
+process = "optimize"
+
 model = "typed"
 task = "catching"
 algorithm = "nes"

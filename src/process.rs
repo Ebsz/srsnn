@@ -1,6 +1,7 @@
 pub mod optimize;
 pub mod hyper;
 
+use crate::analysis::graph::{Graph, GraphAnalysis};
 use crate::eval::MultiEvaluator;
 use crate::eval::config::{Batch, BatchConfig, EvalConfig};
 use crate::config::{get_config, BaseConfig};
@@ -12,6 +13,7 @@ use crate::models::srsnn::typed::TypedModel;
 use crate::models::plain::PlainModel;
 
 use model::Model;
+use model::network::representation::DefaultRepresentation;
 
 use tasks::{Task, TaskEval};
 use tasks::mnist_task::MNISTTask;
@@ -120,6 +122,31 @@ pub trait Process: Sync {
                 algorithm = {:#?}\n\
                 eval = {:#?}",
                 main_config.model, main_config.algorithm, main_config.eval);
+    }
+
+    fn save_network(network: DefaultRepresentation, name: String) {
+        let filename = format!("out/{}.json", name);
+
+        let r = utils::data::save::<DefaultRepresentation>(network, filename.as_str());
+
+        match r {
+            Ok(_) => {log::info!("Model saved to {}", filename);},
+            Err(e) => { log::error!("Could not save model: {e}"); }
+        }
+    }
+
+    fn analyze_network(r: &DefaultRepresentation) {
+        log::debug!("Analyzing network..");
+
+        let g: Graph = r.into();
+        let ga = GraphAnalysis::analyze(&g);
+
+        log::info!("Graph: {}\n{}", g, ga);
+
+        let n_inhibitory: f32 = r.neurons.iter()
+            .map(|n| f32::from(n.inhibitory)).sum();
+
+        println!("\n    inhibitory: {} ({:.3}%)", n_inhibitory, n_inhibitory / r.neurons.len() as f32);
     }
 }
 

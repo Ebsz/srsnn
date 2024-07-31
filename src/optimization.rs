@@ -20,11 +20,9 @@ use serde::Deserialize;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use ndarray::s;
 
 // Print log every _ generations
-const LOG_FREQ: usize = 20;
-
+const LOG_FREQ: usize = 1;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct OptimizationConfig {

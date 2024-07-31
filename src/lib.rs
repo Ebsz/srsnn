@@ -8,7 +8,6 @@ pub mod runnable;
 pub mod plots;
 pub mod optimization;
 pub mod process;
-pub mod experiment;
 
 #[cfg(feature = "visual")]
 pub mod visual;
