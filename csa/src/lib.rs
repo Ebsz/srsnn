@@ -74,7 +74,6 @@ impl NeuronSet  {
     }
 }
 
-
 pub mod object {
     use super::*;
 
