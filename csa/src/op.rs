@@ -48,15 +48,39 @@ pub fn sbm(l: LabelFn, cpm: ValueSet) -> Mask {
     }
 }
 
-//fn sample(v: ValueSet<f32>) ->
+/// Operates on a metric to restrict connectivity to neurons whose distance is less than r
+fn disc(r: f32, m: Metric) -> Mask {
+    Mask {
+        f: Arc::new(
+               move |i, j| m(i,j) < r
+           )
+    }
+}
 
-//fn disc(r: f32, dist: impl Space) -> Mask {
-//    Mask {
-//        f: Arc::new(
-//               move |i, j| dist(i, j) < r
-//           )
-//    }
-//}
+type CoordinateFn = Arc<dyn Fn(u32) -> (f32, f32)>;
+type Metric = Arc<dyn Fn(u32, u32) -> f32>;
+
+fn random_coordinates(min: f32, max: f32, n: usize) -> CoordinateFn {
+    let mut c = vec![];
+
+    for _ in 0..n {
+        let p = (random::random_range((min, max)), random::random_range((min, max)));
+        c.push(p);
+    }
+
+    Arc::new(move |i| c[i as usize])
+}
+
+fn dist(c: CoordinateFn) -> Metric {
+    Arc::new(move |i, j|  {
+        let (ix, iy) = c(i);
+        let (jx, jy) = c(j);
+
+        ((ix - jx).powf(2.0) + (iy - jy).powf(2.0)).sqrt()
+    })
+}
+
+//fn sample(v: ValueSet<f32>) ->
 
 #[cfg(test)]
 mod tests {

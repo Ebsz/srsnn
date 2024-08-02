@@ -183,26 +183,3 @@ pub mod object {
     //    }
     //}
 }
-
-
-//trait Metric {
-//    fn distance(i: u32, j: u32) -> f32;
-//}
-//
-//type R2 = (f32, f32);
-//
-//struct R2Space;
-//impl R2Space {
-//    fn dist(g1: impl Fn(u32) -> R2, g2: impl Fn(u32) -> R2)-> impl Fn(u32, u32) -> f32 {
-//        move |i,j| {
-//            let (x1, y1) = g1(i);
-//            let (x2, y2) = g2(j);
-//
-//            ((x1 - x2).powf(2.0) + (y1-y2).powf(2.0)).sqrt()
-//        }
-//    }
-//}
-//
-//mod models {
-//
-//}
