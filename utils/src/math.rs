@@ -17,12 +17,12 @@ pub fn sigmoid(x: f32) -> f32 {
     1.0 / (1.0 + f32::exp(-x))
 }
 
-// min/max for floats
-pub fn maxf(data: &Vec<f32>) -> f32 {
-    data.iter().fold(0.0f32, |acc, &x| if x > acc {x} else {acc})
+pub fn maxf(data: &[f32]) -> f32 {
+    data.iter().fold(f32::NEG_INFINITY, |acc, &x| if x > acc {x} else {acc})
 }
-pub fn minf(data: &Vec<f32>) -> f32 {
-    data.iter().fold(0.0f32, |acc, &x| if x < acc {x} else {acc})
+
+pub fn minf(data: &[f32]) -> f32 {
+    data.iter().fold(f32::INFINITY, |acc, &x| if x < acc {x} else {acc})
 }
 
 /// Return the index of the entry in the array with the max value
@@ -101,5 +101,41 @@ mod tests {
 
         assert!(max_index(v) == 9);
         assert!(max_index(a) == 9);
+    }
+
+    #[test]
+    fn test_maxf() {
+        let v = array![0.0,1.0,2.0,3.0,4.4,5.2,6.54444,7.0001,8.99929,9.0];
+
+        let r = maxf(v.as_slice().unwrap());
+
+        assert!(r == 9.0);
+    }
+
+    #[test]
+    fn test_max_inf() {
+        let v = array![f32::INFINITY];
+
+        let r = maxf(v.as_slice().unwrap());
+
+        assert!(r == f32::INFINITY);
+    }
+
+    #[test]
+    fn test_minf() {
+        let v = array![0.0,1.0,2.0,3.0,4.4,5.2,6.54444,7.0001,8.99929,9.0];
+
+        let r = minf(v.as_slice().unwrap());
+
+        assert!(r == 0.0);
+    }
+
+    #[test]
+    fn test_min_inf() {
+        let v = array![f32::NEG_INFINITY];
+
+        let r = maxf(v.as_slice().unwrap());
+
+        assert!(r == f32::NEG_INFINITY);
     }
 }
