@@ -2,22 +2,22 @@
 process = "optimize"
 
 model = "typed"
-task = "polebalance"
+task = "pattern"
 algorithm = "nes"
 
 log_level = "debug"
 
 [optimizer]
-max_generations = 2000
-min_gen_before_restart= 200 # minimum 25
+max_generations = 10000
+min_gen_before_restart= 50 # minimum 25
 
-[nes]
-population_size = 100
-alpha = 0.5   # 0.001 # Learning rate
-sigma = 0.1     # 0.1   # Noise standard deviation
-
-init_mean =    0.0
-init_stddev =  1.0
+#[nes]
+#population_size = 200
+#alpha = 0.5     # 0.001 # Learning rate
+#sigma = 0.1     # 0.1   # Noise standard deviation
+#
+#init_mean =    0.0
+#init_stddev =  1.0
 
 [snes]
 pop_size = 100

@@ -25,6 +25,6 @@ pub trait Model<N=DefaultNeuron>: Configurable + Sync {
 
     fn develop(&self) -> NetworkRepresentation<N>;
 
-    fn params(config: &Self::Config) -> ParameterSet;
+    fn params(config: &Self::Config, env: &Environment) -> ParameterSet;
 }
 

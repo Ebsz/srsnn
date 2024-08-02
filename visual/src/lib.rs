@@ -7,9 +7,6 @@ use crate::window::{Window, WindowComponent};
 use crate::task_window::TaskWindow;
 use crate::fg::ForceGraphComponent;
 
-use model::neuron::NeuronModel;
-use model::network::representation::{NetworkRepresentation, NeuronDescription};
-use model::network::builder::NetworkBuilder;
 
 use sdl2::pixels::Color;
 
@@ -23,6 +20,9 @@ const OUTPUT_COLOR: Color = Color::RGB(100, 240, 30);
 const NETWORK_COLOR: Color = Color::RGB(200, 150, 135);
 
 
+//use model::neuron::NeuronModel;
+//use model::network::representation::{NetworkRepresentation, NeuronDescription};
+//use model::network::builder::NetworkBuilder;
 //fn role_to_color(r: NeuronRole) -> Color {
 //    match r {
 //        NeuronRole::Input => INPUT_COLOR,

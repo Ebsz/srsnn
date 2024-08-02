@@ -66,7 +66,7 @@ impl Task for PoleBalancingTask {
         }
     }
 
-    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<Self::Result> {
+    fn tick(&mut self, input: TaskInput) -> TaskState<Self::Result> {
         let force: f64 = self.get_applied_force(input);
         self.update_state(force);
 
@@ -130,13 +130,13 @@ impl PoleBalancingTask {
         self.pole.angle_vel += dda * TC;
     }
 
-    fn get_applied_force(&mut self, input: &Vec<TaskInput>) -> f64 {
+    fn get_applied_force(&mut self, input: TaskInput) -> f64 {
         let mut f = 0.0;
-        for i in input {
-            match i.input_id {
+        for i in input.data {
+            match i {
                 0 => f -= FORCE,
                 1 => f += FORCE,
-                _ => {}
+                _ => { panic!("pole balancing task got unexpected input: {i}"); }
             }
         }
 
@@ -155,7 +155,7 @@ impl PoleBalancingTask {
         let theta_dot: f32 = math::clamp(normalize(self.pole.angle_vel, -MAX_THETA_DOT, MAX_THETA_DOT), 0.0, 1.0) as f32;
 
         let data = array![pos, pos, pos_dot, pos_dot, theta, theta, theta_dot, theta_dot];
-        let enc = encoding::rate_encode(data);
+        let enc = encoding::rate_encode(&data);
 
         //println!("{:.2}, {:.2}, {:.2}, {:.2}", pos, pos_dot, theta, theta_dot);
         //println!("{:.2}, {:.2}, {:.2}, {:.2}", enc[0], enc[1], enc[2], enc[3]);

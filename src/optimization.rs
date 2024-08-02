@@ -53,7 +53,7 @@ impl Optimizer {
         env: Environment,
         stop_signal: Arc<AtomicBool>)
     -> EvolutionStatistics {
-        let mut algo = A::new::<M>(conf.algorithm.clone(), &conf.model);
+        let mut algo = A::new::<M>(conf.algorithm.clone(), &conf.model, &env);
 
         let mut stats = EvolutionStatistics::new();
 
@@ -62,7 +62,7 @@ impl Optimizer {
             && stats.sum_generations() < conf.optimizer.max_generations  {
 
             if Self::should_restart(&stats, &conf.optimizer) {
-                algo = A::new::<M>(conf.algorithm.clone(), &conf.model);
+                algo = A::new::<M>(conf.algorithm.clone(), &conf.model, &env);
 
                 stats.new_run();
 

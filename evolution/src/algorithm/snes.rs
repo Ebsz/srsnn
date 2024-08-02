@@ -2,9 +2,10 @@ use crate::algorithm::Algorithm;
 
 use model::Model;
 
-use utils::parameters::ParameterSet;
 use utils::random;
+use utils::parameters::ParameterSet;
 use utils::config::{Configurable, ConfigSection};
+use utils::environment::Environment;
 
 use ndarray::{s, Array, Array1, Array2};
 use ndarray_rand::rand_distr::{Normal, StandardNormal};
@@ -25,8 +26,8 @@ pub struct SeparableNES {
 }
 
 impl Algorithm for SeparableNES {
-    fn new<M: Model>(conf: Self::Config, m_conf: &M::Config) -> Self {
-        let params = M::params(m_conf);
+    fn new<M: Model>(conf: Self::Config, m_conf: &M::Config, env: &Environment) -> Self {
+        let params = M::params(m_conf, env);
         let n_params = params.size();
 
         // Initialize means ~ N(0,1) and variances to 1.0, as per PS paper

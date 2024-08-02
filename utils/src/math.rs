@@ -1,21 +1,7 @@
 use std::collections::HashMap;
 
-use ndarray::Array1;
-
 
 pub const P_TOLERANCE: f32 = 1.0001;
-
-pub fn softmax(x: &Array1<f32>) -> Array1<f32> {
-    let mut s = x.mapv(f32::exp);
-
-    s /= s.sum();
-
-    s
-}
-
-pub fn sigmoid(x: f32) -> f32 {
-    1.0 / (1.0 + f32::exp(-x))
-}
 
 pub fn maxf(data: &[f32]) -> f32 {
     data.iter().fold(f32::NEG_INFINITY, |acc, &x| if x > acc {x} else {acc})
@@ -65,6 +51,30 @@ pub fn distribute(n: usize, p: &[f32]) -> Vec<usize> {
     assert!(buckets.iter().sum::<usize>() == n);
 
     buckets
+}
+
+pub mod ml {
+    use ndarray::Array1;
+
+    pub fn softmax(x: &Array1<f32>) -> Array1<f32> {
+        let mut s = x.mapv(f32::exp);
+
+        s /= s.sum();
+
+        s
+    }
+
+    pub fn sigmoid(x: f32) -> f32 {
+        1.0 / (1.0 + f32::exp(-x))
+    }
+
+    pub fn cross_entropy(predictions: &Array1<f32>, label: &Array1<f32>) -> f32 {
+        let pred = predictions + 1.0e-15;
+
+        let ce = -(label * &pred.mapv(f32::ln).view()).sum();
+
+        ce
+    }
 }
 
 #[cfg(test)]

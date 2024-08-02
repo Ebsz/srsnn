@@ -44,7 +44,7 @@ impl Task for XORTask {
         }
     }
 
-    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<Self::Result> {
+    fn tick(&mut self, input: TaskInput) -> TaskState<Self::Result> {
         let output: TaskOutput;
 
         if self.ticks <= INPUT_T {
@@ -54,7 +54,7 @@ impl Task for XORTask {
         }
 
         if self.ticks > INPUT_T {
-            if input.len() != 0 {
+            if input.data.len() != 0 {
                 self.spike_times.push(self.ticks);
             }
         }

@@ -63,7 +63,7 @@ impl Task for CatchingTask {
         }
     }
 
-    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<CatchingTaskResult> {
+    fn tick(&mut self, input: TaskInput) -> TaskState<CatchingTaskResult> {
         self.parse_input(input);
 
         self.apple.y += APPLE_SPEED;
@@ -128,14 +128,12 @@ impl CatchingTask {
         sensors
     }
 
-    fn parse_input(&mut self, input: &Vec<TaskInput>) {
-        for i in input {
-            if i.input_id == 0 {
-                self.agent.move_right();
-            } else if i.input_id == 1 {
-                self.agent.move_left();
-            } else {
-                panic!("Got input id > 1")
+    fn parse_input(&mut self, input: TaskInput) {
+        for i in input.data {
+            match i  {
+                0 => { self.agent.move_right(); },
+                1 => { self.agent.move_left(); },
+                id => {panic!("Got input id > 1"); }
             }
         }
     }

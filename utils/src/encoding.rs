@@ -6,7 +6,7 @@ use ndarray::{Array, Array1, Array2, Zip};
 use ndarray_rand::rand_distr::Uniform;
 
 
-pub fn rate_encode(data: Array1<f32>) -> Array1<f32> {
+pub fn rate_encode(data: &Array1<f32>) -> Array1<f32> {
     let samples = random::random_vector(data.shape()[0], Uniform::new(0.0,1.0));
 
     data.iter().zip(samples).map(|(x, s)| if s < *x { 1.0 } else { 0.0 }).collect()

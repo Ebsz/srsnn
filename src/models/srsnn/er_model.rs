@@ -1,30 +1,36 @@
-use csa::{ConnectionSet, NeuronSet, NeuralSet};
 use crate::models::rsnn::{RSNN, RSNNConfig};
+
+use csa::{ConnectionSet, NeuronSet, NeuralSet};
+use csa::mask::Mask;
 
 use utils::parameters::{Parameter, ParameterSet};
 use utils::config::{Configurable, ConfigSection};
+use utils::environment::Environment;
 
 use serde::Deserialize;
+
+use std::sync::Arc;
 
 
 #[derive(Clone, Debug)]
 pub struct ERModel;
 
 impl RSNN for ERModel {
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> NeuralSet {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet) {
         let cs = Self::connectivity(params, config);
 
         let d = Self::dynamics(params, config);
 
-        NeuralSet {
+        let ns = NeuralSet {
             m: cs.m,
             v: cs.v,
             d: vec![d]
-        }
+        };
+
+        (ns, Self::default_input(config.n))
     }
 
-
-    fn params(_config: &RSNNConfig<Self>) -> ParameterSet {
+    fn params(_config: &RSNNConfig<Self>, _env: &Environment) -> ParameterSet {
         let p = Parameter::Scalar(0.0);
 
         ParameterSet {

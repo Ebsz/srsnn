@@ -14,7 +14,6 @@ thread_local! {
 }
 
 
-
 #[derive(Debug, Deserialize)]
 pub struct BaseConfig {
     pub process: String,

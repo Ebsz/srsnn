@@ -1,6 +1,7 @@
 /// Generic model of a recurrent spiking neural network
 
 use csa::{ConnectionSet, ValueSet, NeuronSet, NeuralSet};
+use csa::mask::Mask;
 
 use model::Model;
 use model::network::representation::{DefaultRepresentation, NetworkRepresentation, NeuronDescription};
@@ -12,15 +13,15 @@ use utils::environment::Environment;
 
 use serde::Deserialize;
 
-use ndarray::{array, Array, Array2};
+use ndarray::{s, array};
 
 use std::sync::Arc;
 use std::fmt::Debug;
 
 
 pub trait RSNN: Configurable + Clone + Debug + Sync {
-    fn get(p: &ParameterSet, config: &RSNNConfig<Self>) -> NeuralSet;
-    fn params(config: &RSNNConfig<Self>) -> ParameterSet;
+    fn get(p: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet);
+    fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet;
 
     fn default_dynamics() -> NeuronSet {
         NeuronSet { f: Arc::new(
@@ -32,6 +33,17 @@ pub trait RSNN: Configurable + Clone + Debug + Sync {
         ValueSet { f: Arc::new(
             move |_i, _j| 1.0
         )}
+    }
+
+    fn default_input(n: usize) -> ConnectionSet {
+        let m_in = Mask { f: Arc::new( move |i, j| i == j ) };
+
+        let w_in = Self::default_weights(n);
+
+        ConnectionSet {
+            m: m_in,
+            v: vec![w_in]
+        }
     }
 
     /// 4 Izhikevich parameters + inhibitory flag
@@ -61,7 +73,7 @@ impl<R: RSNN> Model for RSNNModel<R> {
     }
 
     fn develop(&self) -> DefaultRepresentation {
-        let neural_set = R::get(&self.params, &self.conf);
+        let (neural_set, input_cs) = R::get(&self.params, &self.conf);
 
         let mask = neural_set.m;
         let dynamics = &neural_set.d[0];
@@ -89,19 +101,15 @@ impl<R: RSNN> Model for RSNNModel<R> {
 
         let network_w = neural_set.v[0].matrix(self.n);
 
-        let mut input_cm: Array2<u32> = Array::zeros((self.n, self.env.inputs));
-
-        for i in 0..self.env.inputs {
-            input_cm[[i,i]] = 1;
-        }
-
-        let input_w: Array2<f32> = Array::ones((self.n, self.env.inputs));
+        //let input_cs = R::input_connections(&self.params, &self.conf);
+        let input_cm = input_cs.m.matrix(self.n).slice(s![.., ..self.env.inputs]).to_owned();
+        let input_w = input_cs.v[0].matrix(self.n).slice(s![.., ..self.env.inputs]).to_owned();
 
         NetworkRepresentation::new(neurons.into(), network_cm, network_w, input_cm, input_w, self.env.clone())
     }
 
-    fn params(config: &RSNNConfig<R>) -> ParameterSet {
-        R::params(config)
+    fn params(config: &RSNNConfig<R>, env: &Environment) -> ParameterSet {
+        R::params(config, env)
     }
 }
 

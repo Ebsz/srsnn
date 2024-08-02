@@ -23,10 +23,10 @@ impl Process for OptimizationProcess {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {
         let main_conf = Self::main_conf::<M, T, SeparableNES>();
 
-        Self::log_config(&conf, &main_conf);
-
         let evaluator: MultiEvaluator<T> = Self::evaluator(&conf, &main_conf.eval);
         let env = Self::environment::<T>();
+
+        Self::log_config(&conf, &main_conf, &env);
 
         let stop_signal = Arc::new(AtomicBool::new(false));
         Self::init_ctrl_c_handler(stop_signal.clone());

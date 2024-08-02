@@ -9,6 +9,7 @@ use crate::models::rsnn::{RSNN, RSNNConfig};
 use utils::math;
 use utils::parameters::{Parameter, ParameterSet};
 use utils::config::{Configurable, ConfigSection};
+use utils::environment::Environment;
 
 use serde::Deserialize;
 use ndarray::Array;
@@ -23,19 +24,21 @@ const W_WEIGHTING: f32 = 3.0;
 pub struct PlainModel;
 
 impl RSNN for PlainModel {
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> NeuralSet {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet) {
         let cs = Self::connectivity(params, config);
 
         let d = Self::dynamics(params, config);
 
-        NeuralSet {
+        let ns = NeuralSet {
             m: cs.m,
             v: cs.v,
             d: vec![d]
-        }
+        };
+
+        (ns, Self::default_input(config.n))
     }
 
-    fn params(config: &RSNNConfig<Self>) -> ParameterSet {
+    fn params(config: &RSNNConfig<Self>, _env: &Environment) -> ParameterSet {
         let cm = Parameter::Matrix(Array::zeros((config.n, config.n)));
         let w = Parameter::Matrix(Array::zeros((config.n, config.n)));
 
@@ -64,7 +67,7 @@ impl PlainModel {
         )};
 
         // Create weights
-        let w = b.mapv(|x| math::sigmoid(x) * W_WEIGHTING);
+        let w = b.mapv(|x| math::ml::sigmoid(x) * W_WEIGHTING);
 
         ConnectionSet {
             m,

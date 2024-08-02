@@ -4,9 +4,10 @@ use crate::algorithm::Algorithm;
 
 use model::Model;
 
-use utils::parameters::ParameterSet;
 use utils::random;
+use utils::parameters::ParameterSet;
 use utils::config::{Configurable, ConfigSection};
+use utils::environment::Environment;
 
 use ndarray::{s, Array, Array1, Array2};
 use ndarray_rand::rand_distr::{Normal, StandardNormal};
@@ -26,8 +27,8 @@ pub struct NES {
 }
 
 impl Algorithm for NES {
-    fn new<M: Model>(conf: Self::Config, m_conf: &M::Config) -> Self {
-        let params = M::params(m_conf);
+    fn new<M: Model>(conf: Self::Config, m_conf: &M::Config, env: &Environment) -> Self {
+        let params = M::params(m_conf, env);
         let n_params = params.size();
 
         let dist = Normal::new(conf.init_mean,conf.init_stddev).unwrap();
@@ -122,6 +123,7 @@ pub struct NESConfig {
     pub init_mean: f32,
     pub init_stddev: f32,
 }
+
 impl ConfigSection for NESConfig {
     fn name() -> String {
         "NES".to_string()

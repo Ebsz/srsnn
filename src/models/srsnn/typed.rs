@@ -2,12 +2,14 @@ use crate::models::rsnn::{RSNN, RSNNConfig};
 
 use csa::op::LabelFn;
 use csa::{ConnectionSet, ValueSet, NeuronSet, NeuralSet};
+use csa::mask::Mask;
 
 use model::neuron::izhikevich::IzhikevichParameters;
 
 use utils::math;
 use utils::config::{ConfigSection, Configurable};
 use utils::parameters::{Parameter, ParameterSet};
+use utils::environment::Environment;
 
 use serde::Deserialize;
 
@@ -23,7 +25,7 @@ const INHIBITORY_THRESHOLD: f32 = 0.70;
 pub struct TypedModel;
 
 impl RSNN for TypedModel {
-    fn params(config: &RSNNConfig<Self>) -> ParameterSet {
+    fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet {
         // Type connection probability matrix
         let t_cpm = Parameter::Matrix(Array::zeros((config.model.k, config.model.k)));
 
@@ -36,19 +38,24 @@ impl RSNN for TypedModel {
         // Dynamical parameters
         let d = Parameter::Matrix(Array::zeros((config.model.k, Self::N_DYNAMICAL_PARAMETERS)));
 
+        // Input->type connection probabilities
+        let input_t_cp = Parameter::Vector(Array::zeros(config.model.k));
+
+        // Input->type weights
+        let input_t_w = Parameter::Vector(Array::zeros(config.model.k));
+
         ParameterSet {
-            set: vec![t_cpm, t_w, p, d],
+            set: vec![t_cpm, t_w, p, d, input_t_cp, input_t_w],
         }
     }
 
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> NeuralSet {
-        let (m1, m2, v, m3) = Self::parse_params(params, config);
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet) {
+        let (m1, m2, v1, m3, v2, v3) = Self::parse_params(params, config);
 
-        let t_cpm = m1.mapv(|x| math::sigmoid(x-5.0));
+        let t_cpm = m1.mapv(|x| math::ml::sigmoid(x));
 
-        //log::info!("{:#?}", t_cpm.iter().sum::<f32>() / t_cpm.len() as f32);
-        let t_w = m2.mapv(|x| math::sigmoid(x) * config.model.max_w);
-        let p = math::softmax(v);
+        let t_w = m2.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
+        let p = math::ml::softmax(v1);
 
         let dist = math::distribute(config.n, p.as_slice().unwrap());
         let labels = csa::op::label(dist, config.model.k);
@@ -58,48 +65,26 @@ impl RSNN for TypedModel {
             move |i, j| t_w[[l(i) as usize, l(j) as usize]]
         )};
 
-        // Create dynamics
-        let d = Self::get_dynamics(m3, labels.clone(), config);
+        let dynamics = Self::get_dynamics(m3, labels.clone(), config);
 
-        let mask = csa::op::sbm(labels, ValueSet::from_value(t_cpm.clone()));
+        let mask = csa::op::sbm(labels.clone(), ValueSet::from_value(t_cpm.clone()));
 
-        //let d = NeuronSet { f: Arc::new(
-        //    move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
-        //)};
-
-        NeuralSet {
+        let ns = NeuralSet {
             m: mask,
             v: vec![w],
-            d: vec![d]
-        }
+            d: vec![dynamics]
+        };
+
+        let input_cs = Self::get_input_cs(v2, v3, labels, config);
+
+        (ns, input_cs)
     }
-
-    //fn connectivity(params: &ParameterSet, config: &RSNNConfig<Self>) -> ConnectionSet {
-    //    let (m1, m2, v, m3) = Self::parse_params(params, config);
-
-    //    let t_cpm = m1.mapv(|x| math::sigmoid(x));
-    //    let t_w = m2.mapv(|x| math::sigmoid(x) * config.model.max_w);
-    //    let p = math::softmax(v);
-
-    //    let dist = math::distribute(config.n, p.as_slice().unwrap());
-
-    //    let labels = csa::op::label(dist, config.model.k);
-
-    //    let l = labels.clone();
-    //    let w = ValueSet { f: Arc::new(
-    //        move |i, j| t_w[[l(i) as usize, l(j) as usize]]
-    //    )};
-
-    //    ConnectionSet {
-    //        m: csa::op::sbm(labels, ValueSet::from_value(t_cpm.clone())),
-    //        v: vec![ w ]
-    //    }
-    //}
 }
 
 impl TypedModel {
     fn parse_params<'a>(p: &'a ParameterSet, config: &'a RSNNConfig<Self>)
-        -> (&'a Array2<f32>, &'a Array2<f32>, &'a Array1<f32>, &'a Array2<f32>) {
+        -> (&'a Array2<f32>, &'a Array2<f32>, &'a Array1<f32>, &'a Array2<f32>,
+            &'a Array1<f32>, &'a Array1<f32>) {
         let a = match &p.set[0] {
             Parameter::Matrix(x) => {x},
             _ => { panic!("invalid parameter set") }
@@ -120,16 +105,27 @@ impl TypedModel {
             _ => { panic!("invalid parameter set") }
         };
 
+        let e = match &p.set[4] {
+            Parameter::Vector(x) => {x},
+            _ => { panic!("invalid parameter set") }
+        };
+        let f = match &p.set[5] {
+            Parameter::Vector(x) => {x},
+            _ => { panic!("invalid parameter set") }
+        };
+
         assert!(a.shape() == [config.model.k, config.model.k]);
         assert!(b.shape() == [config.model.k, config.model.k]);
         assert!(c.shape() == [config.model.k]);
         assert!(d.shape() == [config.model.k, Self::N_DYNAMICAL_PARAMETERS]);
+        assert!(e.shape() == [config.model.k]);
+        assert!(f.shape() == [config.model.k]);
 
-        (a, b, c, d)
+        (a, b, c, d, e, f)
     }
 
     fn get_dynamics(m: &Array2<f32>, l: LabelFn, config: &RSNNConfig<Self>) -> NeuronSet {
-        let mut dm = m.mapv(|x| math::sigmoid(x));
+        let mut dm = m.mapv(|x| math::ml::sigmoid(x));
 
         let r = IzhikevichParameters::RANGES;
 
@@ -145,6 +141,27 @@ impl TypedModel {
         NeuronSet { f: Arc::new(
             move |i| dm.slice(s![l(i) as usize, ..]).to_owned()
         )}
+    }
+
+    fn get_input_cs(v2: &Array1<f32>, v3: &Array1<f32>, l: LabelFn, config: &RSNNConfig<Self>) -> ConnectionSet {
+        let input_t_cp = v2.mapv(|x| math::ml::sigmoid(x));
+        let input_t_w = v3.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
+
+        let l1 = l.clone();
+        let cp = ValueSet { f: Arc::new(
+            move |_, j| input_t_cp[j as usize]
+            )};
+
+        let m = csa::op::sbm(l.clone(), cp);
+
+        let w = ValueSet { f: Arc::new(
+            move |i, j| input_t_w[[l(j) as usize]]
+        )};
+
+        ConnectionSet {
+            m,
+            v: vec![w]
+        }
     }
 }
 

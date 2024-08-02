@@ -8,14 +8,6 @@ use std::sync::Arc;
 use mask::Mask;
 
 
-//pub struct NeuralSet {
-//    pub m: Mask,
-//    pub m_in: Mask,
-//    pub v: Vec<ValueSet>,
-//    pub d: NeuronSet,
-//    pub ds: Vec<NeuronSet>,
-//}
-
 pub struct NeuralSet {
     pub m: Mask,
     pub v: Vec<ValueSet>,

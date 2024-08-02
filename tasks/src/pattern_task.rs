@@ -20,6 +20,7 @@ use std::iter::FromIterator;
 
 const N_TRIALS: usize = 5;
 const PATTERN_SIZE: usize = 5;
+const PATTERN_MAX_PROBABILITY: f32 = 1.0;
 
 const SEND_TIME: u32 = 50;        // How long each pattern is sent.
 const SEND_DELAY: u32 = 70;       // Delay between patterns
@@ -193,7 +194,7 @@ pub fn pattern(n: usize) -> Array1<f32> {
 
         let x = dist((i,j), (px,py)) * 1.5 - 5.0 +  random::random_sample::<f32, _>(StandardNormal) * 1.7;
 
-        *v = math::ml::sigmoid(x);
+        *v = math::ml::sigmoid(x) * PATTERN_MAX_PROBABILITY;
     }
 
     Array::from_iter(p.iter().cloned())
