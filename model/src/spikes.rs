@@ -29,6 +29,16 @@ impl Spikes {
     }
 }
 
+
+///// Convert to a Vec of indices of firing neurons.
+//impl Into<Vec<u32>> for &Spikes {
+//    fn into(self) -> Vec<u32> {
+//        self.data.iter().enumerate()
+//            .filter_map(|(i, firing)| if *firing { Some(i as u32) } else { None })
+//            .collect()
+//    }
+//}
+
 #[cfg(test)]
 mod tests {
     use super::*;

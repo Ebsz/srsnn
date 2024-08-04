@@ -16,14 +16,14 @@ use model::Model;
 use model::network::representation::DefaultRepresentation;
 
 use tasks::{Task, TaskEval};
-use tasks::mnist_task::MNISTTask;
-use tasks::catching_task::CatchingTask;
-use tasks::movement_task::MovementTask;
-use tasks::survival_task::SurvivalTask;
-use tasks::energy_task::EnergyTask;
-use tasks::xor_task::XORTask;
-use tasks::pole_balancing_task::PoleBalancingTask;
 use tasks::pattern_task::PatternTask;
+//use tasks::mnist_task::MNISTTask;
+//use tasks::catching_task::CatchingTask;
+//use tasks::movement_task::MovementTask;
+//use tasks::survival_task::SurvivalTask;
+//use tasks::energy_task::EnergyTask;
+//use tasks::xor_task::XORTask;
+//use tasks::pole_balancing_task::PoleBalancingTask;
 
 use evolution::algorithm::Algorithm;
 
@@ -54,14 +54,14 @@ pub trait Process: Sync {
 
     fn resolve_t<M: Model>(config: BaseConfig) {
         match config.task.as_str() {
-            "polebalance" => { Self::run::<M, PoleBalancingTask>(config); },
+            //"polebalance" => { Self::run::<M, PoleBalancingTask>(config); },
             "pattern"     => { Self::run::<M, PatternTask>(config); },
-            "catching"    => { Self::run::<M, CatchingTask>(config); },
-            "movement"    => { Self::run::<M, MovementTask>(config); },
-            "survival"    => { Self::run::<M, SurvivalTask>(config); },
-            "energy"      => { Self::run::<M, EnergyTask>(config); },
-            "mnist"       => { Self::run::<M, MNISTTask>(config); },
-            "xor"         => { Self::run::<M, XORTask>(config); },
+            //"catching"    => { Self::run::<M, CatchingTask>(config); },
+            //"movement"    => { Self::run::<M, MovementTask>(config); },
+            //"survival"    => { Self::run::<M, SurvivalTask>(config); },
+            //"energy"      => { Self::run::<M, EnergyTask>(config); },
+            //"mnist"       => { Self::run::<M, MNISTTask>(config); },
+            //"xor"         => { Self::run::<M, XORTask>(config); },
             _ => { println!("Unknown task: {}", config.task); }
         }
     }

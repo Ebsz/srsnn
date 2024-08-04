@@ -378,29 +378,33 @@ pub mod plt {
         Ok(())
     }
 
-    //pub fn plot_heatmap() -> Result<(), Box<dyn std::error::Error>> {
-    //    let filename = "heatmap.png";
-    //    let caption = "heatmap";
-    //
-    //    let max_x: f32 = 1000.0;
-    //    let min_x: f32 = 0.0;
-    //
-    //    let max_y: f32 = 200.0;
-    //    let min_y: f32 = 0.0;
-    //
-    //    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
-    //    root.fill(&WHITE)?;
-    //
-    //    let mut chart = ChartBuilder::on(&root)
-    //        .caption(caption, ("sans-serif", 50).into_font())
-    //        .margin(15)
-    //        .x_label_area_size(30)
-    //        .y_label_area_size(30)
-    //        .build_cartesian_2d(min_x..max_x, min_y..max_y)?;
-    //
-    //    chart.draw_series(
-    //        points.iter().map(|p| Circle::new(*p, 3, BLACK.filled())),
-    //    ).unwrap();
-    //
-    //    root.present()?;
+    pub fn plot_matrix(data: &Array2<f32>, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let (dw, dh) = (data.shape()[0], data.shape()[1]);
+
+        let min_x = 0;
+        let max_x = 400;
+
+        let min_y = 0;
+        let max_y = 400;
+
+        let root = BitMapBackend::new(filename, (400, 400)).into_drawing_area();
+        root.fill(&WHITE)?;
+
+        let areas = root.split_evenly((dw, dh));
+
+        //let c_val = |x: f32| (255.0 - (255.0 * x)) as u8; // higher val is darker
+        let c_val = |x: f32| (255.0 * x) as u8; // lower val is darker
+
+        let color = |x: f32| RGBColor(c_val(x), c_val(x), c_val(x));
+
+        println!("{}", areas.len());
+
+        for (v, a) in data.iter().zip(areas.iter()) {
+            a.fill(&color(*v));
+        }
+
+        root.present()?;
+
+        Ok(())
+    }
 }

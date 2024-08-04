@@ -12,7 +12,7 @@ pub enum ExecutionState {
 
 // TODO: Rename to something else; runnable implies .run() -able.
 pub trait Runnable {
-    fn step(&mut self, task_output: TaskOutput) -> Vec<TaskInput>;
+    fn step(&mut self, task_output: TaskOutput) -> Vec<u32>;
     fn reset(&mut self);
 }
 
@@ -21,7 +21,7 @@ pub struct TaskRunner<'a, T: Task, R: Runnable> {
     pub state: ExecutionState,
 
     runnable: &'a mut R,
-    task_inputs: Vec<TaskInput>,
+    task_inputs: Vec<u32>,
 }
 
 impl<'a, T: Task, R: Runnable> TaskRunner<'a, T, R> {
@@ -47,7 +47,7 @@ impl<'a, T: Task, R: Runnable> TaskRunner<'a, T, R> {
     pub fn step(&mut self) -> Option<T::Result> {
         self.state = ExecutionState::RUNNING;
 
-        let task_state = self.task.tick(&self.task_inputs);
+        let task_state = self.task.tick( TaskInput { data: self.task_inputs.clone() });
         self.task_inputs.clear();
 
         if let Some(r) = task_state.result {

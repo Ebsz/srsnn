@@ -66,7 +66,7 @@ impl Task for PatternTask {
         }
     }
 
-    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<Self::Result> {
+    fn tick(&mut self, input: TaskInput) -> TaskState<Self::Result> {
         if self.t >= MAX_T {
             return TaskState {
                 output: self.get_output(),
@@ -79,7 +79,7 @@ impl Task for PatternTask {
 
         // Capture response
         if self.t >= MAX_T - RESPONSE_WINDOW {
-            self.save_response(input);
+            self.save_response(&input.data);
 
         }
 
@@ -117,11 +117,11 @@ impl PatternTask {
         TaskOutput { data }
     }
 
-    fn save_response(&mut self, input: &Vec<TaskInput>) {
+    fn save_response(&mut self, input: &[u32]) {
         let t = (self.t - RESPONSE_START_T) as usize;
 
         for i in input {
-            self.response[[t, i.input_id as usize]] = 1;
+            self.response[[t, *i as usize]] = 1;
         }
 
         // TODO: TEMP - FOR TESTING
