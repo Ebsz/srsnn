@@ -24,7 +24,7 @@ const W_WEIGHTING: f32 = 3.0;
 pub struct PlainModel;
 
 impl RSNN for PlainModel {
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet) {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask) {
         let cs = Self::connectivity(params, config);
 
         let d = Self::dynamics(params, config);
@@ -35,7 +35,7 @@ impl RSNN for PlainModel {
             d: vec![d]
         };
 
-        (ns, Self::default_input(config.n))
+        (ns, Self::default_input(config.n), Self::default_output())
     }
 
     fn params(config: &RSNNConfig<Self>, _env: &Environment) -> ParameterSet {

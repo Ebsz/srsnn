@@ -9,7 +9,7 @@ use crate::record::{Record, RecordType, RecordDataType};
 
 use utils::environment::Environment;
 
-use ndarray::Array2;
+use ndarray::{Array1, Array2};
 
 
 /// Output of a neuron is multiplied by this; determines the impact of a single spike.
@@ -23,13 +23,15 @@ pub trait Network {
     fn reset_state(&mut self);
 }
 
+
 /// A runnable RSNN, defined by a NeuronModel and a Synapse
 pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
     pub neurons: N,
     pub synapse: S,
     pub env: Environment,
 
-    pub input_matrix: Array2<f32>,
+    pub input_matrix: Array2<f32>,      // Input matrix is f32 because it is weighted.
+    pub output_matrix: Array2<u32>,     // Output matrix is u32 as only the connections matter.
 
     pub record: Record,
     pub recording: bool,
@@ -66,11 +68,11 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
             self.record.log(RecordType::Spikes, RecordDataType::Spikes(self.network_state.as_float()));
         }
 
-        //TODO: Add output map and use this to return specified state vector.
-        //let output = self.network_state.data.iter().enumerate().filter_map(
-        //    |(i,x)| if self.output_map.contains(&i) { Some(*x) } else { None }).collect();
+        //self.network_state.clone()
 
-        self.network_state.clone()
+        let state: Array1<u32> = (&self.network_state).into();
+
+        self.output_matrix.dot(&state).into()
     }
 
     fn reset_state(&mut self) {
@@ -80,7 +82,7 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
 }
 
 impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
-    pub fn new(neurons: N, synapse: S, input_matrix: Array2<f32>, env: Environment) -> SpikingNetwork<N, S> {
+    pub fn new(neurons: N, synapse: S, input_matrix: Array2<f32>, output_matrix: Array2<u32>, env: Environment) -> SpikingNetwork<N, S> {
         //let noise_input = None;
         //let random_firing = false;
 
@@ -90,7 +92,9 @@ impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
             neurons,
             synapse,
             env,
+
             input_matrix,
+            output_matrix,
 
             network_state: Spikes::new(network_size),
 

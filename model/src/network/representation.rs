@@ -23,6 +23,8 @@ pub struct NetworkRepresentation<N> {
     pub input_cm: Array2<u32>,
     pub input_w: Array2<f32>,
 
+    pub output_cm: Array2<u32>,
+
     pub env: Environment,
 }
 
@@ -34,6 +36,8 @@ impl<N> NetworkRepresentation<N> {
 
         input_cm: Array2<u32>,
         input_w: Array2<f32>,
+
+        output_cm: Array2<u32>,
 
         env: Environment)
         -> NetworkRepresentation<N>
@@ -58,6 +62,8 @@ impl<N> NetworkRepresentation<N> {
         assert!(network_cm.shape() == network_w.shape());
         assert!(input_cm.shape() == input_w.shape());
 
+        assert!(output_cm.shape() == [env.outputs, n]);
+
         NetworkRepresentation {
             n,
             neurons,
@@ -66,6 +72,8 @@ impl<N> NetworkRepresentation<N> {
 
             input_cm,
             input_w,
+
+            output_cm,
 
             env,
         }

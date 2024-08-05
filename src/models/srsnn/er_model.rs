@@ -16,7 +16,7 @@ use std::sync::Arc;
 pub struct ERModel;
 
 impl RSNN for ERModel {
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet) {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask) {
         let cs = Self::connectivity(params, config);
 
         let d = Self::dynamics(params, config);
@@ -27,7 +27,7 @@ impl RSNN for ERModel {
             d: vec![d]
         };
 
-        (ns, Self::default_input(config.n))
+        (ns, Self::default_input(config.n), Self::default_output())
     }
 
     fn params(_config: &RSNNConfig<Self>, _env: &Environment) -> ParameterSet {
@@ -52,9 +52,11 @@ impl ERModel {
             _ => { panic!("invalid parameter set") }
         };
 
+
+
         ConnectionSet {
             m: csa::mask::random(p),
-            v: vec![]
+            v: vec![Self::default_weights()]
         }
     }
 }

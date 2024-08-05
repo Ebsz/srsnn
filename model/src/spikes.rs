@@ -29,6 +29,20 @@ impl Spikes {
     }
 }
 
+impl Into<Array1<u32>> for &Spikes {
+    fn into(self) -> Array1<u32> {
+        self.data.map(|s| if *s { 1 } else { 0})
+    }
+}
+
+impl From<Array1<u32>> for Spikes {
+    fn from(a: Array1<u32>) -> Self {
+        Spikes {
+            // NOTE: Defining this as != 0 means that values > 1 are ignored
+            data: a.mapv(|v| if v != 0 { true } else { false })
+        }
+    }
+}
 
 ///// Convert to a Vec of indices of firing neurons.
 //impl Into<Vec<u32>> for &Spikes {

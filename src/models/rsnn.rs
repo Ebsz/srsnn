@@ -20,7 +20,7 @@ use std::fmt::Debug;
 
 
 pub trait RSNN: Configurable + Clone + Debug + Sync {
-    fn get(p: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet);
+    fn get(p: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask);
     fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet;
 
     fn default_dynamics() -> NeuronSet {
@@ -29,7 +29,7 @@ pub trait RSNN: Configurable + Clone + Debug + Sync {
         )}
     }
 
-    fn default_weights(n: usize) -> ValueSet {
+    fn default_weights() -> ValueSet {
         ValueSet { f: Arc::new(
             move |_i, _j| 1.0
         )}
@@ -38,12 +38,16 @@ pub trait RSNN: Configurable + Clone + Debug + Sync {
     fn default_input(n: usize) -> ConnectionSet {
         let m_in = Mask { f: Arc::new( move |i, j| i == j ) };
 
-        let w_in = Self::default_weights(n);
+        let w_in = Self::default_weights();
 
         ConnectionSet {
             m: m_in,
             v: vec![w_in]
         }
+    }
+
+    fn default_output() -> Mask {
+        Mask { f: Arc::new( move |i, j| i == j ) }
     }
 
     /// 4 Izhikevich parameters + inhibitory flag
@@ -73,7 +77,7 @@ impl<R: RSNN> Model for RSNNModel<R> {
     }
 
     fn develop(&self) -> DefaultRepresentation {
-        let (neural_set, input_cs) = R::get(&self.params, &self.conf);
+        let (neural_set, input_cs, output_mask) = R::get(&self.params, &self.conf);
 
         let mask = neural_set.m;
         let dynamics = &neural_set.d[0];
@@ -101,11 +105,18 @@ impl<R: RSNN> Model for RSNNModel<R> {
 
         let network_w = neural_set.v[0].matrix(self.n);
 
-        //let input_cs = R::input_connections(&self.params, &self.conf);
         let input_cm = input_cs.m.matrix(self.n).slice(s![.., ..self.env.inputs]).to_owned();
         let input_w = input_cs.v[0].matrix(self.n).slice(s![.., ..self.env.inputs]).to_owned();
 
-        NetworkRepresentation::new(neurons.into(), network_cm, network_w, input_cm, input_w, self.env.clone())
+        let output_cm = output_mask.matrix(self.n).slice(s![..self.env.outputs, ..]).to_owned();
+
+        NetworkRepresentation::new(neurons.into(),
+            network_cm,
+            network_w,
+            input_cm,
+            input_w,
+            output_cm,
+            self.env.clone())
     }
 
     fn params(config: &RSNNConfig<R>, env: &Environment) -> ParameterSet {

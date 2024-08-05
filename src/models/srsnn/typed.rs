@@ -44,13 +44,16 @@ impl RSNN for TypedModel {
         // Input->type weights
         let input_t_w = Parameter::Vector(Array::zeros(config.model.k));
 
+        // Type->output connection probabilities
+        let output_t_cp = Parameter::Vector(Array::zeros(config.model.k));
+
         ParameterSet {
-            set: vec![t_cpm, t_w, p, d, input_t_cp, input_t_w],
+            set: vec![t_cpm, t_w, p, d, input_t_cp, input_t_w, output_t_cp],
         }
     }
 
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet) {
-        let (m1, m2, v1, m3, v2, v3) = Self::parse_params(params, config);
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask) {
+        let (m1, m2, v1, m3, v2, v3, v4) = Self::parse_params(params, config);
 
         let t_cpm = m1.mapv(|x| math::ml::sigmoid(x));
 
@@ -75,16 +78,17 @@ impl RSNN for TypedModel {
             d: vec![dynamics]
         };
 
-        let input_cs = Self::get_input_cs(v2, v3, labels, config);
+        let input_cs = Self::get_input_cs(v2, v3, labels.clone(), config);
+        let output_mask = Self::get_output_mask(v4, labels);
 
-        (ns, input_cs)
+        (ns, input_cs, output_mask)
     }
 }
 
 impl TypedModel {
     fn parse_params<'a>(p: &'a ParameterSet, config: &'a RSNNConfig<Self>)
         -> (&'a Array2<f32>, &'a Array2<f32>, &'a Array1<f32>, &'a Array2<f32>,
-            &'a Array1<f32>, &'a Array1<f32>) {
+            &'a Array1<f32>, &'a Array1<f32>, &'a Array1<f32>) {
         let a = match &p.set[0] {
             Parameter::Matrix(x) => {x},
             _ => { panic!("invalid parameter set") }
@@ -114,14 +118,20 @@ impl TypedModel {
             _ => { panic!("invalid parameter set") }
         };
 
+        let g = match &p.set[6] {
+            Parameter::Vector(x) => {x},
+            _ => { panic!("invalid parameter set") }
+        };
+
         assert!(a.shape() == [config.model.k, config.model.k]);
         assert!(b.shape() == [config.model.k, config.model.k]);
         assert!(c.shape() == [config.model.k]);
         assert!(d.shape() == [config.model.k, Self::N_DYNAMICAL_PARAMETERS]);
         assert!(e.shape() == [config.model.k]);
         assert!(f.shape() == [config.model.k]);
+        assert!(g.shape() == [config.model.k]);
 
-        (a, b, c, d, e, f)
+        (a, b, c, d, e, f, g)
     }
 
     fn get_dynamics(m: &Array2<f32>, l: LabelFn, config: &RSNNConfig<Self>) -> NeuronSet {
@@ -162,6 +172,14 @@ impl TypedModel {
             m,
             v: vec![w]
         }
+    }
+
+    fn get_output_mask(v4: &Array1<f32>, l: LabelFn) -> Mask {
+        let output_t_cp = v4.mapv(|x| math::ml::sigmoid(x));
+
+        let cp = ValueSet { f: Arc::new( move |_, j| output_t_cp[j as usize])};
+
+        csa::op::sbm(l, cp)
     }
 }
 
