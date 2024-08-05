@@ -54,6 +54,15 @@ impl Algorithm for SeparableNES {
     fn step(&mut self, evals: Vec<f32>) {
         // Normalize fitness to N(0, 1)
         let e: Array1<f32> = Array::from_vec(evals);
+
+        if e.std(0.0) == 0.0 {
+           log::warn!("eval stddev was 0.0");
+
+           self.reset();
+
+           return;
+        }
+
         let std_evals = (&e - e.mean().unwrap()) / e.std(0.0);
 
         // Compute gradients
@@ -87,13 +96,11 @@ impl SeparableNES {
     ) -> Vec<ParameterSet> {
 
         let mut population = vec![];
-        //let mut z: Array2<f32> = Array::zeros((self.conf.pop_size, self.n_params));
 
         // sample population
         for i in 0..conf.pop_size {
             let a = mu + sigma * &s.slice(s![i,..]);
 
-            //z.slice_mut(s![i, ..]).assign(&a);
             let p = param_structure.assign(&a);
             population.push(p);
         }
@@ -103,6 +110,20 @@ impl SeparableNES {
 
     fn get_s(conf: &SNESConfig, n_params: usize) -> Array2<f32> {
         random::random_matrix((conf.pop_size, n_params), StandardNormal)
+    }
+
+    fn reset(&mut self) {
+        log::info!("Reinitializing SNES");
+        let n_params = self.param_structure.size();
+
+        self.sigma = Array::ones(n_params);
+        self.mu = random::random_vector(n_params, StandardNormal);
+
+        self.s = Self::get_s(&self.conf, n_params);
+
+        self.population = Self::get_population(
+            &self.mu, &self.sigma, &self.s,
+            &self.conf, &self.param_structure);
     }
 }
 

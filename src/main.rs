@@ -32,7 +32,10 @@ fn main() {
 
     init_logger(config.log_level.clone());
     log::debug!("Using config: {}", config_name.unwrap_or("default".to_string()));
-    log::debug!("seed is {}", random::SEED);
+    //log::debug!("seed is {}", random::SEED);
+
+    log::info!("Using random seed");
+    random::random_seed();
 
     run_process(config);
 }

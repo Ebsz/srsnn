@@ -84,10 +84,6 @@ impl Algorithm for NES {
     }
 
     fn parameter_sets(&self) ->&[ParameterSet] {
-        for i in 0..self.population.len() {
-            assert!(!self.population[i].is_nan(), "Error in parameter set: {:#?}", self.population[i].set);
-        }
-
         &self.population
     }
 }

@@ -73,6 +73,10 @@ impl Optimizer {
 
             let ps = algo.parameter_sets();
 
+            for i in 0..ps.len() {
+                assert!(!ps[i].is_nan(), "Error in parameter set: {:#?}", ps[i].set);
+            }
+
             let mut models = vec![];
             for p in ps {
                 models.push(M::new(&conf.model, p, &env));
