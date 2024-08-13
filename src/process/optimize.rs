@@ -48,7 +48,7 @@ impl OptimizationProcess {
         let record = run_analysis::<T>(&repr);
         plots::generate_plots(&record);
 
-        Self::save_network(repr.clone(),
+        Self::save(repr.clone(),
             format!("network_{}_{}_{}",
             base_config.model, base_config.task,
             random::random_range((0,1000000)).to_string()));

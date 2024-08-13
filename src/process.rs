@@ -128,13 +128,13 @@ pub trait Process: Sync {
                 main_config.model, main_config.algorithm, main_config.eval);
     }
 
-    fn save_network(network: DefaultRepresentation, name: String) {
+    fn save<S: Serialize>(object: S, name: String) {
         let filename = format!("out/{}.json", name);
 
-        let r = utils::data::save::<DefaultRepresentation>(network, filename.as_str());
+        let r = utils::data::save::<S>(object, filename.as_str());
 
         match r {
-            Ok(_) => {log::info!("Model saved to {}", filename);},
+            Ok(_) => {log::info!("Saved data to {}", filename);},
             Err(e) => { log::error!("Could not save model: {e}"); }
         }
     }

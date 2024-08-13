@@ -89,7 +89,7 @@ impl HyperOptimization {
         plots::generate_plots(&record);
 
 
-        Self::save_network(repr.clone(),
+        Self::save(repr.clone(),
             format!("experiment_{}", utils::random::random_range((0,1000000)).to_string()));
     }
 
