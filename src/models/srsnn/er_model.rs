@@ -9,8 +9,6 @@ use utils::environment::Environment;
 
 use serde::Deserialize;
 
-use std::sync::Arc;
-
 
 #[derive(Clone, Debug)]
 pub struct ERModel;

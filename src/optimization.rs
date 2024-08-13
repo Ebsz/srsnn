@@ -36,11 +36,6 @@ impl ConfigSection for OptimizationConfig {
     }
 }
 
-struct RestartStrategy {
-    d: usize, // window which is evaluated over
-    u: f32, // Restarts if the integral is less than u
-}
-
 pub struct Optimizer;
 impl Configurable for Optimizer {
     type Config = OptimizationConfig;
@@ -60,16 +55,6 @@ impl Optimizer {
         let mut gen = 0;
         while !stop_signal.load(Ordering::SeqCst)
             && stats.sum_generations() < conf.optimizer.max_generations  {
-
-            if Self::should_restart(&stats, &conf.optimizer) {
-                algo = A::new::<M>(conf.algorithm.clone(), &conf.model, &env);
-
-                stats.new_run();
-
-                gen = 0;
-
-                continue;
-            }
 
             let ps = algo.parameter_sets();
 
@@ -98,37 +83,6 @@ impl Optimizer {
         log::info!("finished");
 
         stats
-    }
-
-    //fn stop(stats: &EvolutionStatistics) -> bool {
-    //    let n_gens = stats.sum_generations();
-    //    log::info("{}", n_gens);
-
-    //    if n_gens > 1000 {
-    //        return true;
-    //    }
-
-    //    false
-
-    //}
-
-    fn should_restart(stats: &EvolutionStatistics, conf: &OptimizationConfig) -> bool {
-        let rs = RestartStrategy { d: 10, u: 0.0, };
-        let run = stats.run();
-        let bf = &run.best_fitness;
-
-        if run.generations > conf.min_gen_before_restart {
-            let window = bf.as_slice()[bf.len()-rs.d..].to_vec();
-
-            let k: Vec<f32> = window.windows(2).map(|f| f[1] - f[0]).collect();
-
-            let sum: f32 = k.iter().sum();
-            if (sum / rs.d as f32) < rs.u {
-                log::info!("restarting: was {:#?}, min: {}", (sum / rs.d as f32), rs.u);
-                return true;
-            }
-        }
-        false
     }
 }
 

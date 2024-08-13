@@ -13,13 +13,16 @@ use utils::environment::Environment;
 
 use serde::Deserialize;
 
-use ndarray::{s, array, Array, Array1, Array2};
+use ndarray::{s, Array, Array1, Array2};
 
 use std::sync::Arc;
 
 
 // with N(0,1), 0.7 gives a starting inhibitory prob of ~0.2
 const INHIBITORY_THRESHOLD: f32 = 0.70;
+
+// Increasing this skews the sigmoid function which polarizes the connection probabilities
+const CP_COEFFICIENT: f32 = 5.0;
 
 #[derive(Clone, Debug)]
 pub struct TypedModel;
@@ -55,7 +58,7 @@ impl RSNN for TypedModel {
     fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask) {
         let (m1, m2, v1, m3, v2, v3, v4) = Self::parse_params(params, config);
 
-        let t_cpm = m1.mapv(|x| math::ml::sigmoid(x));
+        let t_cpm = m1.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
 
         let t_w = m2.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
         let p = math::ml::softmax(v1);
@@ -154,7 +157,7 @@ impl TypedModel {
     }
 
     fn get_input_cs(v2: &Array1<f32>, v3: &Array1<f32>, l: LabelFn, config: &RSNNConfig<Self>) -> ConnectionSet {
-        let input_t_cp = v2.mapv(|x| math::ml::sigmoid(x));
+        let input_t_cp = v2.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
         let input_t_w = v3.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
 
         let l1 = l.clone();
@@ -175,7 +178,7 @@ impl TypedModel {
     }
 
     fn get_output_mask(v4: &Array1<f32>, l: LabelFn) -> Mask {
-        let output_t_cp = v4.mapv(|x| math::ml::sigmoid(x));
+        let output_t_cp = v4.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
 
         let cp = ValueSet { f: Arc::new( move |_, j| output_t_cp[j as usize])};
 
@@ -196,24 +199,5 @@ pub struct TypedConfig {
 impl ConfigSection for TypedConfig {
     fn name() -> String {
         "typed_model".to_string()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn can_parse_params() {
-        // TODO: Implement
-        //
-        // test normal params can be parsed ok
-    }
-
-    #[test]
-    fn error_on_wrong_params() {
-        // TODO: Implement
-        //
-        // test that calling parse_params() with wrong params panics
-
     }
 }
