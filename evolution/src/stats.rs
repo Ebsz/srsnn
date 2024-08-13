@@ -2,6 +2,10 @@ use model::network::representation::DefaultRepresentation;
 
 use utils::math;
 
+use serde::{Serialize, Deserialize};
+
+
+#[derive(Deserialize, Serialize)]
 pub struct Run {
     pub generations: usize,
     pub mean_fitness: Vec<f32>,
@@ -42,13 +46,14 @@ impl Run {
     }
 }
 
-pub struct EvolutionStatistics {
+#[derive(Deserialize, Serialize)]
+pub struct OptimizationStatistics {
     pub runs: Vec<Run>
 }
 
-impl EvolutionStatistics {
-    pub fn new() -> EvolutionStatistics {
-        EvolutionStatistics {
+impl OptimizationStatistics {
+    pub fn new() -> OptimizationStatistics {
+        OptimizationStatistics {
             runs: vec![Run::new()]
         }
     }

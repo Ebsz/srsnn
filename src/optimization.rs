@@ -10,7 +10,7 @@ use model::network::representation::DefaultRepresentation;
 use tasks::{Task, TaskEval};
 
 use evolution::Evaluate;
-use evolution::stats::EvolutionStatistics;
+use evolution::stats::OptimizationStatistics;
 use evolution::algorithm::Algorithm;
 
 use utils::environment::Environment;
@@ -47,10 +47,10 @@ impl Optimizer {
         conf: &MainConf<M, A>,
         env: Environment,
         stop_signal: Arc<AtomicBool>)
-    -> EvolutionStatistics {
+    -> OptimizationStatistics {
         let mut algo = A::new::<M>(conf.algorithm.clone(), &conf.model, &env);
 
-        let mut stats = EvolutionStatistics::new();
+        let mut stats = OptimizationStatistics::new();
 
         let mut gen = 0;
         while !stop_signal.load(Ordering::SeqCst)
@@ -97,7 +97,7 @@ fn sorted_fitness(evals: &[Evaluation]) -> Vec<(u32, f32)> {
     sorted_fitness
 }
 
-fn log_generation<T: Task + TaskEval>(gen: usize, stats: &mut EvolutionStatistics, evals: &[Evaluation]) {
+fn log_generation<T: Task + TaskEval>(gen: usize, stats: &mut OptimizationStatistics, evals: &[Evaluation]) {
     let sorted = sorted_fitness(evals);
 
     let mean_fitness: f32 = sorted.iter().map(|(_, f)| f).sum::<f32>() / sorted.len() as f32;

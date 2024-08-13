@@ -2,7 +2,7 @@ use crate::genome::Genome;
 
 use crate::{Evaluate, EvolutionEnvironment};
 use crate::config::EvolutionConfig;
-use crate::stats::EvolutionStatistics;
+use crate::stats::OptimizationStatistics;
 
 use utils::random;
 
@@ -17,7 +17,7 @@ const STALE_THRESHOLD: f32 = 0.1;
 pub struct Population<E: Evaluate<G, P>, G: Genome, P> {
     pub generation: u32,
     pub stop_signal: Arc<AtomicBool>,
-    pub stats: EvolutionStatistics,
+    pub stats: OptimizationStatistics,
 
     population: Vec<Individual<G, P>>,
 
@@ -56,7 +56,7 @@ impl<E: Evaluate<G, P>, G: Genome, P> Population<E, G, P> {
             genome_config,
 
             evaluator,
-            stats: EvolutionStatistics::new()
+            stats: OptimizationStatistics::new()
         }
     }
 

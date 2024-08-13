@@ -10,7 +10,7 @@ use tasks::{Task, TaskEval};
 
 //use evolution::algorithm::nes::NES;
 use evolution::algorithm::snes::SeparableNES;
-use evolution::stats::EvolutionStatistics;
+use evolution::stats::OptimizationStatistics;
 
 use utils::random;
 
@@ -38,7 +38,7 @@ impl Process for OptimizationProcess {
 }
 
 impl OptimizationProcess {
-    fn report<T: Task + TaskEval>(stats: &mut EvolutionStatistics, base_config: &BaseConfig) {
+    fn report<T: Task + TaskEval>(stats: &mut OptimizationStatistics, base_config: &BaseConfig) {
         plots::plot_evolution_stats_all(stats);
 
         let (f, repr) = stats.best();

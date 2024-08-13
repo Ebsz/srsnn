@@ -3,7 +3,7 @@ use plotters::prelude::*;
 use ndarray::{s, Array, Array1, Array2, Array3};
 use model::record::{Record, RecordType, RecordDataType};
 
-use evolution::stats::EvolutionStatistics;
+use evolution::stats::OptimizationStatistics;
 
 
 pub fn generate_plots(record: &Record) {
@@ -61,7 +61,7 @@ pub fn plot_all_potentials(record: &Record) {
     }
 }
 
-pub fn plot_evolution_stats_all(stats: &EvolutionStatistics) {
+pub fn plot_evolution_stats_all(stats: &OptimizationStatistics) {
     let best: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.best_fitness.clone()).collect();
     let mean: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.mean_fitness.clone()).collect();
 
@@ -72,7 +72,7 @@ pub fn plot_evolution_stats_all(stats: &EvolutionStatistics) {
 
 }
 
-pub fn plot_evolution_stats(stats: &EvolutionStatistics) {
+pub fn plot_evolution_stats(stats: &OptimizationStatistics) {
     log::info!("Plotting evolution stats");
 
     let _ = plt::plot_single_variable(stats.runs[0].best_fitness.clone(),

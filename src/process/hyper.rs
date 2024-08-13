@@ -11,7 +11,7 @@ use model::Model;
 use model::network::representation::DefaultRepresentation;
 
 use evolution::algorithm::nes::NES;
-use evolution::stats::EvolutionStatistics;
+use evolution::stats::OptimizationStatistics;
 
 use tasks::{Task, TaskEval};
 
@@ -65,7 +65,7 @@ impl Process for HyperOptimization {
 }
 
 impl HyperOptimization {
-    fn experiment_report<T: Task + TaskEval>(stats: &mut [EvolutionStatistics], param_range: &[(f32, f32)]) {
+    fn experiment_report<T: Task + TaskEval>(stats: &mut [OptimizationStatistics], param_range: &[(f32, f32)]) {
         log::info!("Experiment report:");
 
         // Best eval for each experiment
