@@ -18,9 +18,9 @@ use ndarray_rand::rand_distr::{Uniform, StandardNormal};
 use std::iter::FromIterator;
 
 
-const N_TRIALS: usize = 5;
+const N_TRIALS: usize = 16;
 const PATTERN_SIZE: usize = 5;
-const PATTERN_MAX_PROBABILITY: f32 = 1.0;
+const PATTERN_MAX_PROBABILITY: f32 = 0.8;
 
 const SEND_TIME: u32 = 50;        // How long each pattern is sent.
 const SEND_DELAY: u32 = 70;       // Delay between patterns
@@ -165,11 +165,12 @@ impl TaskEval for PatternTask {
 
             // p[0]: patterns are equal, p[1]: patterns not equal
             let prediction = array![1.0 - avg_fr, avg_fr];
+
             let expected = if r.is_same { array![1.0, 0.0] } else { array![0.0, 1.0] };
 
             let ce_loss = math::ml::cross_entropy(&prediction, &expected);
 
-            fitness += 5.0 - ce_loss;
+            fitness += 5.0 - math::minf(&[ce_loss, 5.0]);
         }
 
         // Normalize fitness to (0, 100)
