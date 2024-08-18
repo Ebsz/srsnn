@@ -6,7 +6,7 @@ use csa::mask::Mask;
 
 use model::neuron::izhikevich::IzhikevichParameters;
 
-use utils::math;
+use utils::{math, random};
 use utils::config::{ConfigSection, Configurable};
 use utils::parameters::{Parameter, ParameterSet};
 use utils::environment::Environment;
@@ -166,10 +166,15 @@ impl TypedModel {
             move |i, _| input_t_cp[i as usize]
             )};
 
-        let m = csa::op::sbm(l.clone(), cp);
+        let l2 = l.clone();
+        let m = Mask {
+            f: Arc::new(
+                   move |i, j| random::random_range((0.0, 1.0)) < (cp.f)(l2(i), j)
+               )
+        };
 
         let w = ValueSet { f: Arc::new(
-            move |i, j| input_t_w[[l(j) as usize]]
+            move |i, _| input_t_w[[l(i) as usize]]
         )};
 
         ConnectionSet {
@@ -183,7 +188,12 @@ impl TypedModel {
 
         let cp = ValueSet { f: Arc::new( move |_, j| output_t_cp[j as usize])};
 
-        csa::op::sbm(l, cp)
+
+        Mask {
+            f: Arc::new(
+                   move |i, j| random::random_range((0.0, 1.0)) < (cp.f)(i,l(j))
+               )
+        }
     }
 }
 

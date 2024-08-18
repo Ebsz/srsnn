@@ -105,9 +105,7 @@ impl<R: RSNN> Model for RSNNModel<R> {
 
         let network_w = neural_set.v[0].matrix(self.n);
 
-        log::info!("before");
         let input_cm = input_cs.m.r_matrix(self.n, self.env.inputs);
-        log::info!("after");
 
         let input_w = input_cs.v[0].r_matrix(self.n, self.env.inputs);
 
