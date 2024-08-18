@@ -44,7 +44,7 @@ impl DefaultProcess {
     fn report<T: Task + TaskEval>(stats: &mut OptimizationStatistics, base_config: &BaseConfig) {
         plots::plot_evolution_stats_all(stats);
 
-        let (f, repr) = stats.best();
+        let (f, repr, _) = stats.best();
         log::info!("Best fitness: {f}");
         Self::analyze_network(repr);
 

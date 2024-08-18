@@ -1,6 +1,6 @@
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
-use csa::{ConnectionSet, NeuronSet, NeuralSet};
+use csa::{ConnectionSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
 
 use utils::parameters::{Parameter, ParameterSet};
@@ -14,12 +14,12 @@ use serde::Deserialize;
 pub struct ERModel;
 
 impl RSNN for ERModel {
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask) {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NetworkSet, ConnectionSet, Mask) {
         let cs = Self::connectivity(params, config);
 
         let d = Self::dynamics(params, config);
 
-        let ns = NeuralSet {
+        let ns = NetworkSet {
             m: cs.m,
             v: cs.v,
             d: vec![d]

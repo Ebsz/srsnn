@@ -1,11 +1,13 @@
 use ndarray::{s, Array, Array1, Array2};
 
+use serde::{Serialize, Deserialize};
+
 
 pub trait Parameterized {
     fn params() -> ParameterSet;
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum Parameter {
     Scalar(f32),
     Vector(Array1<f32>),
@@ -30,7 +32,7 @@ impl Parameter {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ParameterSet {
     pub set: Vec<Parameter>
 }

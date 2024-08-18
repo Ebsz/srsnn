@@ -1,4 +1,4 @@
-use crate::{ValueSet, NeuralSet};
+use crate::ValueSet;
 use crate::mask::Mask;
 
 use utils::random;

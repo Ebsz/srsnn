@@ -8,7 +8,7 @@ use std::sync::Arc;
 use mask::Mask;
 
 
-pub struct NeuralSet {
+pub struct NetworkSet {
     pub m: Mask,
     pub v: Vec<ValueSet>,
     pub d: Vec<NeuronSet>

@@ -2,7 +2,7 @@
 //! explicitly.
 //!
 
-use csa::{ConnectionSet, ValueSet, NeuronSet, NeuralSet};
+use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
@@ -24,12 +24,12 @@ const W_WEIGHTING: f32 = 3.0;
 pub struct PlainModel;
 
 impl RSNN for PlainModel {
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask) {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NetworkSet, ConnectionSet, Mask) {
         let cs = Self::connectivity(params, config);
 
         let d = Self::dynamics(params, config);
 
-        let ns = NeuralSet {
+        let ns = NetworkSet {
             m: cs.m,
             v: cs.v,
             d: vec![d]

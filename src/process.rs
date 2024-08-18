@@ -1,6 +1,5 @@
 pub mod default;
 pub mod hyper;
-pub mod experiment;
 
 use crate::analysis::graph::{Graph, GraphAnalysis};
 use crate::eval::MultiEvaluator;

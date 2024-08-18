@@ -62,8 +62,8 @@ pub fn plot_all_potentials(record: &Record) {
 }
 
 pub fn plot_evolution_stats_all(stats: &OptimizationStatistics) {
-    let best: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.best_fitness.clone()).collect();
-    let mean: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.mean_fitness.clone()).collect();
+    let best: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.best_series().clone()).collect();
+    let mean: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.mean_series().clone()).collect();
 
     let _ = plt::plot_multiple_series(best,
         "Generation best", "Evolution", "evolution_best_multi.png");

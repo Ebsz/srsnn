@@ -102,7 +102,7 @@ impl HyperOptimization {
         log::info!("Experiment report:");
 
         // Best eval for each experiment
-        let mut best: Vec<(f32, &DefaultRepresentation)> = stats.iter().map(|x| x.best()).collect();
+        let mut best: Vec<(f32, &DefaultRepresentation, _)> = stats.iter().map(|x| x.best()).collect();
 
         let z: Vec<(f32, (f32, f32))> = best.iter().map(|x| x.0).zip(param_range)
                                             .map(|(a,b)| (a,*b)).collect();
@@ -112,7 +112,7 @@ impl HyperOptimization {
             println!("{:.3} | {:?}", a, b);
         }
 
-        let (e, repr) = stats.iter().map(
+        let (e, repr, _) = stats.iter().map(
             |x| x.best()).max_by(|a,b| a.0.partial_cmp(&b.0).expect("")).unwrap();
 
         println!("Best eval: {e}");

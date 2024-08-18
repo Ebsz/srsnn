@@ -1,6 +1,6 @@
 /// Generic model of a recurrent spiking neural network
 
-use csa::{ConnectionSet, ValueSet, NeuronSet, NeuralSet};
+use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
 
 use model::Model;
@@ -20,7 +20,7 @@ use std::fmt::Debug;
 
 
 pub trait RSNN: Configurable + Clone + Debug + Sync {
-    fn get(p: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask);
+    fn get(p: &ParameterSet, config: &RSNNConfig<Self>) -> (NetworkSet, ConnectionSet, Mask);
     fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet;
 
     fn default_dynamics() -> NeuronSet {

@@ -1,7 +1,7 @@
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
 use csa::op::LabelFn;
-use csa::{ConnectionSet, ValueSet, NeuronSet, NeuralSet};
+use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
 
 use model::neuron::izhikevich::IzhikevichParameters;
@@ -55,7 +55,7 @@ impl RSNN for TypedModel {
         }
     }
 
-    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NeuralSet, ConnectionSet, Mask) {
+    fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NetworkSet, ConnectionSet, Mask) {
         let (m1, m2, v1, m3, v2, v3, v4) = Self::parse_params(params, config);
 
         let t_cpm = m1.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
@@ -75,7 +75,7 @@ impl RSNN for TypedModel {
 
         let mask = csa::op::sbm(labels.clone(), ValueSet::from_value(t_cpm.clone()));
 
-        let ns = NeuralSet {
+        let ns = NetworkSet {
             m: mask,
             v: vec![w],
             d: vec![dynamics]
