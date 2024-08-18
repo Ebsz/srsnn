@@ -26,6 +26,7 @@ pub fn set_seed(seed: u64) {
 
 pub fn random_seed() {
     let seed: u64 = rand::random();
+    log::debug!("Seed: {seed}");
 
     RNG.replace(StdRng::seed_from_u64(seed));
 }

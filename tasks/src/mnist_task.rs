@@ -8,33 +8,34 @@ use ndarray::{s, Axis, Array, Array1, Array2};
 const N_CLASSES: usize = 10;
 const OUTPUTS_PER_CLASS: usize = 2;
 
-const MAX_T: usize = 200;
+const SEND_TIME: u32 = 50;        // How long each pattern is sent.
+const SEND_DELAY: u32 = 70;       // Delay between patterns
+const RESPONSE_WINDOW: u32 = 50;
 
-const INPUT_T: usize = 28;
+const RESPONSE_START_T: u32 = SEND_TIME + SEND_DELAY;
+const MAX_T: u32 = RESPONSE_START_T + RESPONSE_WINDOW;
 
-const AGENT_INPUTS: usize = 28;
+const AGENT_INPUTS: usize = 784;
 const AGENT_OUTPUTS: usize = N_CLASSES * OUTPUTS_PER_CLASS;
 
 
 #[derive(Debug)]
 pub struct MNISTResult {
-    spikes: Array2<u32>, // T X Spikes
+    response: Array2<u32>, // T X Spikes
     label: Array1<f32>
 }
 
 #[derive(Clone)]
 pub struct MNISTSetup {
-    pub input: Array1<f32>, // 28 x T
+    pub pattern: Array1<f32>, // 28 x 28
     pub label: Array1<f32>, // One-hot encoded label
-
-    pub input_t: usize
 }
 
 pub struct MNISTTask {
     setup: MNISTSetup,
-    t: usize,
+    t: u32,
 
-    spikes: Array2<u32>
+    response: Array2<u32>
 }
 
 impl Task for MNISTTask {
@@ -42,29 +43,31 @@ impl Task for MNISTTask {
     type Result = MNISTResult;
 
     fn new(setup: &Self::Setup) -> Self {
+
+
         MNISTTask {
             setup: setup.clone(), // TODO: This clone might slow things down considerably
             t: 0,
-            spikes: Array::zeros((MAX_T, AGENT_OUTPUTS))
+            response: Array::zeros((RESPONSE_WINDOW as usize, AGENT_OUTPUTS))
         }
     }
 
-    fn tick(&mut self, input: &Vec<TaskInput>) -> TaskState<Self::Result> {
-        let output: TaskOutput = self.get_output();
-
+    fn tick(&mut self, input: TaskInput) -> TaskState<Self::Result> {
         if self.t >= MAX_T {
             return TaskState {
-                output,
-                result: Some(MNISTResult { spikes: self.spikes.clone(), label: self.setup.label.to_owned() })
+                output: self.get_output(),
+                result: Some(MNISTResult { response: self.response.clone(), label: self.setup.label.to_owned() })
             }
         }
 
-        self.save_spikes(input);
+        if self.t >= MAX_T - RESPONSE_WINDOW {
+            self.save_response(&input.data);
+        }
 
         self.t += 1;
 
         TaskState {
-            output,
+            output: self.get_output(),
             result: None
         }
     }
@@ -82,22 +85,29 @@ impl Task for MNISTTask {
 }
 
 impl MNISTTask {
-    fn save_spikes(&mut self, input: &Vec<TaskInput>) {
+    fn save_response(&mut self, input: &[u32]) {
+        let t = (self.t - RESPONSE_START_T) as usize;
+
         for i in input {
-            self.spikes[[self.t, i.input_id as usize]] = 1;
+            self.response[[t, *i as usize]] = 1;
         }
     }
 
     fn get_output(&mut self) -> TaskOutput {
-        if self.t < self.setup.input_t {
-            let ix = self.t * AGENT_INPUTS;
+        let data = if self.t < SEND_TIME {
+            encoding::rate_encode(&self.setup.pattern)
+        } else {
+            Array::zeros(AGENT_INPUTS)
+        };
 
-            let data = self.setup.input.slice(s![ix..ix+AGENT_INPUTS]).to_owned();
+        //if self.t < INPUT_SEND_TIME {
+        //    let ix = self.t * AGENT_INPUTS;
+        //    //let data = self.setup.input.slice(s![ix..ix+AGENT_INPUTS]).to_owned();
+        //    return TaskOutput { data };
+        //}
+        //log::info!("{}", data.len());
 
-            return TaskOutput { data };
-        }
-
-        TaskOutput {data: Array::zeros(AGENT_INPUTS)}
+        TaskOutput { data }
     }
 }
 
@@ -106,17 +116,15 @@ impl TaskEval for MNISTTask {
         log::info!("Loading MNIST data");
         let (data, labels) = mnist::load_mnist().expect("Could not load MNIST data");
 
-        log::trace!("Rate-encoding MNIST data");
-        let encoded_data = encoding::rate_encode_array(&data);
-
-        assert!(encoded_data.shape() == data.shape());
+        //log::trace!("Rate-encoding MNIST data");
+        //let encoded_data = encoding::rate_encode_array(&(&data * 0.8));
+        //assert!(encoded_data.shape() == data.shape());
 
         let mut setups = Vec::new();
         for i in 0..mnist::N_IMAGES_TRAIN {
             setups.push( MNISTSetup {
-                input: data.slice(s![i, ..]).to_owned(),
+                pattern: data.slice(s![i, ..]).to_owned(),
                 label: labels.slice(s![i, ..]).to_owned(),
-                input_t: INPUT_T,
             });
         }
 
@@ -124,14 +132,14 @@ impl TaskEval for MNISTTask {
     }
 
     fn fitness(results: Vec<Self::Result>) -> f32 {
-        let mut total_fitness = 200.0;
-        let batch_size: f32 = results.len() as f32;
+        let mut fitness = 0.0;
+        let batch_size = results.len();
 
         let mut correct = 0;
 
         for r in &results {
             // Number of spikes per output neuron
-            let sum = r.spikes.sum_axis(Axis(0));
+            let sum = r.response.sum_axis(Axis(0));
 
             // Number of spikes per label
             let label_sum: Array1<u32> = sum.exact_chunks(OUTPUTS_PER_CLASS)
@@ -141,11 +149,13 @@ impl TaskEval for MNISTTask {
 
             // Divide by the total time to get firing rates
             let firing_rates: Array1<f32> = label_sum.map(|x| *x as f32)
-                / (OUTPUTS_PER_CLASS as f32 * r.spikes.shape()[0] as f32);
+                / (OUTPUTS_PER_CLASS as f32 * r.response.shape()[0] as f32);
 
-            let predictions = softmax(&firing_rates);
+            let predictions = math::ml::softmax(&firing_rates);
 
-            let error = cross_entropy(&predictions, &r.label);
+            let error = math::ml::cross_entropy(&predictions, &r.label);
+
+            //log::warn!("{}", predictions);
 
             let predicted_label = math::max_index(&firing_rates);
             let label = math::max_index(&r.label);
@@ -154,29 +164,31 @@ impl TaskEval for MNISTTask {
             if predicted_label == label && !all_labels_equal {
                 correct += 1;
 
-                total_fitness += 100.0 / batch_size;
+                fitness += 5.0;
             }
 
-            total_fitness -= error;
+            fitness += 5.0 - math::minf(&[error, 5.0]);
         }
 
-        log::debug!("{}/{} correct", correct, results.len());
+        fitness = fitness / (10.0 * batch_size as f32) * 100.0;
 
-        total_fitness
+        //log::debug!("{}/{} correct", correct, results.len());
+
+        fitness
     }
 }
 
-fn softmax(x: &Array1<f32>) -> Array1<f32> {
-    let mut s = x.mapv(f32::exp);
-
-    s /= s.sum();
-
-    s
-}
-
-fn cross_entropy(predictions: &Array1<f32>, label: &Array1<f32>) -> f32 {
-    -(label * &predictions.mapv(f32::ln).view()).sum()
-}
+//fn softmax(x: &Array1<f32>) -> Array1<f32> {
+//    let mut s = x.mapv(f32::exp);
+//
+//    s /= s.sum();
+//
+//    s
+//}
+//
+//fn cross_entropy(predictions: &Array1<f32>, label: &Array1<f32>) -> f32 {
+//    -(label * &predictions.mapv(f32::ln).view()).sum()
+//}
 
 mod mnist {
     use std::fs::File;
@@ -191,7 +203,6 @@ mod mnist {
     pub const N_IMAGES_TRAIN: usize = 60000;
 
     pub fn load_mnist() -> Result<(Array2<f32>, Array2<f32>), String> {
-
         let training_data: (Vec<u8>, Vec<u8>) = load_training_set()?;
 
         let img: Array2<f32> = normalize_img(data_to_arrays(training_data.0));

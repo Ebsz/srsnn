@@ -12,9 +12,8 @@ use utils::environment::Environment;
 use ndarray::{Array1, Array2};
 
 
-/// Output of a neuron is multiplied by this; determines the impact of a single spike.
-const SYNAPTIC_INPUT_SCALING: f32 = 15.0;
-
+/// The effect of a spike is multiplied by this; determines the impact of a single spike.
+const DEFAULT_SYNAPTIC_COEFFICIENT: f32 = 15.0;
 //const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 
 pub trait Network {
@@ -31,10 +30,12 @@ pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
     pub env: Environment,
 
     pub input_matrix: Array2<f32>,      // Input matrix is f32 because it is weighted.
-    pub output_matrix: Array2<u32>,     // Output matrix is u32 as only the connections matter.
+    pub output_matrix: Array2<u32>,     // Output matrix is u32 as only the connections are used.
 
     pub record: Record,
     pub recording: bool,
+
+    pub synaptic_coefficient: f32,
 
     network_state: Spikes,
 
@@ -51,7 +52,7 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
         let external_input = self.input_matrix.dot(&input.as_float());
         let synaptic_input = self.synapse.step(&self.network_state);
 
-        let total_input = (synaptic_input + external_input) * SYNAPTIC_INPUT_SCALING;
+        let total_input = (synaptic_input + external_input) * self.synaptic_coefficient;
 
         //if let Some(n) = self.noise_input {
         //    total_input += &(random::random_vector(self.neurons.len(), Uniform::new(n.0, n.1)));
@@ -78,6 +79,10 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
     fn reset_state(&mut self) {
         self.neurons.reset();
         self.synapse.reset();
+
+        self.network_state = Spikes::new(self.neurons.len());
+
+        self.record = Record::new();
     }
 }
 
@@ -97,6 +102,8 @@ impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
             output_matrix,
 
             network_state: Spikes::new(network_size),
+
+            synaptic_coefficient: DEFAULT_SYNAPTIC_COEFFICIENT,
 
             record: Record::new(),
             recording: false

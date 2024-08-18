@@ -85,7 +85,6 @@ impl Algorithm for SeparableNES {
     }
 }
 
-
 impl SeparableNES {
     fn get_population(
         mu: &Array1<f32>,

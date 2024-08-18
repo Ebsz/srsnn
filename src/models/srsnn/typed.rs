@@ -156,13 +156,14 @@ impl TypedModel {
         )}
     }
 
-    fn get_input_cs(v2: &Array1<f32>, v3: &Array1<f32>, l: LabelFn, config: &RSNNConfig<Self>) -> ConnectionSet {
-        let input_t_cp = v2.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
+    fn get_input_cs(v2: &Array1<f32>, v3: &Array1<f32>, l: LabelFn, config: &RSNNConfig<Self>)
+        -> ConnectionSet {
+        let input_t_cp = v2.mapv(|x| math::ml::sigmoid(x));
         let input_t_w = v3.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
 
         let l1 = l.clone();
         let cp = ValueSet { f: Arc::new(
-            move |_, j| input_t_cp[j as usize]
+            move |i, _| input_t_cp[i as usize]
             )};
 
         let m = csa::op::sbm(l.clone(), cp);
@@ -178,7 +179,7 @@ impl TypedModel {
     }
 
     fn get_output_mask(v4: &Array1<f32>, l: LabelFn) -> Mask {
-        let output_t_cp = v4.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
+        let output_t_cp = v4.mapv(|x| math::ml::sigmoid(x));
 
         let cp = ValueSet { f: Arc::new( move |_, j| output_t_cp[j as usize])};
 

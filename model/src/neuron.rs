@@ -31,9 +31,3 @@ pub trait NeuronModel {
         self.potentials().shape()[0]
     }
 }
-
-
-//pub struct NeuronModelDescription<N: NeuronModel> {
-//    inhibitory: bool,
-//    params: N::Parameters
-//}

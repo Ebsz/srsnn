@@ -1,5 +1,6 @@
-pub mod optimize;
+pub mod default;
 pub mod hyper;
+pub mod experiment;
 
 use crate::analysis::graph::{Graph, GraphAnalysis};
 use crate::eval::MultiEvaluator;
@@ -20,12 +21,14 @@ use tasks::pattern_task::PatternTask;
 use tasks::catching_task::CatchingTask;
 use tasks::xor_task::XORTask;
 use tasks::pole_balancing_task::PoleBalancingTask;
-//use tasks::mnist_task::MNISTTask;
+use tasks::mnist_task::MNISTTask;
 //use tasks::movement_task::MovementTask;
 //use tasks::survival_task::SurvivalTask;
 //use tasks::energy_task::EnergyTask;
 
 use evolution::algorithm::Algorithm;
+
+use serde::Serialize;
 
 use utils::environment::Environment;
 
@@ -34,6 +37,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 
 pub trait Process: Sync {
+    //type Output;
+
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig);
 
     fn init(config: BaseConfig) {
@@ -57,10 +62,10 @@ pub trait Process: Sync {
             "pattern"     => { Self::run::<M, PatternTask>(config); },
             "catching"    => { Self::run::<M, CatchingTask>(config); },
             "xor"         => { Self::run::<M, XORTask>(config); },
+            "mnist"       => { Self::run::<M, MNISTTask>(config); },
             //"movement"    => { Self::run::<M, MovementTask>(config); },
             //"survival"    => { Self::run::<M, SurvivalTask>(config); },
             //"energy"      => { Self::run::<M, EnergyTask>(config); },
-            //"mnist"       => { Self::run::<M, MNISTTask>(config); },
             _ => { println!("Unknown task: {}", config.task); }
         }
     }
@@ -85,7 +90,7 @@ pub trait Process: Sync {
 
     fn evaluator<T: Task + TaskEval>(base_conf: &BaseConfig, eval_conf: &EvalConfig) -> MultiEvaluator<T> {
         let batch_conf = match base_conf.task.as_str() {
-            "mnist" => {
+            "mnist" | "pattern" => {
                 let bc = get_config::<Batch>();
 
                 log::info!("Batch config:\n{:#?}", bc);
@@ -124,8 +129,10 @@ pub trait Process: Sync {
         log::info!("\n[Configs] \n\
                 model = {:#?}\n\
                 algorithm = {:#?}\n\
-                eval = {:#?}",
-                main_config.model, main_config.algorithm, main_config.eval);
+                eval = {:#?}\n\
+                optimizer= {:#?}",
+                main_config.model, main_config.algorithm, main_config.eval,
+                main_config.optimizer);
     }
 
     fn save<S: Serialize>(object: S, name: String) {
@@ -151,6 +158,7 @@ pub trait Process: Sync {
             .map(|n| f32::from(n.inhibitory)).sum();
 
         println!("\n    inhibitory: {} ({:.3}%)", n_inhibitory, (n_inhibitory / r.neurons.len() as f32) * 100.0);
+
     }
 }
 

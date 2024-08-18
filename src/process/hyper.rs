@@ -4,7 +4,7 @@ use crate::plots;
 use crate::eval::MultiEvaluator;
 use crate::process::Process;
 use crate::optimization::Optimizer;
-use crate::config::BaseConfig;
+use crate::config::{get_config, BaseConfig};
 use crate::analysis::run_analysis;
 
 use model::Model;
@@ -15,10 +15,40 @@ use evolution::stats::OptimizationStatistics;
 
 use tasks::{Task, TaskEval};
 
+use utils::config::{ConfigSection, Configurable};
+
 use ndarray::Array;
+use serde::Deserialize;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct HyperConfig {
+    pub alpha: Option<(f32, f32)>,
+    pub sigma: Option<(f32, f32)>,
+
+    pub trials: (f32, f32),
+}
+
+impl Configurable for HyperOptimization {
+    type Config = HyperConfig;
+
+}
+
+impl ConfigSection for HyperConfig {
+    fn name() -> String {
+        "hyper".to_string()
+    }
+}
+
+//impl HyperConfig {
+//    fn cartesian(&self) -> Vec{
+//
+//    }
+//}
+
 
 
 /// Optimization of config parameters
@@ -26,13 +56,13 @@ pub struct HyperOptimization;
 
 impl Process for HyperOptimization {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {
-        let mut main_conf = Self::main_conf::<M, T, NES>();
+        let hyper_conf = get_config::<Self>();
 
+        let mut main_conf = Self::main_conf::<M, T, NES>();
         let env = Self::environment::<T>();
+
         Self::log_config(&conf, &main_conf, &env);
 
-        let stop_signal = Arc::new(AtomicBool::new(false));
-        Self::init_ctrl_c_handler(stop_signal.clone());
 
         // Create params
         let alpha = Array::linspace(0.001, 0.01, 2).to_vec();
@@ -41,6 +71,9 @@ impl Process for HyperOptimization {
         // Cartesian of the parameters
         let params: Vec<(f32, f32)> = alpha.iter()
             .flat_map(|&x| std::iter::repeat(x).zip(sigma.clone())).collect();
+
+        let stop_signal = Arc::new(AtomicBool::new(false));
+        Self::init_ctrl_c_handler(stop_signal.clone());
 
         log::info!("Starting hyperparameter search over {} parameter sets", params.len());
         let mut stats = vec![];

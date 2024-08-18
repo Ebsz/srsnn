@@ -44,6 +44,19 @@ impl ValueSet {
 
         m
     }
+
+    pub fn r_matrix(&self, n: usize, m: usize) -> Array2<f32> {
+        let mut mx = Array::zeros((n,m));
+
+        for (ix, v) in mx.iter_mut().enumerate() {
+            let i = (ix / m) as u32;
+            let j = (ix % m) as u32;
+
+            *v = (self.f)(i,j);
+        }
+
+        mx
+    }
 }
 
 pub type NeuronFn = Arc<dyn Fn(u32) -> Array1<f32>>;

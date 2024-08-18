@@ -13,12 +13,14 @@ use utils::math;
 use utils::encoding::rate_encode;
 
 use ndarray::{array, Array, Array1, Array2, Axis};
-use ndarray_rand::rand_distr::{Uniform, StandardNormal};
+use ndarray_rand::rand_distr::StandardNormal;
 
 use std::iter::FromIterator;
 
 
-const N_TRIALS: usize = 16;
+// Must be a multiple of 2, as setups are created pairwise
+const DATASET_SIZE: usize = 1024;
+
 const PATTERN_SIZE: usize = 5;
 const PATTERN_MAX_PROBABILITY: f32 = 0.8;
 
@@ -42,9 +44,9 @@ pub struct PatternTaskResult {
 
 #[derive(Clone)]
 pub struct PatternTaskSetup {
-    dist1: Array1<f32>,
-    dist2: Array1<f32>,
-    is_same: bool
+    pub dist1: Array1<f32>,
+    pub dist2: Array1<f32>,
+    pub is_same: bool
 }
 
 pub struct PatternTask {
@@ -63,7 +65,7 @@ impl Task for PatternTask {
             setup: setup.clone(),
             t: 0,
 
-            response: Array::zeros((RESPONSE_WINDOW as usize, AGENT_INPUTS))
+            response: Array::zeros((RESPONSE_WINDOW as usize, AGENT_OUTPUTS))
         }
     }
 
@@ -81,7 +83,6 @@ impl Task for PatternTask {
         // Capture response
         if self.t >= MAX_T - RESPONSE_WINDOW {
             self.save_response(&input.data);
-
         }
 
         self.t += 1;
@@ -112,7 +113,7 @@ impl PatternTask {
         } else if self.t > (SEND_TIME + SEND_DELAY) && self.t < (2*SEND_TIME + SEND_DELAY) { // Second pattern
             rate_encode(&self.setup.dist2)
         } else {
-            Array::zeros(AGENT_OUTPUTS)
+            Array::zeros(AGENT_INPUTS)
         };
 
         TaskOutput { data }
@@ -124,22 +125,16 @@ impl PatternTask {
         for i in input {
             self.response[[t, *i as usize]] = 1;
         }
-
-        // TODO: TEMP - FOR TESTING
-        //for i in 0..25 {
-        //    if random::random_range((0.0, 1.0)) > 0.8 {
-        //        self.response[[t, i]] = 1;
-        //    }
-        //}
-        // TODO: /TEMP
     }
 }
 
 impl TaskEval for PatternTask {
     fn eval_setups() -> Vec<Self::Setup> {
+        assert!(DATASET_SIZE % 2 == 0, "DATASET_SIZE must be a multiple of 2");
+
         let mut setups = vec![];
 
-        for i in 0..N_TRIALS {
+        for i in 0..DATASET_SIZE/2 {
             let d = pattern(PATTERN_SIZE);
             setups.push(PatternTaskSetup {
                 dist1: d.clone(),
@@ -176,6 +171,14 @@ impl TaskEval for PatternTask {
         // Normalize fitness to (0, 100)
         fitness = fitness * 100.0 /(5.0 * results.len() as f32);
 
+        if fitness == 100.0 {
+            for r in &results {
+                println!("{:#?}", r.output);
+            }
+
+            assert!(false, "bug");
+        }
+
         fitness
     }
 }
@@ -199,4 +202,23 @@ pub fn pattern(n: usize) -> Array1<f32> {
     }
 
     Array::from_iter(p.iter().cloned())
+}
+
+pub fn validation_setups(n: usize) -> Vec<PatternTaskSetup> {
+    let mut setups = vec![];
+
+    for i in 0..n {
+        let d = pattern(PATTERN_SIZE);
+        setups.push(PatternTaskSetup {
+            dist1: d.clone(),
+            dist2: d,
+            is_same: true});
+
+        setups.push(PatternTaskSetup {
+            dist1: pattern(PATTERN_SIZE),
+            dist2: pattern(PATTERN_SIZE),
+            is_same: false});
+    }
+
+    setups
 }

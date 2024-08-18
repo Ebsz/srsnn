@@ -80,7 +80,17 @@ fn dist(c: CoordinateFn) -> Metric {
     })
 }
 
-//fn sample(v: ValueSet<f32>) ->
+
+/// The group operator applies the label function to all
+/// the structures in the network set
+pub fn group(l: LabelFn, m: Mask) -> Mask {
+    let f = m.f.clone();
+
+    Mask { f: Arc::new(
+        move |i, j| f(l(i), l(j))
+        )}
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -119,7 +129,6 @@ mod tests {
 
         let cpm = ValueSet::from_value(array![[0.0,1.0,],
                                               [1.0,0.0,]]);
-
         let m = sbm(labels, cpm);
 
         let mx = m.matrix(10);
@@ -133,5 +142,10 @@ mod tests {
         assert!(b.iter().all(|x| *x == 1));
         assert!(c.iter().all(|x| *x == 1));
         assert!(d.iter().all(|x| *x == 0));
+    }
+
+    #[test]
+    fn group_op() {
+        // TODO: implement
     }
 }

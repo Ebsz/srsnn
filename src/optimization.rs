@@ -1,4 +1,4 @@
-use crate::eval::Evaluation;
+use crate::eval::{Evaluation, validate_pattern_task};
 use crate::process::MainConf;
 use crate::analysis::graph::{Graph, GraphAnalysis};
 
@@ -16,6 +16,8 @@ use evolution::algorithm::Algorithm;
 use utils::environment::Environment;
 
 use serde::Deserialize;
+
+use ndarray::Array1;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -100,7 +102,10 @@ fn sorted_fitness(evals: &[Evaluation]) -> Vec<(u32, f32)> {
 fn log_generation<T: Task + TaskEval>(gen: usize, stats: &mut OptimizationStatistics, evals: &[Evaluation]) {
     let sorted = sorted_fitness(evals);
 
-    let mean_fitness: f32 = sorted.iter().map(|(_, f)| f).sum::<f32>() / sorted.len() as f32;
+    let scores: Array1<f32> = sorted.iter().map(|(_, f)| *f).collect();
+
+    let fitness_mean: f32 = scores.iter().sum::<f32>() / sorted.len() as f32;
+    let fitness_std: f32 = scores.std(0.0);
     let best_fitness: f32 = sorted[0].1;
 
     let best: &DefaultRepresentation = evals.iter()
@@ -110,11 +115,14 @@ fn log_generation<T: Task + TaskEval>(gen: usize, stats: &mut OptimizationStatis
     analyze_model::<T>(best);
 
     if gen % LOG_FREQ == 0 {
-        log::info!("Generation {} - best fit: {:.3}, mean: {:.3} - ({}, {})",
-            gen, best_fitness, mean_fitness, stats.runs.len(), stats.sum_generations());
+        log::info!("Generation {} - best fit: {:.3}, mean: {:.3}, std: {:.3} - ({}, {})",
+            gen, best_fitness, fitness_mean, fitness_std, stats.runs.len(), stats.sum_generations());
     }
 
-    stats.log_generation(best_fitness, mean_fitness, best.clone());
+    //let val_fitness = validate_pattern_task(best);
+    //log::info!("val eval: {val_fitness}");
+
+    stats.log_generation(best_fitness, fitness_mean, best.clone());
 }
 
 fn analyze_model<T: Task + TaskEval>(r: &DefaultRepresentation) {

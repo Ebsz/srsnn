@@ -1,23 +1,19 @@
 ## Default
-process = "optimize"
+process = "default"
 
 model = "typed"
-task = "pattern"
-algorithm = "nes"
+task = "mnist" # "mnist" "pattern"
+algorithm = "snes"
 
 log_level = "debug"
 
-[optimizer]
-max_generations = 10000
-min_gen_before_restart= 50 # minimum 25
 
-#[nes]
-#population_size = 200
-#alpha = 0.5     # 0.001 # Learning rate
-#sigma = 0.1     # 0.1   # Noise standard deviation
-#
-#init_mean =    0.0
-#init_stddev =  1.0
+[batch]
+batch_size = 64
+
+[optimizer]
+max_generations = 200000
+min_gen_before_restart= 200 # minimum 25
 
 [snes]
 pop_size = 100
@@ -25,12 +21,12 @@ lr_mu = 0.1
 lr_sigma = 0.01
 
 [eval]
-max_threads = 16
-trials = 1
+max_threads = 32
+trials = 2
 
 [rsnn]
 n = 128
 
 [rsnn.model]
-k = 8
+k = 10
 max_w = 1.0

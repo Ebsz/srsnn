@@ -20,6 +20,7 @@ use utils::config::Configurable;
 
 use std::thread;
 use std::sync::Arc;
+use std::time::Instant;
 
 use crossbeam::queue::ArrayQueue;
 
@@ -32,9 +33,9 @@ pub fn evaluate_on_task<T: Task + TaskEval> (
     repr: &DefaultRepresentation,
     setups: &[T::Setup]
 ) -> f32 {
-    let mut r = RunnableNetwork::<DefaultNetwork>::build(repr);
 
     let mut results: Vec<T::Result> = Vec::new();
+    let mut r = RunnableNetwork::<DefaultNetwork>::build(repr);
 
     for s in setups {
         let task = T::new(s);
@@ -60,16 +61,21 @@ pub struct MultiEvaluator<T: Task + TaskEval> {
 
 impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiEvaluator<T> {
     fn eval(&mut self, models: &[(u32, &M)]) -> Vec<Evaluation> {
+        let t0 = Instant::now();
+
         let n_samples = models.len() * self.config.trials;
 
         let input_queue: Arc<ArrayQueue<Trial>> = Arc::new(ArrayQueue::new(n_samples));
         let output_queue: Arc<ArrayQueue<Evaluation>> = Arc::new(ArrayQueue::new(n_samples));
 
+
+        log::trace!("Developing models");
         for m in models {
             for _ in 0..self.config.trials {
                 let _ = input_queue.push((m.0, m.1.develop()));
             }
         }
+        log::trace!("Developed population in {:.2}s", t0.elapsed().as_secs_f32());
 
         assert!(input_queue.len() == n_samples);
 
@@ -78,6 +84,7 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
         // Don't create more threads than there are objects to evaluate
         let n_threads = std::cmp::min(self.config.max_threads, models.len());
 
+        log::trace!("Starting eval");
         thread::scope(|s| {
             for _ in 0..n_threads {
                 let iq = input_queue.clone();
@@ -108,6 +115,12 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
         self.setup.next();
 
         assert!(evals.len() == models.len());
+
+        let elapsed_t = t0.elapsed().as_secs_f32();
+
+        log::debug!("Finished {} evals in {:.3}s ({:.2} evals per second)",
+            evals.len(),  elapsed_t, evals.len() as f32 / elapsed_t);
+
         evals
     }
 }
@@ -150,3 +163,51 @@ impl<T: Task + TaskEval> Configurable for MultiEvaluator<T> {
     type Config = EvalConfig;
 }
 
+use tasks::pattern_task::{PatternTask, PatternTaskResult, validation_setups};
+use ndarray::array;
+
+pub fn validate_pattern_task(r: &DefaultRepresentation) -> f32 {
+    const N_VALIDATIONS: usize = 100;
+
+    let setups = validation_setups(N_VALIDATIONS);
+
+    let mut results = vec![];
+
+    for s in &setups {
+        let task = PatternTask::new(s);
+        let mut runnable = RunnableNetwork::<DefaultNetwork>::build(r);
+
+        runnable.network.enable_recording();
+
+        let mut runner = TaskRunner::new(task, &mut runnable);
+        let res = runner.run();
+
+        results.push(res);
+    }
+
+    let acc = calculate_accuracy(&results);
+    log::info!("accuracy: {acc}");
+
+    PatternTask::fitness(results)
+}
+
+fn calculate_accuracy(results: &Vec<PatternTaskResult>) -> f32 {
+    let mut correct = 0;
+
+    for r in results {
+        let (w,h) = (r.output.shape()[0], r.output.shape()[1]);
+
+        let avg_fr = r.output.iter().sum::<u32>() as f32 /  (w * h)  as f32;
+
+        // p[0]: patterns are equal, p[1]: patterns not equal
+        let prediction = array![1.0 - avg_fr, avg_fr];
+
+        if r.is_same && prediction[0] > prediction[1]  {
+            correct += 1;
+        } else if !r.is_same && prediction[1] > prediction[0] {
+            correct += 1;
+        }
+    }
+
+    correct as f32 / results.len() as f32
+}

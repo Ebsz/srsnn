@@ -11,7 +11,11 @@ impl<T: Task + TaskEval> EvalSetup<T> {
         match self {
             EvalSetup::Base(setup) => &setup,
             EvalSetup::Batched(b) => {
-                &b.setups[b.batch_index..(b.batch_index + b.batch_size)]
+                let setups = &b.setups[b.batch_index..(b.batch_index + b.batch_size)];
+
+                assert!(setups.len() == b.batch_size);
+
+                setups
             }
         }
     }

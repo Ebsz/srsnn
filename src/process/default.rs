@@ -1,4 +1,6 @@
-//! Perform a single optimization run
+//! Default process.
+//!
+//! Performs a single optimization run.
 
 use crate::config::BaseConfig;
 use crate::analysis::run_analysis;
@@ -10,7 +12,6 @@ use model::Model;
 
 use tasks::{Task, TaskEval};
 
-//use evolution::algorithm::nes::NES;
 use evolution::algorithm::snes::SeparableNES;
 use evolution::stats::OptimizationStatistics;
 
@@ -20,8 +21,8 @@ use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 
 
-pub struct OptimizationProcess;
-impl Process for OptimizationProcess {
+pub struct DefaultProcess;
+impl Process for DefaultProcess {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {
         let main_conf = Self::main_conf::<M, T, SeparableNES>();
 
@@ -39,7 +40,7 @@ impl Process for OptimizationProcess {
     }
 }
 
-impl OptimizationProcess {
+impl DefaultProcess {
     fn report<T: Task + TaskEval>(stats: &mut OptimizationStatistics, base_config: &BaseConfig) {
         plots::plot_evolution_stats_all(stats);
 

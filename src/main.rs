@@ -1,5 +1,5 @@
 use luna::process::Process;
-use luna::process::{optimize, hyper};
+use luna::process::{default, hyper, experiment};
 use luna::config::{base_config, BaseConfig};
 
 use utils::random;
@@ -20,8 +20,9 @@ fn parse_config_name_from_args() -> Option<String> {
 
 fn run_process(config: BaseConfig) {
     match config.process.as_str() {
-        "optimize" => { optimize::OptimizationProcess::init(config); },
-        "hyper"    => { hyper::HyperOptimization::init(config); },
+        "default"   => { default::DefaultProcess::init(config); },
+        "hyper"      => { hyper::HyperOptimization::init(config); },
+        "experiment" => { experiment::ExperimentProcess::init(config); },
         _          => { println!("Unknown process: {}", config.process); }
     }
 }
@@ -32,9 +33,7 @@ fn main() {
 
     init_logger(config.log_level.clone());
     log::debug!("Using config: {}", config_name.unwrap_or("default".to_string()));
-    //log::debug!("seed is {}", random::SEED);
 
-    log::info!("Using random seed");
     random::random_seed();
 
     run_process(config);

@@ -29,6 +29,21 @@ impl Mask {
 
         m
     }
+
+    pub fn r_matrix(&self, n: usize, m: usize) -> Array2<u32> {
+        let mut mx = Array::zeros((n,m));
+
+        for (ix, v) in mx.iter_mut().enumerate() {
+            let i = (ix / m) as u32;
+            let j = (ix % m) as u32;
+
+            if (self.f)(i,j) {
+                *v = 1;
+            }
+        }
+
+        mx
+    }
 }
 
 impl Add for Mask {
