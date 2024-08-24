@@ -1,6 +1,6 @@
-use luna::process::Process;
-use luna::process::{default, hyper, experiment};
-use luna::config::{base_config, BaseConfig};
+use srsnn::process::Process;
+use srsnn::process::{default, hyper, experiment};
+use srsnn::config::{base_config, BaseConfig};
 
 use utils::random;
 use utils::logger::init_logger;

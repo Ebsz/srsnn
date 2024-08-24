@@ -1,4 +1,4 @@
-use luna::pools::Pool;
+use srsnn::pools::Pool;
 use model::network::runnable::RunnableNetwork;
 use ndarray::{Array, Array2};
 

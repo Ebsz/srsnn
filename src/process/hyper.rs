@@ -10,81 +10,54 @@ use crate::analysis::run_analysis;
 use model::Model;
 use model::network::representation::DefaultRepresentation;
 
-use evolution::algorithm::nes::NES;
+use evolution::algorithm::snes::SeparableNES;
 use evolution::stats::OptimizationStatistics;
 
 use tasks::{Task, TaskEval};
 
 use utils::config::{ConfigSection, Configurable};
 
-use ndarray::Array;
+use ndarray::{array, Array};
 use serde::Deserialize;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 
-#[derive(Clone, Debug, Deserialize)]
-pub struct HyperConfig {
-    pub alpha: Option<(f32, f32)>,
-    pub sigma: Option<(f32, f32)>,
-
-    pub trials: (f32, f32),
-}
-
-impl Configurable for HyperOptimization {
-    type Config = HyperConfig;
-
-}
-
-impl ConfigSection for HyperConfig {
-    fn name() -> String {
-        "hyper".to_string()
-    }
-}
-
-//impl HyperConfig {
-//    fn cartesian(&self) -> Vec{
-//
-//    }
-//}
-
-
-
-/// Optimization of config parameters
 pub struct HyperOptimization;
 
 impl Process for HyperOptimization {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {
-        let hyper_conf = get_config::<Self>();
-
-        let mut main_conf = Self::main_conf::<M, T, NES>();
+        let mut main_conf = Self::main_conf::<M, T, SeparableNES>();
         let env = Self::environment::<T>();
 
         Self::log_config(&conf, &main_conf, &env);
 
-
         // Create params
-        let alpha = Array::linspace(0.001, 0.01, 2).to_vec();
-        let sigma = Array::linspace(0.1, 1.5, 10).to_vec();
+        let lr_mu = array![0.1, 0.2, 0.3, 0.4, 0.5]; //Array::linspace(0.1, 1.5, 10).to_vec();
+        let lr_sigma = array![0.01, 0.05, 0.1];  //Array::linspace(0.001, 0.01, 2).to_vec();
 
         // Cartesian of the parameters
-        let params: Vec<(f32, f32)> = alpha.iter()
-            .flat_map(|&x| std::iter::repeat(x).zip(sigma.clone())).collect();
+        let params: Vec<(f32, f32)> = lr_mu.iter()
+            .flat_map(|&x| std::iter::repeat(x).zip(lr_sigma.clone())).collect();
 
         let stop_signal = Arc::new(AtomicBool::new(false));
         Self::init_ctrl_c_handler(stop_signal.clone());
 
         log::info!("Starting hyperparameter search over {} parameter sets", params.len());
+
+        let setups = T::eval_setups();
+
         let mut stats = vec![];
         for p in &params {
-            main_conf.algorithm.alpha = p.0;
-            main_conf.algorithm.sigma = p.1;
+            main_conf.algorithm.lr_mu = p.0;
+            main_conf.algorithm.lr_sigma = p.1;
+            //main_conf.eval.trials = p.2;
 
-            log::info!("alpha: {}, sigma: {}", main_conf.algorithm.alpha, main_conf.algorithm.sigma);
+            log::info!("lr_mu: {}, lr_sigma: {}", main_conf.algorithm.lr_mu, main_conf.algorithm.lr_sigma);
 
-            let evaluator: MultiEvaluator<T> = Self::evaluator(&conf, &main_conf.eval);
-            let s = Optimizer::optimize::<M, T, NES>(evaluator, &main_conf, env.clone(), stop_signal.clone());
+            let evaluator: MultiEvaluator<T> = Self::evaluator(&conf, &main_conf.eval, setups.clone());
+            let s = Optimizer::optimize::<M, T, SeparableNES>(evaluator, &main_conf, env.clone(), stop_signal.clone());
             stats.push(s);
 
             if stop_signal.load(Ordering::SeqCst) {
@@ -93,12 +66,12 @@ impl Process for HyperOptimization {
             }
         }
 
-        Self::experiment_report::<T>(&mut stats, params.as_slice());
+        Self::hyper_report::<T>(&mut stats, params.as_slice());
     }
 }
 
 impl HyperOptimization {
-    fn experiment_report<T: Task + TaskEval>(stats: &mut [OptimizationStatistics], param_range: &[(f32, f32)]) {
+    fn hyper_report<T: Task + TaskEval>(stats: &mut [OptimizationStatistics], param_range: &[(f32, f32)]) {
         log::info!("Experiment report:");
 
         // Best eval for each experiment
@@ -125,5 +98,4 @@ impl HyperOptimization {
         Self::save(repr.clone(),
             format!("experiment_{}", utils::random::random_range((0,1000000)).to_string()));
     }
-
 }

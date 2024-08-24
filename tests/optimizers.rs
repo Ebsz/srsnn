@@ -1,5 +1,5 @@
-use luna::models::srsnn::typed::{TypedModel, TypedConfig};
-use luna::models::rsnn::{RSNNModel, RSNNConfig};
+use srsnn::models::srsnn::typed::{TypedModel, TypedConfig};
+use srsnn::models::rsnn::{RSNNModel, RSNNConfig};
 
 use evolution::algorithm::Algorithm;
 use evolution::algorithm::snes::{SeparableNES, SNESConfig};

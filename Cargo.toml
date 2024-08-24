@@ -1,8 +1,8 @@
 [package]
-name = "luna"
+name = "srsnn"
 version = "0.1.0"
 edition = "2021"
-default-run = "luna"
+default-run = "srsnn"
 
 [dependencies]
 csa = {path = "csa"}

@@ -63,6 +63,11 @@ impl RSNN for TypedModel {
         let t_w = m2.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
         let p = math::ml::softmax(v1);
 
+        assert!(!p.iter().all(|x| x.is_nan()), "p contained NaN - p: {p}, v1: {v1}");
+
+        let p_test = p.as_slice().unwrap();
+        assert!(!p_test.iter().all(|x| x.is_nan()), "p contained NaN - p: {p}, v1: {v1}");
+
         let dist = math::distribute(config.n, p.as_slice().unwrap());
         let labels = csa::op::label(dist, config.model.k);
 

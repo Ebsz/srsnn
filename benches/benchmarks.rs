@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-use luna::pools::Pool;
+use srsnn::pools::Pool;
 use model::network::Network;
 
 use ndarray::{Array, Array2};

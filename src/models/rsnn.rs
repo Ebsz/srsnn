@@ -110,17 +110,14 @@ impl<R: RSNN> Model for RSNNModel<R> {
         let input_w = input_cs.v[0].r_matrix(self.n, self.env.inputs);
 
         let output_cm = output_mask.r_matrix(self.env.outputs, self.n);
-        //let output_cm = output_mask.matrix(self.n).slice(s![..self.env.outputs, ..]).to_owned();
 
         if output_cm.iter().all(|c| *c == 0) {
-            log::warn!("No output connections");
+            log::trace!("No output connections");
         }
 
         if input_cm.iter().all(|c| *c == 0) {
-            log::warn!("No connections from input");
+            log::trace!("No connections from input");
         }
-
-        //log::info!("{:#?}", output_cm);
 
         NetworkRepresentation::new(neurons.into(),
             network_cm,

@@ -6,6 +6,7 @@ use tasks::movement_task::{MovementTask, MovementTaskSetup};
 use tasks::survival_task::{SurvivalTask, SurvivalTaskSetup};
 use tasks::pole_balancing_task::{PoleBalancingTask, PoleBalancingSetup};
 
+use ndarray::Array;
 use ndarray_rand::rand::rngs::StdRng;
 use ndarray_rand::rand::{Rng, SeedableRng};
 
@@ -116,7 +117,7 @@ impl<T: Task + TaskRenderer> TaskTester<T>
     }
 
     pub fn run(&mut self) {
-        let mut task_input: Vec<TaskInput> = Vec::new();
+        let mut task_input: Vec<u32> = Vec::new();
 
         self.canvas.clear();
         self.canvas.present();
@@ -164,7 +165,7 @@ impl<T: Task + TaskRenderer> TaskTester<T>
                     },
                     Event::KeyDown {keycode, ..} => {
                         match self.input_map.get(&keycode.unwrap()) {
-                            Some(id) => { task_input.push(TaskInput { input_id: *id }); },
+                            Some(id) => { task_input.push(*id); },
                             None => {}
                         }
                     }
@@ -177,9 +178,10 @@ impl<T: Task + TaskRenderer> TaskTester<T>
         }
     }
 
-    fn update(&mut self, input: &Vec<TaskInput>) {
+    fn update(&mut self, input: &Vec<u32>) {
+
         if !self.finished {
-            let state = self.task.tick(input);
+            let state = self.task.tick(TaskInput {data: input.clone() });
 
             if let Some(_) = state.result {
                 self.finished = true;
