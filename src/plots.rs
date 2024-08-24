@@ -61,25 +61,17 @@ pub fn plot_all_potentials(record: &Record) {
     }
 }
 
-pub fn plot_evolution_stats_all(stats: &OptimizationStatistics) {
+pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
     let best: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.best_series().clone()).collect();
     let mean: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.mean_series().clone()).collect();
+    let std: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.stddev_series().clone()).collect();
 
     let _ = plt::plot_multiple_series(best,
-        "Generation best", "Evolution", "evolution_best_multi.png");
+        "Generation best", "Evolution", format!("{}_best.png", name).as_str());
     let _ = plt::plot_multiple_series(mean,
-        "Generation mean", "Evolution", "evolution_mean_multi.png");
-
-}
-
-pub fn plot_evolution_stats(stats: &OptimizationStatistics) {
-    log::info!("Plotting evolution stats");
-
-    let _ = plt::plot_single_variable(stats.runs[0].best_fitness.clone(),
-        "Generation best", "Evolution", "evolution_best.png", &BLUE);
-
-    let _ = plt::plot_single_variable(stats.runs[0].mean_fitness.clone(),
-        "Generation mean", "Evolution", "evolution_mean.png", &BLUE);
+        "Generation mean", "Evolution", format!("{}_mean.png", name).as_str());
+    let _ = plt::plot_multiple_series(std,
+        "Generation mean", "Evolution", format!("{}_std.png", name).as_str());
 }
 
 pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {

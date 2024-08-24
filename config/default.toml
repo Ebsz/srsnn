@@ -1,19 +1,17 @@
-## Default
-process = "default"
+# Default
+process = "experiment"
 
 model = "typed"
-task = "mnist" # "mnist" "pattern"
+task = "pattern"
 algorithm = "snes"
 
 log_level = "debug"
 
-
-[batch]
-batch_size = 64
+[experiment]
+n_runs = 50
 
 [optimizer]
-max_generations = 200000
-min_gen_before_restart= 200 # minimum 25
+max_generations = 200
 
 [snes]
 pop_size = 100
@@ -22,11 +20,14 @@ lr_sigma = 0.01
 
 [eval]
 max_threads = 32
-trials = 2
+trials = 1
+
+[batch]
+batch_size = 32
 
 [rsnn]
-n = 128
+n = 64
 
 [rsnn.model]
-k = 10
+k = 8
 max_w = 1.0

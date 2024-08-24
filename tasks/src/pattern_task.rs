@@ -203,22 +203,3 @@ pub fn pattern(n: usize) -> Array1<f32> {
 
     Array::from_iter(p.iter().cloned())
 }
-
-pub fn validation_setups(n: usize) -> Vec<PatternTaskSetup> {
-    let mut setups = vec![];
-
-    for i in 0..n {
-        let d = pattern(PATTERN_SIZE);
-        setups.push(PatternTaskSetup {
-            dist1: d.clone(),
-            dist2: d,
-            is_same: true});
-
-        setups.push(PatternTaskSetup {
-            dist1: pattern(PATTERN_SIZE),
-            dist2: pattern(PATTERN_SIZE),
-            is_same: false});
-    }
-
-    setups
-}

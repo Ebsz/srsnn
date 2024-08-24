@@ -88,7 +88,7 @@ pub trait Process: Sync {
         }
     }
 
-    fn evaluator<T: Task + TaskEval>(base_conf: &BaseConfig, eval_conf: &EvalConfig) -> MultiEvaluator<T> {
+    fn evaluator<T: Task + TaskEval>(base_conf: &BaseConfig, eval_conf: &EvalConfig, setups: Vec<T::Setup>) -> MultiEvaluator<T> {
         let batch_conf = match base_conf.task.as_str() {
             "mnist" | "pattern" => {
                 let bc = get_config::<Batch>();
@@ -100,7 +100,7 @@ pub trait Process: Sync {
              _ => None
         };
 
-        MultiEvaluator::new(eval_conf.clone(), batch_conf)
+        MultiEvaluator::new(eval_conf.clone(), batch_conf, setups)
     }
 
     fn init_ctrl_c_handler(stop_signal: Arc<AtomicBool>) {

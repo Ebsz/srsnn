@@ -1,4 +1,4 @@
-use crate::eval::{Evaluation, validate_pattern_task};
+use crate::eval::{evaluate_on_task, Evaluation, MultiEvaluator};
 use crate::process::MainConf;
 use crate::analysis::graph::{Graph, GraphAnalysis};
 
@@ -27,10 +27,11 @@ use std::sync::atomic::{AtomicBool, Ordering};
 // Print log every _ generations
 const LOG_FREQ: usize = 1;
 
+const VALIDATION_FREQ: usize = 10;
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct OptimizationConfig {
     pub max_generations: usize,
-    pub min_gen_before_restart: usize,
 }
 
 impl ConfigSection for OptimizationConfig {
@@ -46,7 +47,7 @@ impl Configurable for Optimizer {
 
 impl Optimizer {
     pub fn optimize<M: Model, T: Task + TaskEval, A: Algorithm>(
-        mut eval: impl Evaluate<M, DefaultRepresentation>,
+        mut eval: MultiEvaluator<T>,
         conf: &MainConf<M, A>,
         env: Environment,
         stop_signal: Arc<AtomicBool>)
@@ -77,7 +78,16 @@ impl Optimizer {
 
             let fitness: Vec<f32> = evaluations.iter().map(|e| e.1).collect();
 
-            log_generation::<T>(gen, &mut stats, &evaluations, &ps);
+            log_generation::<T>(gen, &mut stats, &evaluations, &ps, &eval);
+
+            if Array1::<f32>::from_vec(fitness.clone()).std(0.0) == 0.0 {
+               log::warn!("eval stddev was 0.0, resetting");
+               algo = A::new::<M>(conf.algorithm.clone(), &conf.model, &env);
+
+               stats.new_run();
+
+               continue;
+            }
 
             algo.step(fitness);
 
@@ -99,9 +109,14 @@ fn sorted_fitness(evals: &[Evaluation]) -> Vec<(u32, f32)> {
     sorted_fitness
 }
 
-fn log_generation<T: Task + TaskEval>(gen: usize, stats: &mut OptimizationStatistics, evals: &[Evaluation], ps: &[ParameterSet]) {
+fn log_generation<T: Task + TaskEval>(
+    gen: usize,
+    stats: &mut OptimizationStatistics,
+    evals: &[Evaluation],
+    ps: &[ParameterSet],
+    eval: &MultiEvaluator<T>)
+{
     let sorted = sorted_fitness(evals);
-
 
     let scores: Array1<f32> = sorted.iter().map(|(_, f)| *f).collect();
 
@@ -119,13 +134,21 @@ fn log_generation<T: Task + TaskEval>(gen: usize, stats: &mut OptimizationStatis
 
     analyze_model::<T>(best_repr);
 
-    if gen % LOG_FREQ == 0 {
-        log::info!("Generation {} - best fit: {:.3}, mean: {:.3}, std: {:.3} - ({}, {})",
-            gen, best_fitness, fitness_mean, fitness_std, stats.runs.len(), stats.sum_generations());
+    // Perform validation on the best network
+    if gen % VALIDATION_FREQ == 0 {
+        let validation_setups = eval.validation_setups();
+
+        if validation_setups.len() != 0 {
+            let val_fitness = evaluate_on_task::<T>(best_repr, validation_setups);
+            log::debug!("validation: {:.3}", val_fitness);
+            stats.log_validation(val_fitness);
+        }
     }
 
-    //let val_fitness = validate_pattern_task(best);
-    //log::info!("val eval: {val_fitness}");
+    if gen % LOG_FREQ == 0 {
+        log::info!("Gen. {} - best fit: {:.3}, mean: {:.3}, std: {:.3}",
+            gen, best_fitness, fitness_mean, fitness_std);
+    }
 
     stats.log_generation(best_fitness, fitness_mean, fitness_std, (best_repr.clone(), best_ps.clone()));
 }

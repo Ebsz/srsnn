@@ -10,7 +10,7 @@ model = {path = "model"}
 evolution = {path = "evolution"}
 tasks = {path = "tasks"}
 utils = {path = "utils"}
-visual = {path = "visual", optional = true}
+visual = {path = "visual"}
 
 rand = "0.8.5"
 ndarray = { version = "0.15.6", features = ["serde"] }
@@ -31,13 +31,6 @@ criterion = { version = "0.4", features = ["html_reports"] }
 
 [workspace]
 members = [ "csa", "evolution", "model", "tasks", "utils", "visual" ]
-
-[features]
-viz = ["visual"]
-
-#[[bin]]
-#name = "viz"
-#required_features = [ "viz" ]
 
 [[bench]]
 name = "benchmarks"

@@ -52,17 +52,16 @@ impl Algorithm for SeparableNES {
 
     // TODO: Add indices to evals to ensure they are correct.
     fn step(&mut self, evals: Vec<f32>) {
-        // Normalize fitness to N(0, 1)
         let e: Array1<f32> = Array::from_vec(evals);
 
         if e.std(0.0) == 0.0 {
-           log::warn!("eval stddev was 0.0");
+           log::error!("eval stddev was 0.0 (should have been caught earlier)");
 
            self.reset();
-
            return;
         }
 
+        // Normalize fitness to N(0, 1)
         let std_evals = (&e - e.mean().unwrap()) / e.std(0.0);
 
         // Compute gradients

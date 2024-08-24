@@ -12,13 +12,14 @@ type Generation = (f32, f32, f32);
 #[derive(Clone, Deserialize, Serialize)]
 pub struct Run {
     pub generations: Vec<Generation>,
-
+    pub validation: Vec<f32>,
     pub best_network: Option<(f32, DefaultRepresentation, ParameterSet)>
 }
 impl Run {
     fn new() -> Self {
         Run {
             generations: Vec::new(),
+            validation: Vec::new(),
             best_network: None,
         }
     }
@@ -33,6 +34,10 @@ impl Run {
         } else {
             self.best_network = Some((best, network.0, network.1));
         }
+    }
+
+    fn log_validation(&mut self, val: f32) {
+        self.validation.push(val);
     }
 
     /// Current generation number
@@ -61,7 +66,7 @@ impl Run {
     }
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct OptimizationStatistics {
     pub runs: Vec<Run>
 }
@@ -84,6 +89,9 @@ impl OptimizationStatistics {
         self.runs.last_mut().unwrap().log(best, mean, std, best_network);
     }
 
+    pub fn log_validation(&mut self, val: f32) {
+        self.runs.last_mut().unwrap().log_validation(val);
+    }
 
     pub fn new_run(&mut self) {
         self.runs.push(Run::new());

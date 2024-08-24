@@ -118,7 +118,7 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
 
         let elapsed_t = t0.elapsed().as_secs_f32();
 
-        log::debug!("Finished {} evals in {:.3}s ({:.2} evals per second)",
+        log::trace!("Finished {} evals in {:.3}s ({:.2} evals per second)",
             evals.len(),  elapsed_t, evals.len() as f32 / elapsed_t);
 
         evals
@@ -126,10 +126,10 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
 }
 
 impl<T: Task + TaskEval> MultiEvaluator<T> {
-    pub fn new(config: EvalConfig, batch_config: Option<BatchConfig>) -> MultiEvaluator<T> {
+    pub fn new(config: EvalConfig, batch_config: Option<BatchConfig>, setups: Vec<T::Setup>) -> MultiEvaluator<T> {
         let setup = match batch_config {
-            Some(bc) => EvalSetup::Batched(BatchSetup::new(T::eval_setups(), bc.batch_size)),
-            None => EvalSetup::Base(T::eval_setups())
+            Some(bc) => EvalSetup::Batched(BatchSetup::new(setups, bc.batch_size)),
+            None => EvalSetup::Base(setups)
         };
 
         MultiEvaluator {
@@ -157,57 +157,12 @@ impl<T: Task + TaskEval> MultiEvaluator<T> {
 
         evals
     }
+
+    pub fn validation_setups(&self) -> &[T::Setup] {
+        self.setup.validation_setups()
+    }
 }
 
 impl<T: Task + TaskEval> Configurable for MultiEvaluator<T> {
     type Config = EvalConfig;
-}
-
-use tasks::pattern_task::{PatternTask, PatternTaskResult, validation_setups};
-use ndarray::array;
-
-pub fn validate_pattern_task(r: &DefaultRepresentation) -> f32 {
-    const N_VALIDATIONS: usize = 100;
-
-    let setups = validation_setups(N_VALIDATIONS);
-
-    let mut results = vec![];
-
-    for s in &setups {
-        let task = PatternTask::new(s);
-        let mut runnable = RunnableNetwork::<DefaultNetwork>::build(r);
-
-        runnable.network.enable_recording();
-
-        let mut runner = TaskRunner::new(task, &mut runnable);
-        let res = runner.run();
-
-        results.push(res);
-    }
-
-    let acc = calculate_accuracy(&results);
-    log::info!("accuracy: {acc}");
-
-    PatternTask::fitness(results)
-}
-
-fn calculate_accuracy(results: &Vec<PatternTaskResult>) -> f32 {
-    let mut correct = 0;
-
-    for r in results {
-        let (w,h) = (r.output.shape()[0], r.output.shape()[1]);
-
-        let avg_fr = r.output.iter().sum::<u32>() as f32 /  (w * h)  as f32;
-
-        // p[0]: patterns are equal, p[1]: patterns not equal
-        let prediction = array![1.0 - avg_fr, avg_fr];
-
-        if r.is_same && prediction[0] > prediction[1]  {
-            correct += 1;
-        } else if !r.is_same && prediction[1] > prediction[0] {
-            correct += 1;
-        }
-    }
-
-    correct as f32 / results.len() as f32
 }
