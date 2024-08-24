@@ -1,8 +1,6 @@
 use luna::process::Process;
-use luna::process::{default, hyper};
+use luna::process::{default, hyper, experiment};
 use luna::config::{base_config, BaseConfig};
-
-use luna::experiments::multisampling::MultisampleExperiment;
 
 use utils::random;
 use utils::logger::init_logger;
@@ -24,7 +22,7 @@ fn run_process(config: BaseConfig) {
     match config.process.as_str() {
         "default"   => { default::DefaultProcess::init(config); },
         "hyper"      => { hyper::HyperOptimization::init(config); },
-        "multisample_experiment" => { MultisampleExperiment::init(config); },
+        "experiment" => { experiment::Experiment::init(config); },
         _          => { println!("Unknown process: {}", config.process); }
     }
 }

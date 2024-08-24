@@ -1,4 +1,5 @@
 pub mod default;
+pub mod experiment;
 pub mod hyper;
 
 use crate::analysis::graph::{Graph, GraphAnalysis};
