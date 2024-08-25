@@ -2,7 +2,7 @@ use utils::random;
 
 use ndarray::{Array, Array2};
 
-use std::ops::{Add, Sub};
+use std::ops::{Add, Sub, BitAnd};
 use std::sync::Arc;
 
 
@@ -71,6 +71,20 @@ impl Sub for Mask {
         }
     }
 }
+
+impl BitAnd for Mask {
+    type Output = Self;
+
+    fn bitand(self, other: Self) -> Self {
+        let f1 = self.f.clone();
+        let f2 = other.f.clone();
+
+        Mask {
+            f: Arc::new(move |i,j| f1(i,j) && f2(i,j))
+        }
+    }
+}
+
 
 pub fn empty() -> Mask {
     Mask { f: Arc::new(|_i, _j| false) }

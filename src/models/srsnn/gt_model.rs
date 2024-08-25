@@ -1,6 +1,8 @@
+//! Geometric typed model
+
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
-use csa::op::LabelFn;
+use csa::op::{LabelFn, CoordinateFn, Metric};
 use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
 
@@ -21,13 +23,10 @@ use std::sync::Arc;
 // with N(0,1), 0.7 gives a starting inhibitory prob of ~0.2
 const INHIBITORY_THRESHOLD: f32 = 0.70;
 
-// Increasing this skews the sigmoid function which polarizes the connection probabilities
-const CP_COEFFICIENT: f32 = 5.0;
-
 #[derive(Clone, Debug)]
-pub struct TypedModel;
+pub struct GeometricTypedModel;
 
-impl RSNN for TypedModel {
+impl RSNN for GeometricTypedModel {
     fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet {
         // Type connection probability matrix
         let t_cpm = Parameter::Matrix(Array::zeros((config.model.k, config.model.k)));
@@ -58,7 +57,7 @@ impl RSNN for TypedModel {
     fn get(params: &ParameterSet, config: &RSNNConfig<Self>) -> (NetworkSet, ConnectionSet, Mask) {
         let (m1, m2, v1, m3, v2, v3, v4) = Self::parse_params(params, config);
 
-        let t_cpm = m1.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
+        let t_cpm = m1.mapv(|x| math::ml::sigmoid(x));
 
         let t_w = m2.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
         let p = math::ml::softmax(v1);
@@ -78,7 +77,15 @@ impl RSNN for TypedModel {
 
         let dynamics = Self::get_dynamics(m3, labels.clone(), config);
 
-        let mask = csa::op::sbm(labels.clone(), ValueSet::from_value(t_cpm.clone()));
+        let sbm_mask = csa::op::sbm(labels.clone(), ValueSet::from_value(t_cpm.clone()));
+
+        // geometric setup
+        let coords: CoordinateFn = csa::op::random_coordinates(0.0, config.model.max_coordinate, config.n);
+        let d: Metric = csa::op::distance_metric(coords.clone(), coords.clone());
+
+        let disc = csa::op::disc(config.model.distance_threshold, d);
+
+        let mask = sbm_mask & disc;
 
         let ns = NetworkSet {
             m: mask,
@@ -86,14 +93,14 @@ impl RSNN for TypedModel {
             d: vec![dynamics]
         };
 
-        let input_cs = Self::get_input_cs(v2, v3, labels.clone(), config);
-        let output_mask = Self::get_output_mask(v4, labels);
+        let input_cs = Self::get_input_cs(v2, v3, labels.clone(), coords.clone(), config);
+        let output_mask = Self::get_output_mask(v4, labels, coords.clone(), config);
 
         (ns, input_cs, output_mask)
     }
 }
 
-impl TypedModel {
+impl GeometricTypedModel {
     fn parse_params<'a>(p: &'a ParameterSet, config: &'a RSNNConfig<Self>)
         -> (&'a Array2<f32>, &'a Array2<f32>, &'a Array1<f32>, &'a Array2<f32>,
             &'a Array1<f32>, &'a Array1<f32>, &'a Array1<f32>) {
@@ -161,9 +168,9 @@ impl TypedModel {
         )}
     }
 
-    fn get_input_cs(v2: &Array1<f32>, v3: &Array1<f32>, l: LabelFn, config: &RSNNConfig<Self>)
+    fn get_input_cs(v2: &Array1<f32>, v3: &Array1<f32>, l: LabelFn, g: CoordinateFn, config: &RSNNConfig<Self>)
         -> ConnectionSet {
-        let input_t_cp = v2.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
+        let input_t_cp = v2.mapv(|x| math::ml::sigmoid(x));
         let input_t_w = v3.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
 
         let cp = ValueSet { f: Arc::new(
@@ -177,40 +184,50 @@ impl TypedModel {
                )
         };
 
+        let input_g: CoordinateFn = Arc::new(move |i| (0.0, 0.0));
+        let d: Metric = csa::op::distance_metric(g, input_g); // NOTE: Ensure this is correct
+
+        let input_mask = m & csa::op::disc(config.model.distance_threshold, d);
+
         let w = ValueSet { f: Arc::new(
             move |i, _| input_t_w[[l(i) as usize]]
         )};
 
         ConnectionSet {
-            m,
+            m: input_mask,
             v: vec![w]
         }
     }
 
-    fn get_output_mask(v4: &Array1<f32>, l: LabelFn) -> Mask {
-        let output_t_cp = v4.mapv(|x| math::ml::sigmoid(x * CP_COEFFICIENT));
+    fn get_output_mask(v4: &Array1<f32>, l: LabelFn, g: CoordinateFn, config: &RSNNConfig<Self>) -> Mask {
+        let output_t_cp = v4.mapv(|x| math::ml::sigmoid(x));
+
+        let max = config.model.max_coordinate;
+        let output_g: CoordinateFn = Arc::new(move |i| (max * 0.7, max * 0.7));
+
+        let d: Metric = csa::op::distance_metric(output_g, g); // NOTE: Ensure this is correct
 
         let cp = ValueSet { f: Arc::new( move |_, j| output_t_cp[j as usize])};
 
-        Mask {
-            f: Arc::new(
-                   move |i, j| random::random_range((0.0, 1.0)) < (cp.f)(i,l(j))
-               )
-        }
+        let m = Mask { f: Arc::new( move |i, j| random::random_range((0.0, 1.0)) < (cp.f)(i,l(j))) };
+
+        m & csa::op::disc(config.model.distance_threshold, d)
     }
 }
 
-impl Configurable for TypedModel {
-    type Config = TypedConfig;
+impl Configurable for GeometricTypedModel {
+    type Config = GeometricTypedConfig;
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct TypedConfig {
+pub struct GeometricTypedConfig {
     pub k: usize,
-    pub max_w: f32
+    pub max_w: f32,
+    pub distance_threshold: f32,
+    pub max_coordinate: f32
 }
 
-impl ConfigSection for TypedConfig {
+impl ConfigSection for GeometricTypedConfig {
     fn name() -> String {
         "typed_model".to_string()
     }
