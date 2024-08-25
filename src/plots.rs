@@ -389,8 +389,6 @@ pub mod plt {
 
         let color = |x: f32| RGBColor(c_val(x), c_val(x), c_val(x));
 
-        println!("{}", areas.len());
-
         for (v, a) in data.iter().zip(areas.iter()) {
             a.fill(&color(*v));
         }

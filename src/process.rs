@@ -22,6 +22,7 @@ use tasks::catching_task::CatchingTask;
 use tasks::xor_task::XORTask;
 use tasks::pole_balancing_task::PoleBalancingTask;
 use tasks::mnist_task::MNISTTask;
+use tasks::multipattern::MultiPatternTask;
 //use tasks::movement_task::MovementTask;
 //use tasks::survival_task::SurvivalTask;
 //use tasks::energy_task::EnergyTask;
@@ -58,11 +59,12 @@ pub trait Process: Sync {
 
     fn resolve_t<M: Model>(config: BaseConfig) {
         match config.task.as_str() {
-            "polebalance" => { Self::run::<M, PoleBalancingTask>(config); },
-            "pattern"     => { Self::run::<M, PatternTask>(config); },
-            "catching"    => { Self::run::<M, CatchingTask>(config); },
-            "xor"         => { Self::run::<M, XORTask>(config); },
-            "mnist"       => { Self::run::<M, MNISTTask>(config); },
+            "polebalance"   => { Self::run::<M, PoleBalancingTask>(config); },
+            "pattern"       => { Self::run::<M, PatternTask>(config); },
+            "multipattern"  => { Self::run::<M, MultiPatternTask>(config); },
+            "catching"      => { Self::run::<M, CatchingTask>(config); },
+            "xor"           => { Self::run::<M, XORTask>(config); },
+            "mnist"         => { Self::run::<M, MNISTTask>(config); },
             //"movement"    => { Self::run::<M, MovementTask>(config); },
             //"survival"    => { Self::run::<M, SurvivalTask>(config); },
             //"energy"      => { Self::run::<M, EnergyTask>(config); },
@@ -90,7 +92,7 @@ pub trait Process: Sync {
 
     fn evaluator<T: Task + TaskEval>(base_conf: &BaseConfig, eval_conf: &EvalConfig, setups: Vec<T::Setup>) -> MultiEvaluator<T> {
         let batch_conf = match base_conf.task.as_str() {
-            "mnist" | "pattern" => {
+            "mnist" | "pattern" | "multipattern"  => {
                 let bc = get_config::<Batch>();
 
                 log::info!("Batch config:\n{:#?}", bc);

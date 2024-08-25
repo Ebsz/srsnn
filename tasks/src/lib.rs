@@ -11,6 +11,8 @@ pub mod xor_task;
 pub mod pole_balancing_task;
 pub mod pattern_task;
 
+pub mod multipattern;
+
 use ndarray::Array1;
 
 use std::fmt::Debug;
