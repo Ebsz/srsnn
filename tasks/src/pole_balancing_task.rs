@@ -182,6 +182,10 @@ impl TaskEval for PoleBalancingTask {
 
         fitness
     }
+
+    fn accuracy(results: &[Self::Result]) -> Option<f32> {
+        None
+    }
 }
 
 pub struct Cart {

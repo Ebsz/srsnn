@@ -176,6 +176,10 @@ impl TaskEval for MNISTTask {
 
         fitness
     }
+
+    fn accuracy(results: &[Self::Result]) -> Option<f32> {
+        None
+    }
 }
 
 //fn softmax(x: &Array1<f32>) -> Array1<f32> {

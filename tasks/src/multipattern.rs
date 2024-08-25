@@ -175,8 +175,37 @@ impl TaskEval for MultiPatternTask {
 
         fitness
     }
-}
 
+    fn accuracy(results: &[MultiPatternTaskResult]) -> Option<f32> {
+        let mut correct = 0;
+
+        for r in results {
+            let sum = r.response.sum_axis(Axis(0));
+
+            // sum of spikes per label
+            let mut label_sum: Array1<f32> = sum.exact_chunks(OUTPUTS_PER_CLASS)
+                .into_iter().map(|x| x.sum() as f32).collect();
+
+            assert!(label_sum.shape()[0] == N_CLASSES);
+
+            label_sum = &label_sum - math::maxf(label_sum.as_slice().unwrap());
+
+            let predictions = math::ml::softmax(&label_sum);
+
+            let predicted_label = math::max_index(predictions);
+
+            //println!("p: {predicted_label}, l: {}", r.label);
+            if predicted_label == r.label {
+                correct += 1;
+            }
+        }
+
+        //println!("correct: {correct}/{}", results.len());
+        let accuracy = correct as f32 / results.len() as f32;
+
+        Some(accuracy)
+    }
+}
 
 /// Sample [t x len] pattern
 pub fn pattern(n: usize, center: (usize, usize)) -> Array1<f32> {

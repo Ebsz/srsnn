@@ -232,4 +232,8 @@ impl TaskEval for CatchingTask {
 
         total_fitness / results.len() as f32
     }
+
+    fn accuracy(results: &[Self::Result]) -> Option<f32> {
+        None
+    }
 }

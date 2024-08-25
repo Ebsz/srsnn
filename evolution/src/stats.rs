@@ -13,6 +13,7 @@ type Generation = (f32, f32, f32);
 pub struct Run {
     pub generations: Vec<Generation>,
     pub validation: Vec<f32>,
+    pub accuracy: Vec<f32>,
     pub best_network: Option<(f32, DefaultRepresentation, ParameterSet)>
 }
 impl Run {
@@ -20,7 +21,8 @@ impl Run {
         Run {
             generations: Vec::new(),
             validation: Vec::new(),
-            best_network: None,
+            accuracy: Vec::new(),
+            best_network: None
         }
     }
 
@@ -38,6 +40,10 @@ impl Run {
 
     fn log_validation(&mut self, val: f32) {
         self.validation.push(val);
+    }
+
+    fn log_accuracy(&mut self, val: f32) {
+        self.accuracy.push(val);
     }
 
     /// Current generation number
@@ -91,6 +97,10 @@ impl OptimizationStatistics {
 
     pub fn log_validation(&mut self, val: f32) {
         self.runs.last_mut().unwrap().log_validation(val);
+    }
+
+    pub fn log_accuracy(&mut self, val: f32) {
+        self.runs.last_mut().unwrap().log_accuracy(val);
     }
 
     pub fn new_run(&mut self) {

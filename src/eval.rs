@@ -34,6 +34,15 @@ pub fn evaluate_on_task<T: Task + TaskEval> (
     setups: &[T::Setup]
 ) -> f32 {
 
+    let results = run_network_on_task::<T>(repr, setups);
+
+    T::fitness(results)
+}
+
+pub fn run_network_on_task<T: Task> (
+    repr: &DefaultRepresentation,
+    setups: &[T::Setup]
+) -> Vec<T::Result> {
     let mut results: Vec<T::Result> = Vec::new();
     let mut r = RunnableNetwork::<DefaultNetwork>::build(repr);
 
@@ -48,9 +57,7 @@ pub fn evaluate_on_task<T: Task + TaskEval> (
         r.reset();
     }
 
-    let f = T::fitness(results);
-
-    f
+    results
 }
 
 #[derive(Clone)]

@@ -117,4 +117,8 @@ impl TaskEval for XORTask {
 
         fitness
     }
+
+    fn accuracy(results: &[Self::Result]) -> Option<f32> {
+        None
+    }
 }

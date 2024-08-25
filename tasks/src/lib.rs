@@ -55,5 +55,7 @@ pub trait TaskEval: Task {
     fn eval_setups() -> Vec<Self::Setup>;
 
     fn fitness(results: Vec<Self::Result>) -> f32;
+
+    fn accuracy(results: &[Self::Result]) -> Option<f32>;
 }
 

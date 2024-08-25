@@ -181,6 +181,10 @@ impl TaskEval for PatternTask {
 
         fitness
     }
+
+    fn accuracy(results: &[Self::Result]) -> Option<f32> {
+        None
+    }
 }
 
 /// Sample [t x len] pattern

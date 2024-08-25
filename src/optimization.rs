@@ -1,4 +1,4 @@
-use crate::eval::{evaluate_on_task, Evaluation, MultiEvaluator};
+use crate::eval::{run_network_on_task, Evaluation, MultiEvaluator};
 use crate::process::MainConf;
 use crate::analysis::graph::{Graph, GraphAnalysis};
 
@@ -82,6 +82,7 @@ impl Optimizer {
 
             if Array1::<f32>::from_vec(fitness.clone()).std(0.0) == 0.0 {
                log::warn!("eval stddev was 0.0, resetting");
+
                algo = A::new::<M>(conf.algorithm.clone(), &conf.model, &env);
 
                stats.new_run();
@@ -134,20 +135,14 @@ fn log_generation<T: Task + TaskEval>(
 
     analyze_model::<T>(best_repr);
 
-    // Perform validation on the best network
-    if gen % VALIDATION_FREQ == 0 {
-        let validation_setups = eval.validation_setups();
-
-        if validation_setups.len() != 0 {
-            let val_fitness = evaluate_on_task::<T>(best_repr, validation_setups);
-            log::debug!("validation: {:.3}", val_fitness);
-            stats.log_validation(val_fitness);
-        }
-    }
-
     if gen % LOG_FREQ == 0 {
         log::info!("Gen. {} - best fit: {:.3}, mean: {:.3}, std: {:.3}",
             gen, best_fitness, fitness_mean, fitness_std);
+    }
+
+    // Perform validation on the best network
+    if gen % VALIDATION_FREQ == 0 {
+        validation(best_repr, eval, stats);
     }
 
     stats.log_generation(best_fitness, fitness_mean, fitness_std, (best_repr.clone(), best_ps.clone()));
@@ -161,5 +156,30 @@ fn analyze_model<T: Task + TaskEval>(r: &DefaultRepresentation) {
         let ga = GraphAnalysis::analyze(&g);
 
         log::trace!("Graph: {}\n{}", g, ga);
+    }
+}
+
+fn validation<T: Task + TaskEval>(
+    r: &DefaultRepresentation,
+    eval: &MultiEvaluator<T>,
+    stats: &mut OptimizationStatistics
+    ) {
+    let validation_setups = eval.validation_setups();
+
+    if validation_setups.len() != 0 {
+        let results = run_network_on_task::<T>(r, validation_setups);
+
+        let accuracy = T::accuracy(&results);
+        let val = T::fitness(results);
+
+        match accuracy {
+            Some(acc) =>  {
+                log::debug!("validation: {:.3}, accuracy: {:.3}", val, acc);
+                stats.log_accuracy(acc);
+            },
+            None => { log::debug!("validation: {:.3}", val); }
+        }
+
+        stats.log_validation(val);
     }
 }
