@@ -3,7 +3,7 @@
 //! Performs a single optimization run.
 
 use crate::config::BaseConfig;
-use crate::analysis::run_analysis;
+use crate::analysis::{analyze_network, run_analysis};
 use crate::process::{Process, MainConf};
 use crate::eval::MultiEvaluator;
 use crate::optimization::Optimizer;
@@ -36,7 +36,7 @@ impl DefaultProcess {
 
         let (f, repr, _) = stats.best();
         log::info!("Best fitness: {f}");
-        Self::analyze_network(repr);
+        analyze_network(repr);
 
         let record = run_analysis::<T>(&repr);
         plots::generate_plots(&record);

@@ -28,6 +28,31 @@ pub fn run_analysis<T: Task + TaskEval> (
     runnable.network.record
 }
 
+pub fn analyze_network(r: &DefaultRepresentation) {
+    let graph: graph::Graph = r.into();
+    let graph_analysis = graph::GraphAnalysis::analyze(&graph);
+
+    println!("graph analysis:");
+    println!("{graph}");
+    println!("{graph_analysis}");
+
+    let n_inhibitory: f32 = r.neurons.iter()
+        .map(|n| f32::from(n.inhibitory)).sum();
+
+    println!("");
+    println!("inhibitory: {} ({:.3}%)", n_inhibitory, (n_inhibitory / r.neurons.len() as f32) * 100.0);
+
+    println!("weights - mean: {:.3}, std: {:.3}", r.network_w.mean().unwrap(), r.network_w.std(0.0));
+
+    let n_input_connections: u32 = r.input_cm.iter().sum();
+    let input_density = n_input_connections as f32 / (r.input_cm.shape()[0] * r.input_cm.shape()[1]) as f32;
+    println!("Input - {n_input_connections} input connections, density: {input_density}");
+
+    let n_output_connections: u32 = r.output_cm.iter().sum();
+    let output_density = n_output_connections as f32 / (r.output_cm.shape()[0] * r.output_cm.shape()[1]) as f32;
+    println!("Output - {n_output_connections} output connections, density: {output_density}");
+}
+
 pub mod graph {
     use super::*;
 

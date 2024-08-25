@@ -145,21 +145,6 @@ pub trait Process: Sync {
             Err(e) => { log::error!("Could not save model: {e}"); }
         }
     }
-
-    fn analyze_network(r: &DefaultRepresentation) {
-        log::debug!("Analyzing network..");
-
-        let g: Graph = r.into();
-        let ga = GraphAnalysis::analyze(&g);
-
-        log::info!("Graph: {}\n{}", g, ga);
-
-        let n_inhibitory: f32 = r.neurons.iter()
-            .map(|n| f32::from(n.inhibitory)).sum();
-
-        println!("\n    inhibitory: {} ({:.3}%)", n_inhibitory, (n_inhibitory / r.neurons.len() as f32) * 100.0);
-
-    }
 }
 
 // TODO: Rename to something else
