@@ -31,8 +31,13 @@ impl Algorithm for SeparableNES {
         let n_params = params.size();
 
         // Initialize means ~ N(0,1) and variances to 1.0, as per PS paper
-        let sigma: Array1<f32> = Array::ones(n_params);
-        let mu = random::random_vector(n_params, StandardNormal);
+        //let sigma: Array1<f32> = Array::ones(n_params);
+        //let mu = random::random_vector(n_params, StandardNormal);
+
+        let sigma: Array1<f32> = Array::ones(n_params) * conf.init_sigma;
+
+        let mu = random::random_vector(n_params,
+            Normal::new(conf.init_mu_mean, conf.init_mu_stddev).unwrap());
 
         let s = Self::get_s(&conf, n_params);
 
@@ -130,6 +135,10 @@ pub struct SNESConfig {
     pub pop_size: usize,
     pub lr_mu: f32,    // \mu learning rate -  PS: 1.0
     pub lr_sigma: f32, // \sigma learning rate - PS: 0.01
+    pub init_sigma: f32,
+
+    pub init_mu_mean: f32,
+    pub init_mu_stddev: f32
 }
 
 impl Configurable for SeparableNES {

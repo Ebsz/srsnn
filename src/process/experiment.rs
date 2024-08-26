@@ -44,7 +44,7 @@ impl Process for Experiment {
 
         let experiment_conf = get_config::<Experiment>();
 
-        log::info!("Optimizing over  {} runs", experiment_conf.n_runs);
+        log::info!("Starting experiment with {} runs", experiment_conf.n_runs);
         let mut stats = Self::multiple_runs::<M, T>(&conf, main_conf, experiment_conf);
     }
 }

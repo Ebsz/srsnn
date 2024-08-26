@@ -9,10 +9,12 @@ use crate::config::{get_config, BaseConfig};
 use crate::optimization::{Optimizer, OptimizationConfig};
 
 use crate::models::rsnn::RSNNModel;
-use crate::models::srsnn::er_model::ERModel;
-use crate::models::srsnn::typed::TypedModel;
+//use crate::models::srsnn::er_model::ERModel;
+//use crate::models::srsnn::typed::TypedModel;
+//use crate::models::srsnn::nd_typed::NDTypedModel;
 use crate::models::srsnn::gt_model::GeometricTypedModel;
-use crate::models::plain::PlainModel;
+use crate::models::srsnn::reduced_gt_model::ReducedGTModel;
+//use crate::models::plain::PlainModel;
 
 use model::Model;
 use model::network::representation::DefaultRepresentation;
@@ -49,10 +51,12 @@ pub trait Process: Sync {
 
     fn resolve_m(config: BaseConfig) {
         match config.model.as_str() {
-            "plain"         => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
-            "er_model"      => { Self::resolve_t::<RSNNModel<ERModel>>(config); },
-            "typed"         => { Self::resolve_t::<RSNNModel<TypedModel>>(config); },
-            "gt_model"      => { Self::resolve_t::<RSNNModel<GeometricTypedModel>>(config); },
+            //"plain"         => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
+            //"er_model"      => { Self::resolve_t::<RSNNModel<ERModel>>(config); },
+            //"typed"         => { Self::resolve_t::<RSNNModel<TypedModel>>(config); },
+            //"nd_typed"      => { Self::resolve_t::<RSNNModel<NDTypedModel>>(config); },
+            "gt_model"        => { Self::resolve_t::<RSNNModel<GeometricTypedModel>>(config); },
+            "rgt_model"       => { Self::resolve_t::<RSNNModel<ReducedGTModel>>(config); },
             //"main" => { Self::resolve_t::<MainStochasticModel>(config); },
             //"matrix" => { Self::resolve_t::<MatrixModel>(config); },
             _ => { println!("Unknown model: {}", config.model); }

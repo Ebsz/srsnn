@@ -1,4 +1,4 @@
-//! The classical RL task, where the goal is to keep a pole upright by applying
+//! The classic RL task, where the goal is to keep a pole upright by applying
 //! positive and negative force in the x direction
 //!
 //! End conditions:
@@ -14,27 +14,27 @@ use ndarray::{array, Array1};
 use std::f64::consts::PI;
 
 // Task params
-const AGENT_INPUTS: usize = 8;
-const AGENT_OUTPUTS: usize = 2;
+const AGENT_INPUTS: usize = 16;
+const AGENT_OUTPUTS: usize = 4;
 
 // End conditions
 const MAX_ANGLE: f64 = PI / 4.0;
-const MAX_T: u32 = 1000;
+const MAX_T: u32 = 5000;
 const MAX_X_CHANGE: f64 = 150.0;
 
 // System parameters
-const TC: f64 = 0.003;
+const TC: f64 = 0.005;
 const G: f64 = 9.81;
 
 const START_X: f64 = 0.0;
 const START_ANGLE: f64 = -0.05;
 
-const FORCE: f64 = 100.0;
+const FORCE: f64 = 10.0;
 
 const POLE_MASS: f64 = 0.1;
 const CART_MASS: f64 = 1.0;
 const TOTAL_MASS: f64 = POLE_MASS + CART_MASS;
-const CT_FRICTION: f64 = 10.01; // Cart-track friction
+const CT_FRICTION: f64 = 0.01; // Cart-track friction
 const CP_FRICTION: f64 = 0.001; // Cart-pole friction
 
 const POLE_LEN: f64 = 100.0;
@@ -132,13 +132,32 @@ impl PoleBalancingTask {
 
     fn get_applied_force(&mut self, input: TaskInput) -> f64 {
         let mut f = 0.0;
+
+        // For 4 agent outputs
         for i in input.data {
             match i {
-                0 => f -= FORCE,
-                1 => f += FORCE,
-                _ => { panic!("pole balancing task got unexpected input: {i}"); }
+                0 | 1 => f -= FORCE,
+                2 | 3 => f += FORCE,
+                _ => { panic!("pole_balancing task got unexpected input {i}"); }
             }
         }
+
+        //let n_per_output = (AGENT_OUTPUTS / 2) as u32;
+
+        //for i in input.data {
+        //    println!("input: {i}");
+        //    println!("n_per: {n_per_output}");
+        //    if i < n_per_output as u32 {
+        //        f += 1.0;
+        //        println!("plus");
+
+        //    } else if i > n_per_output  && i < n_per_output*2 {
+        //        f -= 1.0;
+        //        println!("minus");
+        //    } else  {
+        //        panic!("pole balancing task got unexpected input: {i}");
+        //    }
+        //}
 
         f
     }
@@ -154,7 +173,10 @@ impl PoleBalancingTask {
         let theta: f32 = math::clamp(normalize(self.pole.angle, -MAX_ANGLE, MAX_ANGLE), 0.0, 1.0) as f32;
         let theta_dot: f32 = math::clamp(normalize(self.pole.angle_vel, -MAX_THETA_DOT, MAX_THETA_DOT), 0.0, 1.0) as f32;
 
-        let data = array![pos, pos, pos_dot, pos_dot, theta, theta, theta_dot, theta_dot];
+        let data = array![pos, pos, pos, pos,
+        pos_dot, pos_dot, pos_dot, pos_dot,
+        theta, theta, theta, theta,
+        theta_dot, theta_dot, theta_dot, theta_dot];
         let enc = encoding::rate_encode(&data);
 
         //println!("{:.2}, {:.2}, {:.2}, {:.2}", pos, pos_dot, theta, theta_dot);
@@ -177,7 +199,7 @@ impl TaskEval for PoleBalancingTask {
         let mut fitness = 0.0;
 
         for r in results {
-            fitness += r.t as f32 / MAX_T as f32 * 100.0;
+            fitness += r.t as f32; // MAX_T as f32 * 100.0;
         }
 
         fitness

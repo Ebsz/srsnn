@@ -17,8 +17,8 @@ const PATTERN_SIZE: usize = 5;
 const PATTERN_MAX_PROBABILITY: f32 = 0.3;
 
 const SEND_TIME: u32 = 50;          // How many timesteps to send the pattern
-const RESPONSE_DELAY: u32 = 10;     // Delay between pattern send and response window
-const RESPONSE_BIN_LEN: u32 = 40;
+const RESPONSE_DELAY: u32 = 0;     // Delay between pattern send and response window
+const RESPONSE_BIN_LEN: u32 = 50;
 
 const RESPONSE_WINDOW: u32 = RESPONSE_BIN_LEN * N_CLASSES as u32;  // Number of timesteps to record the response
 
@@ -162,7 +162,13 @@ impl TaskEval for MultiPatternTask {
 
             bin_count = &bin_count - math::maxf(bin_count.as_slice().unwrap());
 
+            // punish no-spike results to avoid getting stuck
+            if bin_count.iter().all(|x| *x == 0.0) {
+                total_loss += 10.0;
+            }
+
             let predictions = math::ml::softmax(&bin_count);
+
 
             let mut label = Array::zeros(N_CLASSES);
             label[r.label] = 1.0;
@@ -177,7 +183,7 @@ impl TaskEval for MultiPatternTask {
             //println!("{}", loss);
         }
 
-        200.0 - total_loss  // + Self::accuracy(&results).unwrap() * 50.0
+        100.0 - total_loss  // + Self::accuracy(&results).unwrap() * 50.0
     }
 
     // Temporal binning accuracy

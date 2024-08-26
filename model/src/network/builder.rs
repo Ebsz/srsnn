@@ -9,6 +9,8 @@ use crate::synapse::BaseSynapse;
 
 use crate::synapse::representation::{NeuronType, MatrixRepresentation};
 
+use ndarray::s;
+
 
 pub struct NetworkBuilder;
 
@@ -18,17 +20,23 @@ impl NetworkBuilder {
         let neuron_params = Self::parse_neuron_params(desc);
         let neuron_types = Self::parse_neuron_types(desc);
 
+        // ensure output neurons are excitatory
+        assert!(neuron_types.slice(s![-(desc.env.outputs as i32)..]).iter().all(|x| *x == 1.0));
+
         let model = N::new(desc.n, neuron_params);
 
         let synapse_matrix = &(desc.network_cm.mapv(|v| v as f32)) * &desc.network_w;
 
         let input_matrix = &(desc.input_cm.mapv(|v| v as f32)) * &desc.input_w;
-        let output_matrix = desc.output_cm.clone();
 
         let representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
         let synapse = BaseSynapse::new(representation);
 
-        SpikingNetwork::new(model, synapse, input_matrix, output_matrix, desc.env.clone())
+        //use crate::network::representation::DefaultRepresentation;
+        //utils::data::save::<NetworkRepresentation<NeuronDescription<N>>>(desc.clone(), "network.json");
+        //panic!("saved");
+
+        SpikingNetwork::new(model, synapse, input_matrix, desc.env.clone())
     }
 
     fn parse_neuron_types<N: NeuronModel> (desc: &NetworkRepresentation<NeuronDescription<N>>) -> NeuronType {

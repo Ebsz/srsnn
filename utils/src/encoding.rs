@@ -1,6 +1,7 @@
 //! Functions for encoding real values as spikes
 
-use crate::random;
+use crate::{random, math};
+
 
 use ndarray::{Array, Array1, Array2, Zip};
 use ndarray_rand::rand_distr::Uniform;
@@ -26,4 +27,19 @@ pub fn rate_encode_array(data: &Array2<f32>) -> Array2<f32> {
         .for_each(|e, d, s| *e = if s < d {1.0} else {0.0});
 
     encoded
+}
+
+pub fn time_encode(data: &Array1<f32>, max_t: usize) -> Array2<f32> {
+    let max: f32 = math::maxf(data.as_slice().unwrap());
+    let min: f32 = math::minf(data.as_slice().unwrap());
+
+    let d = (data - min) / (max - min);
+
+    //TODO: implement
+
+    let mut out = Array::zeros((d.len(), max_t));
+
+    // T * cos(d+i * pi/n)
+
+    out
 }

@@ -5,13 +5,17 @@ use std::collections::HashMap;
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub enum RecordType {
     Spikes,
-    Potentials
+    Potentials,
+    InputSpikes,
+    OutputSpikes
 }
 
 #[derive(Clone, Debug)]
 pub enum RecordDataType {
     Spikes(Array1<f32>),
-    Potentials(Array1<f32>)
+    Potentials(Array1<f32>),
+    InputSpikes(Array1<f32>),
+    OutputSpikes(Array1<f32>)
 }
 
 #[derive(Clone)]
@@ -25,7 +29,6 @@ pub trait Recording {
     fn get(&self) -> Self::Data;
 }
 
-
 impl Record {
     pub fn new() -> Record {
         let mut records = HashMap::new();
@@ -33,6 +36,8 @@ impl Record {
         // TODO: use strum to iterate over RecordTypes instead
         records.insert(RecordType::Spikes, Vec::new());
         records.insert(RecordType::Potentials, Vec::new());
+        records.insert(RecordType::InputSpikes, Vec::new());
+        records.insert(RecordType::OutputSpikes, Vec::new());
 
         Record {
             records

@@ -59,9 +59,7 @@ pub mod ml {
     pub fn softmax(x: &Array1<f32>) -> Array1<f32> {
         let mut s = x.mapv(f32::exp);
 
-        s /= s.sum();
-
-        s
+        &s / s.sum()
     }
 
     pub fn sigmoid(x: f32) -> f32 {

@@ -1,33 +1,41 @@
 # Default
 process = "experiment"
 
-model = "typed"
+model = "gt_model"
 task = "pattern"
+
 algorithm = "snes"
 
 log_level = "debug"
 
 [experiment]
-n_runs = 50
+n_runs = 10
 
 [optimizer]
-max_generations = 200
+max_generations = 500
 
 [snes]
 pop_size = 100
 lr_mu = 0.1
 lr_sigma = 0.01
 
+init_sigma = 1.0
+init_mu_mean = 0.0
+init_mu_stddev = 2.0
+
 [eval]
-max_threads = 32
-trials = 1
+max_threads = 100
+trials = 10
 
 [batch]
 batch_size = 32
 
 [rsnn]
-n = 64
+n = 128
 
 [rsnn.model]
 k = 8
 max_w = 1.0
+
+distance_threshold = 5.0
+max_coordinate = 10.0

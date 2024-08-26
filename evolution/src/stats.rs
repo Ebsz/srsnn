@@ -8,7 +8,6 @@ use serde::{Serialize, Deserialize};
 // Best, mean, stddev
 type Generation = (f32, f32, f32);
 
-
 #[derive(Clone, Deserialize, Serialize)]
 pub struct Run {
     pub generations: Vec<Generation>,
@@ -16,6 +15,7 @@ pub struct Run {
     pub accuracy: Vec<f32>,
     pub best_network: Option<(f32, DefaultRepresentation, ParameterSet)>
 }
+
 impl Run {
     fn new() -> Self {
         Run {

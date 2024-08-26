@@ -18,6 +18,8 @@ const MAX_T: u32 = RESPONSE_START_T + RESPONSE_WINDOW;
 const AGENT_INPUTS: usize = 784;
 const AGENT_OUTPUTS: usize = N_CLASSES * OUTPUTS_PER_CLASS;
 
+const MAX_FIRING_PROBABILITY: f32 = 0.5;
+
 
 #[derive(Debug)]
 pub struct MNISTResult {
@@ -95,7 +97,7 @@ impl MNISTTask {
 
     fn get_output(&mut self) -> TaskOutput {
         let data = if self.t < SEND_TIME {
-            encoding::rate_encode(&self.setup.pattern)
+            encoding::rate_encode(&(&self.setup.pattern * MAX_FIRING_PROBABILITY))
         } else {
             Array::zeros(AGENT_INPUTS)
         };

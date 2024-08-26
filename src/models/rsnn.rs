@@ -20,7 +20,7 @@ use std::fmt::Debug;
 
 
 pub trait RSNN: Configurable + Clone + Debug + Sync {
-    fn get(p: &ParameterSet, config: &RSNNConfig<Self>) -> (NetworkSet, ConnectionSet, Mask);
+    fn get(p: &ParameterSet, config: &RSNNConfig<Self>, env: &Environment) -> (NetworkSet, ConnectionSet);
     fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet;
 
     fn default_dynamics() -> NeuronSet {
@@ -77,19 +77,21 @@ impl<R: RSNN> Model for RSNNModel<R> {
     }
 
     fn develop(&self) -> DefaultRepresentation {
-        let (neural_set, input_cs, output_mask) = R::get(&self.params, &self.conf);
+        let n = self.n + self.env.outputs;
+
+        let (neural_set, input_cs) = R::get(&self.params, &self.conf, &self.env);
 
         let mask = neural_set.m;
         let dynamics = &neural_set.d[0];
 
         // Self connections are always removed
-        let network_cm = (mask - csa::mask::one_to_one()).matrix(self.n);
+        let network_cm = (mask - csa::mask::one_to_one()).matrix(n);
 
-        let d = dynamics.vec(self.n);
+        let d = dynamics.vec(n);
 
         let mut neurons = Vec::new();
 
-        for i in 0..self.n {
+        for i in 0..n {
             let inhibitory = if d[i][4] == 1.0 { true } else { false };
             neurons.push(NeuronDescription::new(
                     i as u32,
@@ -103,17 +105,17 @@ impl<R: RSNN> Model for RSNNModel<R> {
             ));
         }
 
-        let network_w = neural_set.v[0].matrix(self.n);
+        let network_w = neural_set.v[0].matrix(n);
 
         let input_cm = input_cs.m.r_matrix(self.n, self.env.inputs);
 
         let input_w = input_cs.v[0].r_matrix(self.n, self.env.inputs);
 
-        let output_cm = output_mask.r_matrix(self.env.outputs, self.n);
+        //let output_cm = output_mask.r_matrix(self.env.outputs, self.n);
 
-        if output_cm.iter().all(|c| *c == 0) {
-            log::trace!("No output connections");
-        }
+        //if output_cm.iter().all(|c| *c == 0) {
+        //    log::trace!("No output connections");
+        //}
 
         if input_cm.iter().all(|c| *c == 0) {
             log::trace!("No connections from input");
@@ -124,7 +126,6 @@ impl<R: RSNN> Model for RSNNModel<R> {
             network_w,
             input_cm,
             input_w,
-            output_cm,
             self.env.clone())
     }
 

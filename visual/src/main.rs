@@ -2,8 +2,8 @@ use visual::tasks::TaskRenderer;
 
 use tasks::{Task, TaskInput};
 use tasks::catching_task::{CatchingTask, CatchingTaskSetup};
-use tasks::movement_task::{MovementTask, MovementTaskSetup};
-use tasks::survival_task::{SurvivalTask, SurvivalTaskSetup};
+//use tasks::movement_task::{MovementTask, MovementTaskSetup};
+//use tasks::survival_task::{SurvivalTask, SurvivalTaskSetup};
 use tasks::pole_balancing_task::{PoleBalancingTask, PoleBalancingSetup};
 
 use ndarray::Array;
@@ -26,18 +26,18 @@ fn main() {
     let mut input_map: HashMap<Keycode, u32> = HashMap::new();
 
     match TASKNAME {
-        "movement" => {
-            input_map.insert(Keycode::D, 0);
-            input_map.insert(Keycode::A, 1);
-            input_map.insert(Keycode::W, 2);
-            input_map.insert(Keycode::S, 3);
+        //"movement" => {
+        //    input_map.insert(Keycode::D, 0);
+        //    input_map.insert(Keycode::A, 1);
+        //    input_map.insert(Keycode::W, 2);
+        //    input_map.insert(Keycode::S, 3);
 
-            let task = MovementTask::new(&MovementTaskSetup {});
+        //    let task = MovementTask::new(&MovementTaskSetup {});
 
-            let mut t = TaskTester::new(task, input_map);
-            t.run();
+        //    let mut t = TaskTester::new(task, input_map);
+        //    t.run();
 
-        },
+        //},
         "catching" => {
             input_map.insert(Keycode::D, 0);
             input_map.insert(Keycode::A, 1);
@@ -53,17 +53,17 @@ fn main() {
             let mut t = TaskTester::new(task, input_map);
             t.run();
         }
-        "survival" => {
-            input_map.insert(Keycode::A, 0);
-            input_map.insert(Keycode::D, 1);
-            input_map.insert(Keycode::W, 2);
-            input_map.insert(Keycode::S, 3);
+        //"survival" => {
+        //    input_map.insert(Keycode::A, 0);
+        //    input_map.insert(Keycode::D, 1);
+        //    input_map.insert(Keycode::W, 2);
+        //    input_map.insert(Keycode::S, 3);
 
-            let task = SurvivalTask::new(&SurvivalTaskSetup {food_spawn_rate: 30});
+        //    let task = SurvivalTask::new(&SurvivalTaskSetup {food_spawn_rate: 30});
 
-            let mut t = TaskTester::new(task, input_map);
-            t.run();
-        },
+        //    let mut t = TaskTester::new(task, input_map);
+        //    t.run();
+        //},
         "pole_balancing" => {
             input_map.insert(Keycode::A, 0);
             input_map.insert(Keycode::D, 1);

@@ -31,14 +31,19 @@ fn test_representation<N: NeuronModel>(n: usize, env: Environment)
     let weights: Array2<f32> = connection_mask.map(|x| *x as f32);
 
     let mut input_cm: Array2<u32> = Array::zeros((n, env.inputs));
+    let mut output_cm: Array2<u32> = Array::zeros((env.outputs, n));
 
     for i in 0..env.inputs {
         input_cm[[i,i]] = 1;
     }
 
+    for i in 0..env.outputs {
+        output_cm[[i,i]] = 1;
+    }
+
     let input_w: Array2<f32> = Array::ones((n, env.inputs));
 
-    NetworkRepresentation::new(neurons, connection_mask, weights, input_cm, input_w, env)
+    NetworkRepresentation::new(neurons, connection_mask, weights, input_cm, input_w, output_cm, env)
 }
 
 

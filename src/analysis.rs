@@ -48,9 +48,9 @@ pub fn analyze_network(r: &DefaultRepresentation) {
     let input_density = n_input_connections as f32 / (r.input_cm.shape()[0] * r.input_cm.shape()[1]) as f32;
     println!("Input - {n_input_connections} input connections, density: {input_density}");
 
-    let n_output_connections: u32 = r.output_cm.iter().sum();
-    let output_density = n_output_connections as f32 / (r.output_cm.shape()[0] * r.output_cm.shape()[1]) as f32;
-    println!("Output - {n_output_connections} output connections, density: {output_density}");
+    //let n_output_connections: u32 = r.output_cm.iter().sum();
+    //let output_density = n_output_connections as f32 / (r.output_cm.shape()[0] * r.output_cm.shape()[1]) as f32;
+    //println!("Output - {n_output_connections} output connections, density: {output_density}");
 }
 
 pub mod graph {

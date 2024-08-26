@@ -27,7 +27,7 @@ pub fn generate_plots(record: &Record) {
         }
     }
 
-    let plot_ok = plot_spikes(spikedata.clone());
+    let plot_ok = plot_spikes(spikedata.clone(), "spikeplot.png");
 
     match plot_ok {
         Ok(_) => (),
@@ -40,9 +40,6 @@ pub fn generate_plots(record: &Record) {
         //println!("{:?}, {:?}", i, p);
         spike_array.slice_mut(s!(i,..)).assign(&p);
     }
-
-    //let psth = crate::analysis::to_firing_rate(spike_array);
-    //plot_firing_rates(psth);
 }
 
 pub fn plot_all_potentials(record: &Record) {
@@ -108,9 +105,113 @@ pub fn plot_firing_rates(data: Array2<f32>) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
-pub fn plot_spikes(spikedata: Vec<Array1<f32>>) -> Result<(), Box<dyn std::error::Error>> {
-    let filename = "spikeplot.png";
+pub fn plot_run_spikes(r: &Record) {
+    let mut spk_rec: Vec<Array1<f32>> = vec![];
 
+    for i in r.get(RecordType::Spikes) {
+        if let RecordDataType::Spikes(s) = i {
+            spk_rec.push(s.clone());
+        } else {
+            panic!("Error parsing spike records");
+        }
+    }
+
+    let mut spk_in: Vec<Array1<f32>> = vec![];
+
+    for i in r.get(RecordType::InputSpikes) {
+        if let RecordDataType::InputSpikes(s) = i {
+            spk_in.push(s.clone());
+        } else {
+            panic!("Error parsing spike records");
+        }
+    }
+
+    let mut spk_out: Vec<Array1<f32>> = vec![];
+
+    for i in r.get(RecordType::OutputSpikes) {
+        if let RecordDataType::OutputSpikes(s) = i {
+            spk_out.push(s.clone());
+        } else {
+            panic!("Error parsing spike records");
+        }
+    }
+
+    plot_spikes_with_io(spk_rec, spk_in, spk_out, "dual_spikeplot.png");
+}
+
+/// Plot a split spike chart with recurrent spikes on top, input spikes below
+pub fn plot_spikes_with_io(
+    spk_rec: Vec<Array1<f32>>,
+    spk_in: Vec<Array1<f32>>,
+    spk_out: Vec<Array1<f32>>,
+    filename: &str)
+    -> Result<(), Box<dyn std::error::Error>>
+{
+    let max_x = spk_rec.len() as i32;
+
+    let rec_points: Vec<(i32, i32)> = to_spike_points(&spk_rec);
+    let in_points: Vec<(i32, i32)> = to_spike_points(&spk_in);
+    let out_points: Vec<(i32, i32)> = to_spike_points(&spk_out);
+
+    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
+    root.fill(&WHITE)?;
+
+    let (top, btm) = root.split_vertically((60).percent());
+
+    let (btm1, btm2) = btm.split_vertically((50).percent());
+
+    let top_max_y = spk_rec[0].shape()[0] as i32;
+    let in_max_y = spk_in[0].shape()[0] as i32;
+    let out_max_y = spk_out[0].shape()[0] as i32;
+
+    let mut top_chart = ChartBuilder::on(&top)
+        //.caption("Recurrent", ("sans-serif", 30).into_font())
+        .set_label_area_size(LabelAreaPosition::Left, 30)
+        .set_label_area_size(LabelAreaPosition::Top, 30)
+        .margin(5)
+        //.x_label_area_size(20)
+        //.y_label_area_size(20)
+        .build_cartesian_2d(0..max_x, 0..top_max_y)?;
+
+    top_chart.configure_mesh().draw()?;
+
+    top_chart.draw_series(
+        rec_points.iter().map(|p| Circle::new(*p, 2, BLACK.filled())),
+    ).unwrap();
+
+    let mut in_chart = ChartBuilder::on(&btm1)
+        .margin(5)
+        //.caption("input", ("sans-serif", 30).into_font())
+        //.x_label_area_size(20)
+        //.y_label_area_size(20)
+        .set_label_area_size(LabelAreaPosition::Left, 30)
+        .build_cartesian_2d(0..max_x, 0..in_max_y)?;
+
+    in_chart.configure_mesh().draw()?;
+
+    in_chart.draw_series(
+        in_points.iter().map(|p| Circle::new(*p, 2, BLACK.filled())),
+    ).unwrap();
+
+    let mut out_chart = ChartBuilder::on(&btm2)
+        .margin(5)
+        //.x_label_area_size(20)
+        //.y_label_area_size(20)
+        .set_label_area_size(LabelAreaPosition::Left, 30)
+        .build_cartesian_2d(0..max_x, 0..out_max_y)?;
+
+    out_chart.configure_mesh().draw()?;
+    out_chart.draw_series(
+        out_points.iter().map(|p| Circle::new(*p, 2, BLACK.filled())),
+    ).unwrap();
+
+
+    log::info!("Plot saved to {}", filename);
+
+    Ok(())
+}
+
+pub fn plot_spikes(spikedata: Vec<Array1<f32>>, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
     let max_x = spikedata.len() as i32;
     let max_y = spikedata[0].shape()[0] as i32;
 
@@ -248,9 +349,7 @@ pub mod plt {
             );
 
             chart
-                .draw_series(series)?
-                .label(description)
-                .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED));
+                .draw_series(series)?;
         }
 
         chart

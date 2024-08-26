@@ -27,7 +27,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 // Print log every _ generations
 const LOG_FREQ: usize = 1;
 
-const VALIDATION_FREQ: usize = 10;
+const VALIDATION_FREQ: usize = 1;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct OptimizationConfig {

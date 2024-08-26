@@ -1,6 +1,6 @@
-pub mod movement;
+//pub mod movement;
+//pub mod survival;
 pub mod catching;
-pub mod survival;
 pub mod pole_balancing;
 
 use sdl2::render::WindowCanvas;

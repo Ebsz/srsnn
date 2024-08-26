@@ -9,5 +9,4 @@ pub mod plots;
 pub mod optimization;
 pub mod process;
 
-#[cfg(feature = "visual")]
 pub mod visual;

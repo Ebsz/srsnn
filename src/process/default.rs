@@ -39,7 +39,8 @@ impl DefaultProcess {
         analyze_network(repr);
 
         let record = run_analysis::<T>(&repr);
-        plots::generate_plots(&record);
+        //plots::generate_plots(&record);
+        plots::plot_run_spikes(&record);
 
         Self::save(repr.clone(),
             format!("network_{}_{}_{}",

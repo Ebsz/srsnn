@@ -7,18 +7,18 @@ use visual::tasks::TaskRenderer;
 use visual::task_window::TaskWindow;
 
 use model::neuron::NeuronModel;
-use model::network::representation::{NetworkRepresentation, NeuronDescription};
+use model::network::representation::DefaultRepresentation;
 use model::network::builder::NetworkBuilder;
 
 
-pub fn visualize_network_on_task<N: NeuronModel, T: Task + TaskRenderer>(task: T, repr: &NetworkRepresentation<NeuronDescription<N>>) {
+pub fn visualize_network_on_task<T: Task + TaskRenderer>(task: T, repr: &DefaultRepresentation) {
     log::info!("Visualizing genome behavior on task");
 
     let network = NetworkBuilder::build(repr);
     let mut runnable = RunnableNetwork {
         network,
-        inputs: repr.inputs,
-        outputs: repr.outputs
+        inputs: repr.env.inputs,
+        outputs: repr.env.outputs
     };
 
     let runner = TaskRunner::new(task, &mut runnable);

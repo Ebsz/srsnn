@@ -57,8 +57,8 @@ pub fn disc(r: f32, m: Metric) -> Mask {
     }
 }
 
-type CoordinateFn = Arc<dyn Fn(u32) -> (f32, f32)>;
-type Metric = Arc<dyn Fn(u32, u32) -> f32>;
+pub type CoordinateFn = Arc<dyn Fn(u32) -> (f32, f32)>;
+pub type Metric = Arc<dyn Fn(u32, u32) -> f32>;
 
 pub fn random_coordinates(min: f32, max: f32, n: usize) -> CoordinateFn {
     let mut c = vec![];
@@ -71,10 +71,15 @@ pub fn random_coordinates(min: f32, max: f32, n: usize) -> CoordinateFn {
     Arc::new(move |i| c[i as usize])
 }
 
-pub fn distance_metric(c: CoordinateFn) -> Metric {
+pub fn static_coordinates(pos: (f32, f32)) -> CoordinateFn {
+    Arc::new(move |i| pos)
+}
+
+/// g1 maps for i's; g2 maps for j's
+pub fn distance_metric(g1: CoordinateFn, g2: CoordinateFn) -> Metric {
     Arc::new(move |i, j|  {
-        let (ix, iy) = c(i);
-        let (jx, jy) = c(j);
+        let (ix, iy) = g1(i);
+        let (jx, jy) = g2(j);
 
         ((ix - jx).powf(2.0) + (iy - jy).powf(2.0)).sqrt()
     })

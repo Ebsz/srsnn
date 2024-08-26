@@ -10,6 +10,7 @@ use ndarray::{Array1, Array2};
 use serde::{Serialize, Deserialize};
 
 
+
 pub type DefaultRepresentation = NetworkRepresentation<NeuronDescription<Izhikevich>>;
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -23,8 +24,6 @@ pub struct NetworkRepresentation<N> {
     pub input_cm: Array2<u32>,
     pub input_w: Array2<f32>,
 
-    pub output_cm: Array2<u32>,
-
     pub env: Environment,
 }
 
@@ -37,12 +36,10 @@ impl<N> NetworkRepresentation<N> {
         input_cm: Array2<u32>,
         input_w: Array2<f32>,
 
-        output_cm: Array2<u32>,
-
         env: Environment)
         -> NetworkRepresentation<N>
     {
-        // TODO: Fix matrix model and uncomment this
+
         // Ensure weights are non-negative
         assert!(network_w.iter().filter(|x| **x < 0.0).collect::<Vec<&f32>>().len() == 0,
             "network weight matrix contains negative entries");
@@ -55,14 +52,14 @@ impl<N> NetworkRepresentation<N> {
         assert!(network_cm.shape() == [n,n],
             "# neurons ({:?}) != network connection matrix: ({:?})", neurons.shape()[0], network_cm.shape());
 
-        // |input_cm| == [n x n_in]
-        assert!(input_cm.shape() == [n, env.inputs]);
+        let n_rec = n - env.outputs;
+
+        // |input_cm| == [n_rec x n_in]
+        assert!(input_cm.shape() == [n_rec, env.inputs]);
 
         // |cm| == |w|
         assert!(network_cm.shape() == network_w.shape());
         assert!(input_cm.shape() == input_w.shape());
-
-        assert!(output_cm.shape() == [env.outputs, n]);
 
         NetworkRepresentation {
             n,
@@ -72,8 +69,6 @@ impl<N> NetworkRepresentation<N> {
 
             input_cm,
             input_w,
-
-            output_cm,
 
             env,
         }
