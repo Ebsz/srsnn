@@ -1,4 +1,4 @@
-pub mod nes;
+//pub mod nes;
 pub mod snes;
 
 use utils::config::Configurable;

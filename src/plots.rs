@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 
-use ndarray::{s, Array, Array1, Array2, Array3};
+use ndarray::{s, Array, Array1, Array2};
 use model::record::{Record, RecordType, RecordDataType};
 
 use evolution::stats::OptimizationStatistics;
@@ -37,7 +37,6 @@ pub fn generate_plots(record: &Record) {
     let mut spike_array: Array2<f32> = Array::zeros((spikedata.len(), spikedata[0].shape()[0]));
 
     for (i, p) in spikedata.iter().enumerate() {
-        //println!("{:?}, {:?}", i, p);
         spike_array.slice_mut(s!(i,..)).assign(&p);
     }
 }
@@ -50,7 +49,7 @@ pub fn plot_all_potentials(record: &Record) {
         pots.push(potentials.iter().map(|x| x[i]).collect());
     }
 
-    let plot_ok = plt::plot_multiple_series(pots, "Potential", "Potentials", "allpots.png");
+    let plot_ok = plt::plot_multiple_series(pots, "Potential", "allpots.png");
 
     match plot_ok {
         Ok(_) => (),
@@ -64,11 +63,11 @@ pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
     let std: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.stddev_series().clone()).collect();
 
     let _ = plt::plot_multiple_series(best,
-        "Generation best", "Evolution", format!("{}_best.png", name).as_str());
+        "Generation best", format!("{}_best.png", name).as_str());
     let _ = plt::plot_multiple_series(mean,
-        "Generation mean", "Evolution", format!("{}_mean.png", name).as_str());
+        "Generation mean", format!("{}_mean.png", name).as_str());
     let _ = plt::plot_multiple_series(std,
-        "Generation mean", "Evolution", format!("{}_std.png", name).as_str());
+        "Generation mean", format!("{}_std.png", name).as_str());
 }
 
 pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {
@@ -136,7 +135,7 @@ pub fn plot_run_spikes(r: &Record) {
         }
     }
 
-    plot_spikes_with_io(spk_rec, spk_in, spk_out, "dual_spikeplot.png");
+    let _ = plot_spikes_with_io(spk_rec, spk_in, spk_out, "dual_spikeplot.png");
 }
 
 /// Plot a split spike chart with recurrent spikes on top, input spikes below
@@ -265,6 +264,7 @@ pub fn plot_degree_distribution(data: &Array1<u32>) {
 pub mod plt {
     use super::*;
     use utils::math;
+    //use ndarray::Array3;
 
     pub fn plot_single_variable(
         data: Vec<f32>,
@@ -318,7 +318,6 @@ pub mod plt {
     /// Plot multiple series
     pub fn plot_multiple_series(
         data: Vec<Vec<f32>>,
-        description: &str,
         caption: &str,
         filename: &str)
         -> Result<(), Box<dyn std::error::Error>> {
@@ -347,7 +346,6 @@ pub mod plt {
                 d.iter().enumerate().map(|(i, x)| (i as f32, *x)),
                 &RED,
             );
-
             chart
                 .draw_series(series)?;
         }
@@ -441,44 +439,41 @@ pub mod plt {
         Ok(())
     }
 
-    pub fn plot_3d(
-        data: &Array3<u32>,
-        filename: &str,
-        caption: &str)
-        -> Result<(), Box<dyn std::error::Error>> {
+    //pub fn plot_3d(
+    //    data: &Array3<u32>,
+    //    filename: &str,
+    //    caption: &str)
+    //    -> Result<(), Box<dyn std::error::Error>> {
 
-        let min_x = 0.0;
-        let min_y = 0.0;
-        let max_z = 0.0;
-        let max_x = 1.0;
-        let max_y = 1.0;
-        let max_z = 1.0;
+    //    let min_x = 0.0;
+    //    let min_y = 0.0;
+    //    let max_z = 0.0;
+    //    let max_x = 1.0;
+    //    let max_y = 1.0;
+    //    let max_z = 1.0;
 
-        let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
-        root.fill(&WHITE)?;
+    //    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
+    //    root.fill(&WHITE)?;
 
-        let mut chart = ChartBuilder::on(&root)
-            .caption(caption, ("sans-serif", 30).into_font())
-            .margin(5)
-            .x_label_area_size(30)
-            .y_label_area_size(35)
-            .build_cartesian_3d(min_x..max_x, min_y..max_y, min_x..max_x)?;
+    //    let mut chart = ChartBuilder::on(&root)
+    //        .caption(caption, ("sans-serif", 30).into_font())
+    //        .margin(5)
+    //        .x_label_area_size(30)
+    //        .y_label_area_size(35)
+    //        .build_cartesian_3d(min_x..max_x, min_y..max_y, min_x..max_x)?;
 
-        chart.configure_axes().draw()?;
+    //    chart.configure_axes().draw()?;
 
-        Ok(())
-    }
+    //    Ok(())
+    //}
 
     pub fn plot_matrix(data: &Array2<f32>, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let (dw, dh) = (data.shape()[0], data.shape()[1]);
 
-        let min_x = 0;
         let max_x = 400;
-
-        let min_y = 0;
         let max_y = 400;
 
-        let root = BitMapBackend::new(filename, (400, 400)).into_drawing_area();
+        let root = BitMapBackend::new(filename, (max_x, max_y)).into_drawing_area();
         root.fill(&WHITE)?;
 
         let areas = root.split_evenly((dw, dh));
@@ -489,7 +484,7 @@ pub mod plt {
         let color = |x: f32| RGBColor(c_val(x), c_val(x), c_val(x));
 
         for (v, a) in data.iter().zip(areas.iter()) {
-            a.fill(&color(*v));
+            let _ = a.fill(&color(*v));
         }
 
         root.present()?;

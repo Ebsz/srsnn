@@ -4,13 +4,12 @@ use utils::random;
 use utils::math;
 use utils::encoding::rate_encode;
 
-use ndarray::{array, Array, Array1, Array2, Axis};
+use ndarray::{Array, Array1, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
 
 
-const DATASET_SIZE: usize = 1024;
+//const DATASET_SIZE: usize = 1024;
 
-const CLASS_CENTERS: [(usize, usize); 5] = [(0, 0), (2, 2), (4, 4), (4, 0), (0, 4)];
 const N_CLASSES: usize = 5;
 
 const PATTERN_SIZE: usize = 5;

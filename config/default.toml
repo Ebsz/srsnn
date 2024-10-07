@@ -1,8 +1,8 @@
 # Default
-process = "experiment"
+process = "test"
 
 model = "gt_model"
-task = "pattern"
+task = "testing"
 
 algorithm = "snes"
 

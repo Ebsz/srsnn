@@ -1,6 +1,5 @@
 //! Spiking network analysis.
 
-use srsnn::analysis::graph::{Graph, GraphAnalysis};
 use srsnn::analysis;
 use model::network::representation::DefaultRepresentation;
 use utils::data;
@@ -35,7 +34,6 @@ fn main() {
     let r = load_network();
 
     analysis::analyze_network(&r);
-
 
     //let rg = Graph::reduce(&graph);
     //let rga = GraphAnalysis::analyze(&rg);

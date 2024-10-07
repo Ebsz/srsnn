@@ -13,7 +13,7 @@ use utils::environment::Environment;
 
 use serde::Deserialize;
 
-use ndarray::{s, array};
+use ndarray::array;
 
 use std::sync::Arc;
 use std::fmt::Debug;
@@ -35,7 +35,7 @@ pub trait RSNN: Configurable + Clone + Debug + Sync {
         )}
     }
 
-    fn default_input(n: usize) -> ConnectionSet {
+    fn default_input() -> ConnectionSet {
         let m_in = Mask { f: Arc::new( move |i, j| i == j ) };
 
         let w_in = Self::default_weights();

@@ -3,4 +3,3 @@
 //pub mod nd_typed;
 
 pub mod gt_model;
-pub mod reduced_gt_model;

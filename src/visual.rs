@@ -6,7 +6,6 @@ use tasks::task_runner::TaskRunner;
 use visual::tasks::TaskRenderer;
 use visual::task_window::TaskWindow;
 
-use model::neuron::NeuronModel;
 use model::network::representation::DefaultRepresentation;
 use model::network::builder::NetworkBuilder;
 

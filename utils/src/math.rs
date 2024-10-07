@@ -57,7 +57,7 @@ pub mod ml {
     use ndarray::Array1;
 
     pub fn softmax(x: &Array1<f32>) -> Array1<f32> {
-        let mut s = x.mapv(f32::exp);
+        let s = x.mapv(f32::exp);
 
         &s / s.sum()
     }

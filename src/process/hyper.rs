@@ -4,7 +4,7 @@ use crate::plots;
 use crate::eval::MultiEvaluator;
 use crate::process::Process;
 use crate::optimization::Optimizer;
-use crate::config::{get_config, BaseConfig};
+use crate::config::BaseConfig;
 use crate::analysis::{analyze_network, run_analysis};
 
 use model::Model;
@@ -15,10 +15,7 @@ use evolution::stats::OptimizationStatistics;
 
 use tasks::{Task, TaskEval};
 
-use utils::config::{ConfigSection, Configurable};
-
-use ndarray::{array, Array};
-use serde::Deserialize;
+use ndarray::array;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -75,7 +72,7 @@ impl HyperOptimization {
         log::info!("Experiment report:");
 
         // Best eval for each experiment
-        let mut best: Vec<(f32, &DefaultRepresentation, _)> = stats.iter().map(|x| x.best()).collect();
+        let best: Vec<(f32, &DefaultRepresentation, _)> = stats.iter().map(|x| x.best()).collect();
 
         let z: Vec<(f32, (f32, f32))> = best.iter().map(|x| x.0).zip(param_range)
                                             .map(|(a,b)| (a,*b)).collect();

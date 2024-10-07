@@ -36,8 +36,7 @@ pub fn time_encode(data: &Array1<f32>, max_t: usize) -> Array2<f32> {
     let d = (data - min) / (max - min);
 
     //TODO: implement
-
-    let mut out = Array::zeros((d.len(), max_t));
+    let out = Array::zeros((d.len(), max_t));
 
     // T * cos(d+i * pi/n)
 

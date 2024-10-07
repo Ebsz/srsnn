@@ -133,7 +133,7 @@ impl CatchingTask {
             match i  {
                 0 => { self.agent.move_right(); },
                 1 => { self.agent.move_left(); },
-                id => {panic!("Got input id > 1"); }
+                _ => { panic!("Got input id > 1"); }
             }
         }
     }
@@ -218,14 +218,14 @@ impl TaskEval for CatchingTask {
         let max_distance = ARENA_SIZE.0 as f32;
 
         let mut total_fitness: f32 = 0.0;
-        let mut correct = 0;
+        //let mut correct = 0;
 
         for r in &results {
             total_fitness += (1.0 - r.distance/max_distance) * 100.0 - (if r.success {0.0} else {30.0});
 
-            if r.success {
-                correct += 1;
-            }
+            //if r.success {
+            //    correct += 1;
+            //}
         }
 
         //log::debug!("{}/{} correct", correct, results.len());
@@ -233,7 +233,7 @@ impl TaskEval for CatchingTask {
         total_fitness / results.len() as f32
     }
 
-    fn accuracy(results: &[Self::Result]) -> Option<f32> {
+    fn accuracy(_results: &[Self::Result]) -> Option<f32> {
         None
     }
 }

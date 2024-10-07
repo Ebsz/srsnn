@@ -1,23 +1,18 @@
 pub mod default;
 pub mod experiment;
+pub mod test;
 pub mod hyper;
 
-use crate::analysis::graph::{Graph, GraphAnalysis};
 use crate::eval::MultiEvaluator;
 use crate::eval::config::{Batch, BatchConfig, EvalConfig};
 use crate::config::{get_config, BaseConfig};
 use crate::optimization::{Optimizer, OptimizationConfig};
 
 use crate::models::rsnn::RSNNModel;
-//use crate::models::srsnn::er_model::ERModel;
-//use crate::models::srsnn::typed::TypedModel;
-//use crate::models::srsnn::nd_typed::NDTypedModel;
 use crate::models::srsnn::gt_model::GeometricTypedModel;
-use crate::models::srsnn::reduced_gt_model::ReducedGTModel;
-//use crate::models::plain::PlainModel;
+use crate::models::srsnn::test::TestModel;
 
 use model::Model;
-use model::network::representation::DefaultRepresentation;
 
 use tasks::{Task, TaskEval};
 use tasks::pattern_task::PatternTask;
@@ -26,9 +21,8 @@ use tasks::xor_task::XORTask;
 use tasks::pole_balancing_task::PoleBalancingTask;
 use tasks::mnist_task::MNISTTask;
 use tasks::multipattern::MultiPatternTask;
-//use tasks::movement_task::MovementTask;
-//use tasks::survival_task::SurvivalTask;
-//use tasks::energy_task::EnergyTask;
+
+use tasks::testing::TestTask;
 
 use evolution::algorithm::Algorithm;
 
@@ -38,7 +32,6 @@ use utils::environment::Environment;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-
 
 pub trait Process: Sync {
     //type Output;
@@ -51,12 +44,12 @@ pub trait Process: Sync {
 
     fn resolve_m(config: BaseConfig) {
         match config.model.as_str() {
+            "gt_model"          => { Self::resolve_t::<RSNNModel<GeometricTypedModel>>(config); },
+            "test_model"        => { Self::resolve_t::<RSNNModel<TestModel>>(config); },
             //"plain"         => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
             //"er_model"      => { Self::resolve_t::<RSNNModel<ERModel>>(config); },
             //"typed"         => { Self::resolve_t::<RSNNModel<TypedModel>>(config); },
             //"nd_typed"      => { Self::resolve_t::<RSNNModel<NDTypedModel>>(config); },
-            "gt_model"        => { Self::resolve_t::<RSNNModel<GeometricTypedModel>>(config); },
-            "rgt_model"       => { Self::resolve_t::<RSNNModel<ReducedGTModel>>(config); },
             //"main" => { Self::resolve_t::<MainStochasticModel>(config); },
             //"matrix" => { Self::resolve_t::<MatrixModel>(config); },
             _ => { println!("Unknown model: {}", config.model); }
@@ -65,12 +58,13 @@ pub trait Process: Sync {
 
     fn resolve_t<M: Model>(config: BaseConfig) {
         match config.task.as_str() {
-            "polebalance"   => { Self::run::<M, PoleBalancingTask>(config); },
             "pattern"       => { Self::run::<M, PatternTask>(config); },
             "multipattern"  => { Self::run::<M, MultiPatternTask>(config); },
             "catching"      => { Self::run::<M, CatchingTask>(config); },
             "xor"           => { Self::run::<M, XORTask>(config); },
             "mnist"         => { Self::run::<M, MNISTTask>(config); },
+            "testing"         => { Self::run::<M, TestTask>(config); },
+            //"polebalance"   => { Self::run::<M, PoleBalancingTask>(config); },
             //"movement"    => { Self::run::<M, MovementTask>(config); },
             //"survival"    => { Self::run::<M, SurvivalTask>(config); },
             //"energy"      => { Self::run::<M, EnergyTask>(config); },

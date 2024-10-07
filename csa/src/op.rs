@@ -72,7 +72,7 @@ pub fn random_coordinates(min: f32, max: f32, n: usize) -> CoordinateFn {
 }
 
 pub fn static_coordinates(pos: (f32, f32)) -> CoordinateFn {
-    Arc::new(move |i| pos)
+    Arc::new(move |_| pos)
 }
 
 /// g1 maps for i's; g2 maps for j's
@@ -84,7 +84,6 @@ pub fn distance_metric(g1: CoordinateFn, g2: CoordinateFn) -> Metric {
         ((ix - jx).powf(2.0) + (iy - jy).powf(2.0)).sqrt()
     })
 }
-
 
 /// The group operator applies the label function to all
 /// the structures in the network set

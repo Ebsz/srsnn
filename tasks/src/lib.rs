@@ -1,21 +1,22 @@
 pub mod sensor;
 pub mod task_runner;
 
-pub mod lorenz_task;
-pub mod catching_task;
-//pub mod movement_task;
-//pub mod survival_task;
-//pub mod energy_task;
-pub mod mnist_task;
-pub mod xor_task;
-pub mod pole_balancing_task;
-pub mod pattern_task;
-
-pub mod multipattern;
-
 use ndarray::Array1;
 
 use std::fmt::Debug;
+
+pub mod testing;
+
+pub mod catching_task;
+pub mod pole_balancing_task;
+
+pub mod xor_task;
+pub mod lorenz_task;
+pub mod mnist_task;
+
+pub mod pattern_task;
+pub mod multipattern;
+
 
 
 /// Input to the task, from the agent
@@ -58,4 +59,3 @@ pub trait TaskEval: Task {
 
     fn accuracy(results: &[Self::Result]) -> Option<f32>;
 }
-

@@ -21,7 +21,7 @@ pub struct ForceGraphComponent {
 impl ForceGraphComponent {
     const NODE_SIZE: i16 = 20;
 
-    pub fn new(n: usize, edges: Vec<(u32, u32)>, colors: Option<Array1<Color>>) -> ForceGraphComponent {
+    pub fn new(n: usize, edges: Vec<(u32, u32)>, _colors: Option<Array1<Color>>) -> ForceGraphComponent {
         let mut graph = <ForceGraph>::new(Default::default());
 
         let mut ids = Vec::new();

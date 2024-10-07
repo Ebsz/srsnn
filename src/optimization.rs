@@ -29,17 +29,6 @@ const LOG_FREQ: usize = 1;
 
 const VALIDATION_FREQ: usize = 1;
 
-#[derive(Clone, Debug, Deserialize)]
-pub struct OptimizationConfig {
-    pub max_generations: usize,
-}
-
-impl ConfigSection for OptimizationConfig {
-    fn name() -> String {
-        "optimizer".to_string()
-    }
-}
-
 pub struct Optimizer;
 impl Configurable for Optimizer {
     type Config = OptimizationConfig;
@@ -66,6 +55,7 @@ impl Optimizer {
                 assert!(!ps[i].is_nan(), "Error in parameter set: {:#?}", ps[i].set);
             }
 
+            // Create models
             let mut models = vec![];
             for p in ps {
                 models.push(M::new(&conf.model, p, &env));
@@ -75,7 +65,6 @@ impl Optimizer {
                 .map(|(i, m)| (i as u32, m)).collect();
 
             let evaluations = eval.eval(&e);
-
             let fitness: Vec<f32> = evaluations.iter().map(|e| e.1).collect();
 
             log_generation::<T>(gen, &mut stats, &evaluations, &ps, &eval);
@@ -96,6 +85,17 @@ impl Optimizer {
         }
 
         stats
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct OptimizationConfig {
+    pub max_generations: usize,
+}
+
+impl ConfigSection for OptimizationConfig {
+    fn name() -> String {
+        "optimizer".to_string()
     }
 }
 

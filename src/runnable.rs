@@ -3,7 +3,7 @@
 use model::network::Network;
 use model::spikes::Spikes;
 
-use tasks::{TaskInput, TaskOutput};
+use tasks::TaskOutput;
 use tasks::task_runner::Runnable;
 
 use model::DefaultNetwork;

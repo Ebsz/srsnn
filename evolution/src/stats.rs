@@ -1,6 +1,5 @@
 use model::network::representation::DefaultRepresentation;
 
-use utils::math;
 use utils::parameters::ParameterSet;
 
 use serde::{Serialize, Deserialize};
@@ -44,11 +43,6 @@ impl Run {
 
     fn log_accuracy(&mut self, val: f32) {
         self.accuracy.push(val);
-    }
-
-    /// Current generation number
-    fn gen(&self) -> usize {
-        self.generations.len()
     }
 
     // Return the best individual of the run

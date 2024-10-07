@@ -75,14 +75,12 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
         let input_queue: Arc<ArrayQueue<Trial>> = Arc::new(ArrayQueue::new(n_samples));
         let output_queue: Arc<ArrayQueue<Evaluation>> = Arc::new(ArrayQueue::new(n_samples));
 
-
-        log::trace!("Developing models");
         for m in models {
             for _ in 0..self.config.trials {
                 let _ = input_queue.push((m.0, m.1.develop()));
             }
         }
-        log::trace!("Developed population in {:.2}s", t0.elapsed().as_secs_f32());
+        log::debug!("Developed {} models in {:.2}s", models.len(), t0.elapsed().as_secs_f32());
 
         assert!(input_queue.len() == n_samples);
 
@@ -90,6 +88,8 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
 
         // Don't create more threads than there are objects to evaluate
         let n_threads = std::cmp::min(self.config.max_threads, models.len());
+
+        log::debug!("performing {} evals", input_queue.len());
 
         log::trace!("Starting eval");
         thread::scope(|s| {

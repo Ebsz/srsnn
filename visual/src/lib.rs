@@ -4,20 +4,15 @@ pub mod task_window;
 pub mod fg;
 
 use crate::window::{Window, WindowComponent};
-use crate::task_window::TaskWindow;
 use crate::fg::ForceGraphComponent;
 
+//use sdl2::pixels::Color;
 
-use sdl2::pixels::Color;
+//const PLOTS_DIR: &str = "plots";
 
-use ndarray::Array1;
-
-
-const PLOTS_DIR: &str = "plots";
-
-const INPUT_COLOR: Color = Color::RGB(240, 100, 30);
-const OUTPUT_COLOR: Color = Color::RGB(100, 240, 30);
-const NETWORK_COLOR: Color = Color::RGB(200, 150, 135);
+//const INPUT_COLOR: Color = Color::RGB(240, 100, 30);
+//const OUTPUT_COLOR: Color = Color::RGB(100, 240, 30);
+//const NETWORK_COLOR: Color = Color::RGB(200, 150, 135);
 
 
 //use model::neuron::NeuronModel;

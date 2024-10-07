@@ -39,7 +39,7 @@ impl Algorithm for SeparableNES {
         let mu = random::random_vector(n_params,
             Normal::new(conf.init_mu_mean, conf.init_mu_stddev).unwrap());
 
-        let s = Self::get_s(&conf, n_params);
+        let s = Self::get_samples(&conf, n_params);
 
         SeparableNES {
             population: Self::get_population(&mu, &sigma, &s, &conf, &params),
@@ -77,7 +77,7 @@ impl Algorithm for SeparableNES {
         self.mu = &self.mu + self.conf.lr_mu * &self.sigma * g_mu;
         self.sigma = &self.sigma * (self.conf.lr_sigma * 0.5 * g_sigma).mapv(f32::exp);
 
-        self.s = Self::get_s(&self.conf, self.n_params);
+        self.s = Self::get_samples(&self.conf, self.n_params);
 
         self.population = Self::get_population(
             &self.mu, &self.sigma, &self.s,
@@ -111,7 +111,7 @@ impl SeparableNES {
         population
     }
 
-    fn get_s(conf: &SNESConfig, n_params: usize) -> Array2<f32> {
+    fn get_samples(conf: &SNESConfig, n_params: usize) -> Array2<f32> {
         random::random_matrix((conf.pop_size, n_params), StandardNormal)
     }
 
@@ -122,7 +122,7 @@ impl SeparableNES {
         self.sigma = Array::ones(n_params);
         self.mu = random::random_vector(n_params, StandardNormal);
 
-        self.s = Self::get_s(&self.conf, n_params);
+        self.s = Self::get_samples(&self.conf, n_params);
 
         self.population = Self::get_population(
             &self.mu, &self.sigma, &self.s,

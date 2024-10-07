@@ -205,7 +205,7 @@ impl TaskEval for PoleBalancingTask {
         fitness
     }
 
-    fn accuracy(results: &[Self::Result]) -> Option<f32> {
+    fn accuracy(_results: &[Self::Result]) -> Option<f32> {
         None
     }
 }

@@ -27,8 +27,8 @@ pub struct NES {
 }
 
 impl Algorithm for NES {
-    fn new<M: Model>(conf: Self::Config, m_conf: &M::Config, env: &Environment) -> Self {
-        let params = M::params(m_conf, env);
+    fn new<M: Model>(conf: Self::Config, model_conf: &M::Config, env: &Environment) -> Self {
+        let params = M::params(model_conf, env);
         let n_params = params.size();
 
         let dist = Normal::new(conf.init_mean,conf.init_stddev).unwrap();

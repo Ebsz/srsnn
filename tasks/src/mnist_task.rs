@@ -137,7 +137,7 @@ impl TaskEval for MNISTTask {
         let mut fitness = 0.0;
         let batch_size = results.len();
 
-        let mut correct = 0;
+        //let mut correct = 0;
 
         for r in &results {
             // Number of spikes per output neuron
@@ -164,7 +164,7 @@ impl TaskEval for MNISTTask {
 
             let all_labels_equal = firing_rates.windows(2).into_iter().all(|x| x[0] == x[1]);
             if predicted_label == label && !all_labels_equal {
-                correct += 1;
+                //correct += 1;
 
                 fitness += 5.0;
             }
@@ -179,7 +179,7 @@ impl TaskEval for MNISTTask {
         fitness
     }
 
-    fn accuracy(results: &[Self::Result]) -> Option<f32> {
+    fn accuracy(_results: &[Self::Result]) -> Option<f32> {
         None
     }
 }

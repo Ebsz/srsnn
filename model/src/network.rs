@@ -9,7 +9,7 @@ use crate::record::{Record, RecordType, RecordDataType};
 
 use utils::environment::Environment;
 
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{s, Array1, Array2};
 
 use std::ops::AddAssign;
 

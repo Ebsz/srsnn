@@ -29,7 +29,7 @@ impl<T: Task + TaskEval> EvalSetup<T> {
 
     pub fn validation_setups(&self) -> &[T::Setup] {
         match self {
-            EvalSetup::Base(setup) => { &[] },
+            EvalSetup::Base(_) => { &[] },
             EvalSetup::Batched(b) => { &b.validation_setups },
         }
     }

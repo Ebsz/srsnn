@@ -132,7 +132,7 @@ impl TaskEval for PatternTask {
 
         let mut setups = vec![];
 
-        for i in 0..DATASET_SIZE/2 {
+        for _ in 0..DATASET_SIZE/2 {
             let (s1, s2) = pattern::setup_pair(PATTERN_SIZE);
             setups.push(s1);
             setups.push(s2);
@@ -176,7 +176,6 @@ impl TaskEval for PatternTask {
     }
 
     fn accuracy(results: &[Self::Result]) -> Option<f32> {
-
         let mut correct = 0;
 
         for r in results {
@@ -186,8 +185,6 @@ impl TaskEval for PatternTask {
 
             // p[0]: patterns are equal, p[1]: patterns not equal
             let prediction = array![1.0 - avg_fr, avg_fr];
-
-            let expected = if r.is_same { array![1.0, 0.0] } else { array![0.0, 1.0] };
 
             let is_same = math::max_index(prediction) == 0;
 
