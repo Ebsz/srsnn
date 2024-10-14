@@ -26,8 +26,7 @@ pub struct SeparableNES {
 }
 
 impl Algorithm for SeparableNES {
-    fn new<M: Model>(conf: Self::Config, m_conf: &M::Config, env: &Environment) -> Self {
-        let params = M::params(m_conf, env);
+    fn new(conf: Self::Config, params: ParameterSet) -> Self {
         let n_params = params.size();
 
         // Initialize means ~ N(0,1) and variances to 1.0, as per PS paper

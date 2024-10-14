@@ -41,7 +41,8 @@ impl Optimizer {
         env: Environment,
         stop_signal: Arc<AtomicBool>)
     -> OptimizationStatistics {
-        let mut algo = A::new::<M>(conf.algorithm.clone(), &conf.model, &env);
+
+        let mut algo = A::new(conf.algorithm.clone(), M::params(&conf.model, &env));
 
         let mut stats = OptimizationStatistics::new();
 

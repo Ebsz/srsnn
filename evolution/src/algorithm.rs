@@ -9,7 +9,7 @@ use model::Model;
 
 
 pub trait Algorithm: Configurable {
-    fn new<M: Model>(conf: Self::Config, model_conf: &M::Config, env: &Environment) -> Self;
+    fn new(conf: Self::Config, params: ParameterSet) -> Self;
 
     fn step(&mut self, evals: Vec<f32>);
     fn parameter_sets(&self) -> &[ParameterSet];
