@@ -78,31 +78,6 @@ pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn 
     plt::plot_single_variable(potentials, "Potential", "Potentials", "pots.png", &BLACK)
 }
 
-pub fn plot_firing_rates(data: Array2<f32>) -> Result<(), Box<dyn std::error::Error>> {
-    let filename = "firing_rates.png";
-    //let points = data.iter().map()
-
-    let max_x = data.nrows();
-    let max_y = data.ncols();
-
-    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
-    root.fill(&WHITE)?;
-
-    let mut chart = ChartBuilder::on(&root)
-        .caption("Network firing rates", ("sans-serif", 30).into_font())
-        .margin(15)
-        .x_label_area_size(20)
-        .y_label_area_size(20)
-        .build_cartesian_2d(0..max_x, 0..max_y)?;
-
-
-    chart.configure_mesh().draw()?;
-
-    //chart.draw_series(
-    //points.iter().map(|p|
-
-    Ok(())
-}
 
 pub fn plot_run_spikes(r: &Record) {
     let mut spk_rec: Vec<Array1<f32>> = vec![];
@@ -256,6 +231,52 @@ fn to_spike_points(spikedata: &Vec<Array1<f32>>) -> Vec<(i32, i32)> {
 
     points
 }
+
+//pub fn plot_firing_rates(data: Array2<f32>) -> Result<(), Box<dyn std::error::Error>> {
+//    let filename = "firing_rates.png";
+//    //let points = data.iter().map()
+//
+//    let max_x = data.nrows();
+//    let max_y = data.ncols();
+//
+//    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
+//    root.fill(&WHITE)?;
+//
+//    let mut chart = ChartBuilder::on(&root)
+//        .caption("Network firing rates", ("sans-serif", 30).into_font())
+//        .margin(15)
+//        .x_label_area_size(20)
+//        .y_label_area_size(20)
+//        .build_cartesian_2d(0..max_x, 0..max_y)?;
+//
+//
+//    chart.configure_mesh().draw()?;
+//
+//    //chart.draw_series(
+//    //points.iter().map(|p|
+//
+//    Ok(())
+//}
+
+//pub fn plot_firing_rates(r: &Record) {
+//    // Spike_data ->
+//    let mut spike_data: Vec<Array1<f32>> = vec![];
+//
+//    for i in r.get(RecordType::Spikes) {
+//        if let RecordDataType::Spikes(s) = i {
+//            spike_data.push(s.clone());
+//        } else {
+//            panic!("Error parsing spike records");
+//        }
+//    }
+//
+//    let sd: Array2<f32> = Array::zeros((spike_data.len(), spike_data[0].shape()[0]));
+//
+//    // into Array2<f32>
+//
+//    //crate::analysis::spikedata::to_firing_rate(sd);
+//}
+
 
 pub fn plot_degree_distribution(data: &Array1<u32>) {
     let _ = plt::histogram(data, "dgdist.png", "Degree distribution");
@@ -470,25 +491,29 @@ pub mod plt {
     pub fn plot_matrix(data: &Array2<f32>, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let (dw, dh) = (data.shape()[0], data.shape()[1]);
 
-        let max_x = 400;
-        let max_y = 400;
+        log::info!("{} x {}", dw, dh);
+
+        let max_x = dw as u32 * 4;
+        let max_y = dh as u32 * 4;
 
         let root = BitMapBackend::new(filename, (max_x, max_y)).into_drawing_area();
         root.fill(&WHITE)?;
-
         let areas = root.split_evenly((dw, dh));
 
-        //let c_val = |x: f32| (255.0 - (255.0 * x)) as u8; // higher val is darker
-        let c_val = |x: f32| (255.0 * x) as u8; // lower val is darker
+        let c_val = |x: f32| (255.0 * x) as u8; // higher val is darker
+        //let c_val = |x: f32| (255.0 * x) as u8; // lower val is darker
 
-        let color = |x: f32| RGBColor(c_val(x), c_val(x), c_val(x));
+        let color = |x: f32| RGBColor(c_val(x), 128 - c_val(x) * 2, 128 - c_val(x) * 2);
 
         for (v, a) in data.iter().zip(areas.iter()) {
-            let _ = a.fill(&color(*v));
+            let c = color(*v);
+            a.fill(&c);
+
         }
 
         root.present()?;
 
+        log::info!("Plot saved to {}", filename);
         Ok(())
     }
 }

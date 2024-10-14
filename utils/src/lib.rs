@@ -6,3 +6,4 @@ pub mod encoding;
 pub mod data;
 pub mod environment;
 pub mod parameters;
+pub mod analysis;

@@ -16,6 +16,8 @@ use rand::seq::SliceRandom;
 
 pub const SEED: u64 = 1337;
 
+
+// TODO: Replace with ThreadRng?
 thread_local! {
     static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));
 }
