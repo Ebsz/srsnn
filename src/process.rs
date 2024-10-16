@@ -10,7 +10,7 @@ use crate::optimization::{Optimizer, OptimizationConfig};
 
 use crate::models::rsnn::RSNNModel;
 use crate::models::srsnn::gt_model::GeometricTypedModel;
-use crate::models::srsnn::test::TestModel;
+use crate::models::srsnn::test_model::TestModel;
 use crate::models::srsnn::minimal::MinimalModel;
 
 use model::Model;

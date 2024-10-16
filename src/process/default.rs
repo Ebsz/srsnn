@@ -54,7 +54,7 @@ impl DefaultProcess {
 
         let (f, repr, _) = stats.best();
         log::info!("Best fitness: {f}");
-        analyze_network(repr);
+        //analyze_network(repr);
 
         let record = run_analysis::<T>(&repr);
         //plots::generate_plots(&record);

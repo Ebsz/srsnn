@@ -4,7 +4,7 @@
 
 pub mod gt_model;
 pub mod minimal;
-pub mod test;
+pub mod test_model;
 
 use utils::parameters::ParameterSet;
 

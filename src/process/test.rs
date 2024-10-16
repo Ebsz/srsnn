@@ -12,7 +12,7 @@ use crate::analysis::{graph, run_analysis};
 use crate::runnable::RunnableNetwork;
 use crate::models::rsnn::{RSNN, RSNNModel};
 use crate::models::srsnn::gt_model::GeometricTypedModel;
-use crate::models::srsnn::test::TestModel;
+use crate::models::srsnn::test_model::TestModel;
 use crate::plots;
 use crate::plots::plt;
 use crate::eval;
@@ -21,8 +21,10 @@ use model::Model;
 use model::DefaultNetwork;
 
 use tasks::{Task, TaskEval, TaskInput};
-use tasks::testing::{TestTask, TestTaskSetup};
 use tasks::task_runner::{TaskRunner, Runnable};
+
+use tasks::testing::{TestTask, TestTaskSetup};
+use tasks::multipattern::{MultiPatternTask, MultiPatternSetup};
 
 use evolution::algorithm::Algorithm;
 use evolution::algorithm::snes::SeparableNES;
@@ -41,45 +43,50 @@ impl Process for TestProcess {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {
         log::info!("Running test process");
 
-        let main_conf = Self::main_conf::<RSNNModel<TestModel>, TestTask, SeparableNES>();
-        let env = Self::environment::<TestTask>();
-        Self::log_config(&conf, &main_conf, &env);
+        log::info!("MultiPattern env: {:?}", Self::environment::<MultiPatternTask>());
 
-        let p = RSNNModel::<TestModel>::params(&main_conf.model, &env);
+        test_multipattern_task();
+        //Self::pattern_test(conf);
 
-        // Get parameter set from SNES
-        log::info!("Getting parameter sets");
-        let snes = SeparableNES::new(main_conf.algorithm.clone(), p);
-        let params = snes.parameter_sets();
+        //let main_conf = Self::main_conf::<RSNNModel<TestModel>, TestTask, SeparableNES>();
+        //let env = Self::environment::<TestTask>();
+        //Self::log_config(&conf, &main_conf, &env);
 
-        // Create and develop model from the first parameter set
-        log::info!("Developing model");
-        let model = RSNNModel::<TestModel>::new(&main_conf.model, &params[0], &env);
-        let r = model.develop();
+        //let p = RSNNModel::<TestModel>::params(&main_conf.model, &env);
 
-        println!("{:#?}", r.env);
+        //// Get parameter set from SNES
+        //log::info!("Getting parameter sets");
+        //let snes = SeparableNES::new(main_conf.algorithm.clone(), p);
+        //let params = snes.parameter_sets();
 
-        let record = run_analysis::<TestTask>(&r);
-        plots::plot_run_spikes(&record);
-        plots::plot_all_potentials(&record);
+        //// Create and develop model from the first parameter set
+        //log::info!("Developing model");
+        //let model = RSNNModel::<TestModel>::new(&main_conf.model, &params[0], &env);
+        //let r = model.develop();
 
-        log::info!("Running network on task");
-        let setups: Vec<_> = TestTask::eval_setups();
-        let results: Vec< <TestTask as Task>::Result > = eval::run_network_on_task::<TestTask>(&r, &setups);
-        log::info!("got results");
+        //println!("{:#?}", r.env);
 
-        let record = results[0].record.clone();
-        let fr = analysis::firing_rate(results[0].record.clone(), 10);
+        //let record = run_analysis::<TestTask>(&r);
+        //plots::plot_run_spikes(&record);
+        //plots::plot_all_potentials(&record);
 
-        for i in 0..fr.shape()[0] {
-            println!("{} \t\t {}", fr.slice(s![i, ..]), record.slice(s![i, ..]));
-        }
+        //log::info!("Running network on task");
+        //let setups: Vec<_> = TestTask::eval_setups();
+        //let results: Vec< <TestTask as Task>::Result > = eval::run_network_on_task::<TestTask>(&r, &setups);
+        //log::info!("got results");
 
-        //let fitness = TestTask::fitness(results);
-        //log::info!("fitness:  {fitness}");
+        //let record = results[0].record.clone();
+        //let fr = analysis::firing_rate(results[0].record.clone(), 10);
 
-        let plot_ok = plt::plot_matrix(&fr, "firing_rate.png");
-        //let plot_ok = plt::plot_matrix(&normalized_fr, "nfiring_rate.png");
+        //for i in 0..fr.shape()[0] {
+        //    println!("{} \t\t {}", fr.slice(s![i, ..]), record.slice(s![i, ..]));
+        //}
+
+        ////let fitness = TestTask::fitness(results);
+        ////log::info!("fitness:  {fitness}");
+
+        //let plot_ok = plt::plot_matrix(&fr, "firing_rate.png");
+        ////let plot_ok = plt::plot_matrix(&normalized_fr, "nfiring_rate.png");
 
         //match plot_ok {
         //    Ok(_) => (),
@@ -119,28 +126,109 @@ impl Process for TestProcess {
     }
 }
 
-fn test_task() {
-    let mut task = TestTask::new(&TestTaskSetup { });
+//impl TestProcess {
+//    fn pattern_test(conf: BaseConfig) {
+//        let main_conf = Self::main_conf::<RSNNModel<TestModel>, MultiPatternTask, SeparableNES>();
+//        let env = Self::environment::<MultiPatternTask>();
+//        Self::log_config(&conf, &main_conf, &env);
+//
+//        let p = RSNNModel::<TestModel>::params(&main_conf.model, &env);
+//
+//        // Get parameter set from SNES
+//        log::info!("Getting parameter sets");
+//        let snes = SeparableNES::new(main_conf.algorithm.clone(), p);
+//        let params = snes.parameter_sets();
+//
+//        // Create and develop model from the first parameter set
+//        log::info!("Developing model");
+//        let model = RSNNModel::<TestModel>::new(&main_conf.model, &params[0], &env);
+//        let r = model.develop();
+//
+//        let setups: Vec<_> = MultiPatternTask::eval_setups();
+//        log::info!("{} setups", setups.len());
+//
+//        let results: Vec< <MultiPatternTask as Task>::Result>
+//            = eval::run_network_on_task::<MultiPatternTask>(&r, &setups);
+//
+//        let fitness = MultiPatternTask::fitness(results);
+//        log::info!("fitness:  {fitness}");
+//
+//        let record = run_analysis::<MultiPatternTask>(&r);
+//        plots::plot_run_spikes(&record);
+//    }
+//}
+
+fn test_multipattern_task() {
+    let setups: Vec<_> = MultiPatternTask::eval_setups();
 
     let mut results = vec![];
 
-    let mut output = vec![];
+    let mut output: Vec<Array1<f32>> = vec![];
+    let mut input: Vec<Array1<f32>> = vec![];
 
-    let mut t = 0;
-    loop {
-        let data: Vec<u32>  = (0..10).map(|i| i).collect();
-        let s = task.tick(TaskInput{ data });
 
-        if let Some(r) = s.result {
-            results.push(r);
-            break;
+    for i in 0..setups.len() {
+        let mut task = MultiPatternTask::new(&setups[i]);
+
+        let mut t = 0;
+        loop {
+            let inp: Array1<f32> = if t > 50 && t < 90 {
+                utils::encoding::rate_encode(&(Array::<f32, _>::ones(10) * 0.3))
+            } else if t > 90 {
+                utils::encoding::rate_encode(&(Array::<f32, _>::ones(10) * 0.1))
+            } else {
+                Array::zeros(10)
+            };
+
+            let data: Vec<u32> = inp.iter().enumerate()
+                .filter_map(|(i, x)| if *x == 1.0 { Some(i as u32) } else { None }).collect();
+
+            input.push(inp);
+
+            let s = task.tick(TaskInput{ data });
+
+            if let Some(r) = s.result {
+                results.push(r);
+                break;
+            }
+
+            output.push(s.output.data);
+
+            t+=1;
         }
-
-        output.push(s);
-
-        t+=1;
     }
+
+    let accuracy = MultiPatternTask::accuracy(&results).unwrap();
+    let fitness = MultiPatternTask::fitness(results);
+    log::info!("fitness:  {fitness}, accuracy: {accuracy}");
+
+    plots::plot_spikes(output, "task_output.png");
+    plots::plot_spikes(input, "task_input.png");
 }
+
+
+//fn task_tester() {
+//    let mut task = TestTask::new(&TestTaskSetup { });
+//
+//    let mut results = vec![];
+//
+//    let mut output = vec![];
+//
+//    let mut t = 0;
+//    loop {
+//        let data: Vec<u32>  = (0..10).map(|i| i).collect();
+//        let s = task.tick(TaskInput{ data });
+//
+//        if let Some(r) = s.result {
+//            results.push(r);
+//            break;
+//        }
+//
+//        output.push(s);
+//
+//        t+=1;
+//    }
+//}
 
 //fn model_analysis<M: Model>(ps: &[ParameterSet], model_conf: &M::Config, env: &Environment) {
 //    log::info!("Performing model analysis");
