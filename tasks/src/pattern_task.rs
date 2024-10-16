@@ -4,6 +4,9 @@
 //! Two types of trial:
 //! - Both patterns are drawn from the same distribution; output neurons should not fire.
 //! - Patterns are drawn from different distributions; output neurons should fire.
+//!
+//! NOTE: The fitness function is currently not working, with a bug that returns perfect fitness
+//! for models who do not spike at all.
 
 
 use crate::{Task, TaskEval, TaskInput, TaskOutput, TaskState, TaskEnvironment};
@@ -16,11 +19,10 @@ use ndarray::{array, Array, Array1, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
 
 
-// Must be a multiple of 2, as setups are created pairwise
-const DATASET_SIZE: usize = 512;
+const DATASET_SIZE: usize = 128;
 
 const PATTERN_SIZE: usize = 5;
-const PATTERN_MAX_PROBABILITY: f32 = 0.7;
+const PATTERN_MAX_PROBABILITY: f32 = 0.5;
 
 const SEND_TIME: u32 = 50;        // How long each pattern is sent.
 const SEND_DELAY: u32 = 70;       // Delay between patterns
@@ -128,51 +130,56 @@ impl PatternTask {
 
 impl TaskEval for PatternTask {
     fn eval_setups() -> Vec<Self::Setup> {
-        assert!(DATASET_SIZE % 2 == 0, "DATASET_SIZE must be a multiple of 2");
 
         let mut setups = vec![];
 
-        for _ in 0..DATASET_SIZE/2 {
-            let (s1, s2) = pattern::setup_pair(PATTERN_SIZE);
-            setups.push(s1);
-            setups.push(s2);
+        for _ in 0..DATASET_SIZE {
+            //let (s1, s2) = pattern::setup_pair(PATTERN_SIZE);
+            //setups.push(s1);
+            //setups.push(s2);
+            setups.push(pattern::generate(PATTERN_SIZE));
         }
 
         setups
     }
 
     fn fitness(results: Vec<Self::Result>) -> f32 {
-        let mut fitness = 0.0;
+//        let mut fitness = 0.0;
+//
+//        for r in &results {
+//            let (w, h) = (r.output.shape()[0], r.output.shape()[1]);
+//
+//            let avg_fr = r.output.iter().sum::<u32>() as f32 /  (w * h)  as f32;
+//
+//            // p[0]: patterns are equal, p[1]: patterns not equal
+//            let prediction = array![1.0 - avg_fr, avg_fr];
+//
+//            let expected = if r.is_same { array![1.0, 0.0] } else { array![0.0, 1.0] };
+//
+//            //let ce_loss = math::ml::cross_entropy(&prediction, &expected);
+//            let ce_loss = math::ml::cross_entropy(&prediction, &(expected * 0.4));
+//
+//            //println!("{ce_loss}");
+//
+//            //println!("avg_fr: {avg_fr}, prediction: {prediction}, expected: {expected}, loss: {ce_loss}");
+//
+//            fitness += 10.0 - math::minf(&[ce_loss, 10.0]);
+//        }
+//
+//        // Normalize fitness to (0, 100)
+//        fitness = fitness * 100.0 /(5.0 * results.len() as f32);
+//
+//        //if fitness == 100.0 {
+//        //    for r in &results {
+//        //        println!("is_same: {}", r.is_same);
+//        //        println!("{:#?}", r.output);
+//        //    }
+//
+//        //}
+//
+//        fitness
 
-        for r in &results {
-            let (w, h) = (r.output.shape()[0], r.output.shape()[1]);
-
-            let avg_fr = r.output.iter().sum::<u32>() as f32 /  (w * h)  as f32;
-
-            // p[0]: patterns are equal, p[1]: patterns not equal
-            let prediction = array![1.0 - avg_fr, avg_fr];
-
-            let expected = if r.is_same { array![1.0, 0.0] } else { array![0.0, 1.0] };
-
-            let ce_loss = math::ml::cross_entropy(&prediction, &expected);
-
-            //println!("avg_fr: {avg_fr}, prediction: {prediction}, expected: {expected}, loss: {ce_loss}");
-
-            fitness += 5.0 - math::minf(&[ce_loss, 5.0]);
-        }
-
-        // Normalize fitness to (0, 100)
-        fitness = fitness * 100.0 /(5.0 * results.len() as f32);
-
-        if fitness == 100.0 {
-            for r in &results {
-                println!("{:#?}", r.output);
-            }
-
-            assert!(false, "bug");
-        }
-
-        fitness
+        Self::accuracy(&results).unwrap()
     }
 
     fn accuracy(results: &[Self::Result]) -> Option<f32> {
@@ -217,10 +224,19 @@ impl TaskEval for PatternTask {
 pub mod pattern {
     use super::*;
 
+    pub fn generate(n:usize) -> PatternTaskSetup {
+        if rand::random::<f32>() > 0.5 {
+            generate_different(n)
+        } else {
+            generate_equal(n)
+        }
+    }
+
     // Creates two setups: one with equal patterns and one with different patterns
     pub fn setup_pair(n: usize) -> (PatternTaskSetup, PatternTaskSetup) {
         (generate_equal(n), generate_different(n))
     }
+
 
     // Generate setup with equal patterns
     fn generate_equal(n: usize) -> PatternTaskSetup {
@@ -246,8 +262,8 @@ pub mod pattern {
         }
 
         PatternTaskSetup {
-            dist1: pattern(n, p1),
-            dist2: pattern(n, p2),
+            dist1: pattern(n, p1) * 0.3,
+            dist2: pattern(n, p2) * 0.3,
             is_same: false}
     }
 

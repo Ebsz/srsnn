@@ -1,4 +1,5 @@
 pub mod representation;
+pub mod exponential;
 
 use crate::spikes::Spikes;
 use crate::synapse::representation::{SynapseRepresentation, MapRepresentation, MatrixRepresentation};

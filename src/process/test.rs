@@ -7,8 +7,7 @@ use crate::process::{Process, MainConf};
 use crate::eval::MultiEvaluator;
 use crate::optimization::Optimizer;
 
-use crate::analysis;
-use crate::analysis::graph;
+use crate::analysis::{graph, run_analysis};
 
 use crate::runnable::RunnableNetwork;
 use crate::models::rsnn::{RSNN, RSNNModel};
@@ -16,7 +15,7 @@ use crate::models::srsnn::gt_model::GeometricTypedModel;
 use crate::models::srsnn::test::TestModel;
 use crate::plots;
 use crate::plots::plt;
-
+use crate::eval;
 
 use model::Model;
 use model::DefaultNetwork;
@@ -25,16 +24,16 @@ use tasks::{Task, TaskEval, TaskInput};
 use tasks::testing::{TestTask, TestTaskSetup};
 use tasks::task_runner::{TaskRunner, Runnable};
 
-
 use evolution::algorithm::Algorithm;
 use evolution::algorithm::snes::SeparableNES;
 use evolution::stats::OptimizationStatistics;
 
 use utils::math;
+use utils::analysis;
 use utils::parameters::ParameterSet;
 use utils::environment::Environment;
 
-use ndarray::{Array, Array1};
+use ndarray::{s, Array, Array1};
 
 
 pub struct TestProcess;
@@ -42,38 +41,55 @@ impl Process for TestProcess {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {
         log::info!("Running test process");
 
-        let main_conf = Self::main_conf::<RSNNModel<TestModel>, T, SeparableNES>();
-
-        let env = Self::environment::<T>();
-
+        let main_conf = Self::main_conf::<RSNNModel<TestModel>, TestTask, SeparableNES>();
+        let env = Self::environment::<TestTask>();
         Self::log_config(&conf, &main_conf, &env);
 
-        let snes = SeparableNES::new::<RSNNModel<TestModel>>(
-            main_conf.algorithm.clone(),
-            &main_conf.model,
-            &env);
+        let p = RSNNModel::<TestModel>::params(&main_conf.model, &env);
 
+        // Get parameter set from SNES
+        log::info!("Getting parameter sets");
+        let snes = SeparableNES::new(main_conf.algorithm.clone(), p);
         let params = snes.parameter_sets();
 
+        // Create and develop model from the first parameter set
+        log::info!("Developing model");
         let model = RSNNModel::<TestModel>::new(&main_conf.model, &params[0], &env);
-
         let r = model.develop();
 
-        let record = analysis::run_analysis::<T>(&r);
+        println!("{:#?}", r.env);
 
-
+        let record = run_analysis::<TestTask>(&r);
         plots::plot_run_spikes(&record);
         plots::plot_all_potentials(&record);
 
+        log::info!("Running network on task");
+        let setups: Vec<_> = TestTask::eval_setups();
+        let results: Vec< <TestTask as Task>::Result > = eval::run_network_on_task::<TestTask>(&r, &setups);
+        log::info!("got results");
 
-        let d = r.network_cm.map(|x| *x as f32);
+        let record = results[0].record.clone();
+        let fr = analysis::firing_rate(results[0].record.clone(), 10);
 
-        log::info!("d.shape: {:#?}", d.shape());
+        for i in 0..fr.shape()[0] {
+            println!("{} \t\t {}", fr.slice(s![i, ..]), record.slice(s![i, ..]));
+        }
 
-        let c = visual::base::BaseComponent::<RSNNModel<TestModel>>::new(&main_conf.model, params, &env);
-        visual::window(vec![
-            Box::new(c),
-        ]);
+        //let fitness = TestTask::fitness(results);
+        //log::info!("fitness:  {fitness}");
+
+        let plot_ok = plt::plot_matrix(&fr, "firing_rate.png");
+        //let plot_ok = plt::plot_matrix(&normalized_fr, "nfiring_rate.png");
+
+        //match plot_ok {
+        //    Ok(_) => (),
+        //    Err(e) => println!("Error creating plot: {:?}", e),
+        //}
+
+        //let c = visual::base::BaseComponent::<RSNNModel<TestModel>>::new(&main_conf.model, params, &env);
+        //visual::window(vec![
+        //    Box::new(c),
+        //]);
 
         //for i in 0..10 {
         //    let model = RSNNModel::<GeometricTypedModel>::new(&main_conf.model, &params[i], &env);
@@ -92,7 +108,6 @@ impl Process for TestProcess {
         //    }
 
         //}
-
 
         //let mut runnable = RunnableNetwork::<DefaultNetwork>::build(&network);
 
@@ -115,7 +130,6 @@ fn test_task() {
     loop {
         let data: Vec<u32>  = (0..10).map(|i| i).collect();
         let s = task.tick(TaskInput{ data });
-
 
         if let Some(r) = s.result {
             results.push(r);

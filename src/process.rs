@@ -11,6 +11,7 @@ use crate::optimization::{Optimizer, OptimizationConfig};
 use crate::models::rsnn::RSNNModel;
 use crate::models::srsnn::gt_model::GeometricTypedModel;
 use crate::models::srsnn::test::TestModel;
+use crate::models::srsnn::minimal::MinimalModel;
 
 use model::Model;
 
@@ -46,6 +47,7 @@ pub trait Process: Sync {
         match config.model.as_str() {
             "gt_model"          => { Self::resolve_t::<RSNNModel<GeometricTypedModel>>(config); },
             "test_model"        => { Self::resolve_t::<RSNNModel<TestModel>>(config); },
+            "minimal"           => { Self::resolve_t::<RSNNModel<MinimalModel>>(config); },
             //"plain"         => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
             //"er_model"      => { Self::resolve_t::<RSNNModel<ERModel>>(config); },
             //"typed"         => { Self::resolve_t::<RSNNModel<TypedModel>>(config); },

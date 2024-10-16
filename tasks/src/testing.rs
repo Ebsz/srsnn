@@ -10,7 +10,7 @@ use ndarray::{s, Array, Array1, Array2, Axis};
 
 
 const AGENT_INPUTS: usize = 16;
-const AGENT_OUTPUTS: usize = 16;
+const AGENT_OUTPUTS: usize = 8;
 
 const MAX_T: u32 = 1000;
 
@@ -82,21 +82,23 @@ impl TaskEval for TestTask {
     }
 
     fn fitness(results: Vec<TestTaskResult>) -> f32 {
-        // 1.To firing rate
-        //
-
-        // 2. Compare the difference between the function and the target function
-        //
+        // 1. Compute firing rate
+        // 2. Compute function from firing rate
+        // 3. Compare the difference between the function and the target function
 
         for r in results {
-            let fr = firing_rate(r.record, 10);
+            let fr = analysis::firing_rate(r.record, 32);
 
+            //println!("{}", fr);
+
+            //println!("max: {}", math::maxf(&fr.clone().into_iter().collect::<Vec<f32>>()));
             //println!("{:#?}", fr);
             //println!("fr max: {}", math::maxf(fr.as_slice().unwrap()));
-
         }
 
-        random::random_range((0.0, 100.0))
+        let f = rand::random();
+
+        f
     }
 
     fn accuracy(_results: &[Self::Result]) -> Option<f32> {

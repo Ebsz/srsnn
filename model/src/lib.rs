@@ -20,6 +20,9 @@ use utils::environment::Environment;
 pub type DefaultNetwork = SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>;
 pub type DefaultNeuron = NeuronDescription<Izhikevich>;
 
+
+/// A parameterized model that can be developed into a network.
+//pub trait NetworkModel<N=DefaultNeuron>: Configurable + Sync {
 pub trait Model<N=DefaultNeuron>: Configurable + Sync {
     fn new(config: &Self::Config, p: &ParameterSet, env: &Environment) -> Self;
 

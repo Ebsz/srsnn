@@ -1,8 +1,14 @@
 # Default
+#process = "default"
 process = "test"
 
-model = "gt_model"
-task = "testing"
+#model = "test_model"
+model = "minimal"
+#model = "gt_model"
+
+#task = "testing"
+task = "pattern"
+#task = "multipattern"
 
 algorithm = "snes"
 
@@ -15,27 +21,27 @@ n_runs = 10
 max_generations = 500
 
 [snes]
-pop_size = 100
+pop_size = 32
 lr_mu = 0.1
-lr_sigma = 0.01
+lr_sigma = 0.05 # 0.01
 
-init_sigma = 1.0
-init_mu_mean = 0.0
-init_mu_stddev = 2.0
+init_sigma = 2.0        # 1.0
+init_mu_mean = 0.0     # 0.0
+init_mu_stddev = 2.0    # 2.0
 
 [eval]
-max_threads = 100
-trials = 10
+max_threads = 32
+trials = 1
 
 [batch]
-batch_size = 32
+batch_size = 8
 
 [rsnn]
-n = 128
+n = 256
 
 [rsnn.model]
-k = 8
-max_w = 1.0
+k = 4
+max_w = 0.8
 
-distance_threshold = 5.0
+distance_threshold = 3.0
 max_coordinate = 10.0

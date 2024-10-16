@@ -491,8 +491,6 @@ pub mod plt {
     pub fn plot_matrix(data: &Array2<f32>, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let (dw, dh) = (data.shape()[0], data.shape()[1]);
 
-        log::info!("{} x {}", dw, dh);
-
         let max_x = dw as u32 * 4;
         let max_y = dh as u32 * 4;
 
@@ -508,7 +506,6 @@ pub mod plt {
         for (v, a) in data.iter().zip(areas.iter()) {
             let c = color(*v);
             a.fill(&c);
-
         }
 
         root.present()?;

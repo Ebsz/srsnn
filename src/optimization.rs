@@ -71,11 +71,10 @@ impl Optimizer {
             log_generation::<T>(gen, &mut stats, &evaluations, &ps, &eval);
 
             if Array1::<f32>::from_vec(fitness.clone()).std(0.0) == 0.0 {
-               log::warn!("eval stddev was 0.0, resetting");
+               log::warn!("cannot optimize because eval stddev was 0.0, trying again");
 
-               algo = A::new::<M>(conf.algorithm.clone(), &conf.model, &env);
-
-               stats.new_run();
+               //algo = A::new(conf.algorithm.clone(), M::params(&conf.model, &env));
+               //stats.new_run();
 
                continue;
             }
