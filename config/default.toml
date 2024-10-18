@@ -41,6 +41,9 @@ n = 128
 
 [rsnn.model]
 k = 6
+in_k = 1
+out_k = 1
+
 max_w = 1.0
 
 distance_threshold = 3.0
