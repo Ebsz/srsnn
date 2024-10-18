@@ -11,14 +11,14 @@ use ndarray_rand::rand_distr::StandardNormal;
 const N_CLASSES: usize = 2;
 
 // dataset size = # of setups = N_CLASSES * N_TRIALS
-const N_TRIALS: usize = 32;
+const N_TRIALS: usize = 64;
 
 const PATTERN_SIZE: usize = 5;
 const PATTERN_MAX_PROBABILITY: f32 = 0.3;
 
 // ------ Timing ------
-const SEND_TIME: u32 = 50;              // How many timesteps to send the pattern
-const RESPONSE_DELAY: u32 = 0; //42;   // Delay between pattern send and response window
+const SEND_TIME: u32 = 30;              // How many timesteps to send the pattern
+const RESPONSE_DELAY: u32 = 20; //42;   // Delay between pattern send and response window
 const RESPONSE_BIN_LEN: u32 = 40;
 
 const RESPONSE_WINDOW: u32 = RESPONSE_BIN_LEN * N_CLASSES as u32;  // Number of timesteps to record the response
@@ -174,7 +174,7 @@ impl TaskEval for MultiPatternTask {
             bin_count = bin_count.mapv(|x| math::minf(&[x, SPIKE_CAP]));
             //println!("bin_count_post_cap: {}", bin_count);
 
-            // Subtract the max value
+            // Subtract the max count
             bin_count = &bin_count - math::maxf(bin_count.as_slice().unwrap());
 
             // punish no-spike results to avoid getting stuck
@@ -193,7 +193,8 @@ impl TaskEval for MultiPatternTask {
             total_loss += loss;
         }
 
-        100.0 - total_loss  // + Self::accuracy(&results).unwrap() * 50.0
+        //100.0 - total_loss + 
+        Self::accuracy(&results).unwrap() * 50.0
     }
 
     // Temporal binning accuracy

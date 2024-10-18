@@ -10,7 +10,6 @@ use ndarray::{Array1, Array2};
 use serde::{Serialize, Deserialize};
 
 
-
 pub type DefaultRepresentation = NetworkRepresentation<NeuronDescription<Izhikevich>>;
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -39,7 +38,6 @@ impl<N> NetworkRepresentation<N> {
         env: Environment)
         -> NetworkRepresentation<N>
     {
-
         // Ensure weights are non-negative
         assert!(network_w.iter().filter(|x| **x < 0.0).collect::<Vec<&f32>>().len() == 0,
             "network weight matrix contains negative entries");

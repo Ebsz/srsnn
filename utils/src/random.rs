@@ -45,18 +45,26 @@ pub fn gaussian(x: f32, w: f32, bounds: (f32, f32)) -> f32 {
     math::clamp(y, bounds.0, bounds.1)
 }
 
-/// Generate a random matrix
+
 pub fn random_matrix<T, D: Distribution<T>>(shape: (usize, usize), dist: D) -> Array2<T>{
-    RNG.with(|rng| {
-        Array::random_using(shape, dist, &mut (*rng.borrow_mut()))
-    })
+    Array::random(shape, dist)
 }
 
 pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> {
-    RNG.with(|rng| {
-        Array::random_using(size, dist, &mut (*rng.borrow_mut()))
-    })
+    Array::random(size, dist)
 }
+
+//pub fn random_matrix<T, D: Distribution<T>>(shape: (usize, usize), dist: D) -> Array2<T>{
+//    RNG.with(|rng| {
+//        Array::random_using(shape, dist, &mut (*rng.borrow_mut()))
+//    })
+//}
+//
+//pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> {
+//    RNG.with(|rng| {
+//        Array::random_using(size, dist, &mut (*rng.borrow_mut()))
+//    })
+//}
 
 /// Get a random sample from a specified range
 pub fn random_range<T: SampleUniform + PartialOrd>(range: (T, T)) -> T {

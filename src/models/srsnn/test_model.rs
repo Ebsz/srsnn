@@ -68,7 +68,7 @@ impl RSNN for TestModel {
 
         let p_test = p.as_slice().unwrap();
         assert!(!p.iter().all(|x| x.is_nan()), "p contained NaN - p: {p}, v1: {v1}");
-        assert!(!p_test.iter().all(|x| x.is_nan()), "p contained NaN - p: {p}, v1: {v1}");
+        assert!(!p_test.iter().all(|x| x.is_nan()), "p_test contained NaN - p: {p}, v1: {v1}");
 
         //let t_w = m2.mapv(|x| math::ml::sigmoid(x) * config.model.max_w);
 
@@ -83,12 +83,12 @@ impl RSNN for TestModel {
         //    move |i, j| t_w[[l(i) as usize, l(j) as usize]]
         //)};
 
-        let w = weights(config.model.max_w); // Self::default_weights();
+        //let w = weights(config.model.max_w);
+        let w = Self::random_weights(0.1, config.model.max_w);
 
         //let w = ValueSet { f: Arc::new(
         //    move |_i, _j| config.model.max_w
         //)};
-
 
         let dynamics = Self::default_dynamics();
         //let dynamics = Self::get_dynamics(m3, v2, labels.clone(), config);
@@ -190,7 +190,6 @@ impl TestModel {
         let mut dm = m.mapv(|x| math::ml::sigmoid(x));
 
         let r = IzhikevichParameters::RANGES;
-
         for mut vals in dm.rows_mut() {
             vals[0] = vals[0] * (r[0].1 - r[0].0) + r[0].0;
             vals[1] = vals[1] * (r[1].1 - r[1].0) + r[1].0;

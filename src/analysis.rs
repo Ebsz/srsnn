@@ -33,7 +33,7 @@ pub fn analyze_network(r: &DefaultRepresentation) {
     let graph_analysis = graph::GraphAnalysis::analyze(&graph);
 
     println!("graph analysis:");
-    println!("{graph}\n");
+    println!("{graph}\n\n");
     println!("{graph_analysis}");
 
     let n_inhibitory: f32 = r.neurons.iter()

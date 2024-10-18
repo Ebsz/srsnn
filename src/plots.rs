@@ -67,7 +67,7 @@ pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
     let _ = plt::plot_multiple_series(mean,
         "Generation mean", format!("{}_mean.png", name).as_str());
     let _ = plt::plot_multiple_series(std,
-        "Generation mean", format!("{}_std.png", name).as_str());
+        "Generation std", format!("{}_std.png", name).as_str());
 }
 
 pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {

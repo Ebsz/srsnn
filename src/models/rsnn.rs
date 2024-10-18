@@ -10,6 +10,7 @@ use model::neuron::izhikevich::IzhikevichParameters;
 use utils::parameters::ParameterSet;
 use utils::config::{Configurable, ConfigSection};
 use utils::environment::Environment;
+use utils::random;
 
 use serde::Deserialize;
 
@@ -26,6 +27,12 @@ pub trait RSNN: Configurable + Clone + Debug + Sync {
     fn default_dynamics() -> NeuronSet {
         NeuronSet { f: Arc::new(
             move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
+        )}
+    }
+
+    fn random_weights(min: f32, max: f32) -> ValueSet {
+        ValueSet { f: Arc::new(
+            move |_i, _j| random::random_range((min, max))
         )}
     }
 
@@ -82,15 +89,14 @@ impl<R: RSNN> Model for RSNNModel<R> {
         let (neural_set, input_cs) = R::get(&self.params, &self.conf, &self.env);
 
         let mask = neural_set.m;
-        let dynamics = &neural_set.d[0];
 
         // Self connections are always removed
         let network_cm = (mask - csa::mask::one_to_one()).matrix(n);
 
+        let dynamics = &neural_set.d[0];
         let d = dynamics.vec(n);
 
         let mut neurons = Vec::new();
-
         for i in 0..n {
             let inhibitory = if d[i][4] == 1.0 { true } else { false };
             neurons.push(NeuronDescription::new(
@@ -108,7 +114,6 @@ impl<R: RSNN> Model for RSNNModel<R> {
         let network_w = neural_set.v[0].matrix(n);
 
         let input_cm = input_cs.m.r_matrix(self.n, self.env.inputs);
-
         let input_w = input_cs.v[0].r_matrix(self.n, self.env.inputs);
 
         //let output_cm = output_mask.r_matrix(self.env.outputs, self.n);
