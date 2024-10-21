@@ -17,12 +17,12 @@ use crate::models::srsnn::base_model::BaseModel;
 use model::Model;
 
 use tasks::{Task, TaskEval};
-use tasks::pattern_task::PatternTask;
 use tasks::catching_task::CatchingTask;
 use tasks::xor_task::XORTask;
 use tasks::pole_balancing_task::PoleBalancingTask;
 use tasks::mnist_task::MNISTTask;
 use tasks::multipattern::MultiPatternTask;
+use tasks::pattern_similarity::PatternSimilarityTask;
 
 use tasks::testing::TestTask;
 
@@ -61,7 +61,7 @@ pub trait Process: Sync {
 
     fn resolve_t<M: Model>(config: BaseConfig) {
         match config.task.as_str() {
-            "pattern"       => { Self::run::<M, PatternTask>(config); },
+            "pattern_similarity"       => { Self::run::<M, PatternSimilarityTask>(config); },
             "multipattern"  => { Self::run::<M, MultiPatternTask>(config); },
             "catching"      => { Self::run::<M, CatchingTask>(config); },
             "xor"           => { Self::run::<M, XORTask>(config); },

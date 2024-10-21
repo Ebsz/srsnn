@@ -37,31 +37,31 @@ const AGENT_OUTPUTS: usize = 25;
 
 
 #[derive(Debug)]
-pub struct PatternTaskResult {
+pub struct PatternSimilarityTaskResult {
     pub output: Array2<u32>,
     pub is_same: bool
 }
 
 #[derive(Clone)]
-pub struct PatternTaskSetup {
+pub struct PatternSimilarityTaskSetup {
     pub dist1: Array1<f32>,
     pub dist2: Array1<f32>,
     pub is_same: bool
 }
 
-pub struct PatternTask {
-    setup: PatternTaskSetup,
+pub struct PatternSimilarityTask {
+    setup: PatternSimilarityTaskSetup,
     t: u32,
 
     response: Array2<u32>
 }
 
-impl Task for PatternTask {
-    type Setup = PatternTaskSetup;
-    type Result = PatternTaskResult;
+impl Task for PatternSimilarityTask {
+    type Setup = PatternSimilarityTaskSetup;
+    type Result = PatternSimilarityTaskResult;
 
     fn new(setup: &Self::Setup) -> Self {
-        PatternTask {
+        PatternSimilarityTask {
             setup: setup.clone(),
             t: 0,
 
@@ -73,7 +73,7 @@ impl Task for PatternTask {
         if self.t >= MAX_T {
             return TaskState {
                 output: self.get_output(),
-                result: Some(PatternTaskResult {
+                result: Some(PatternSimilarityTaskResult {
                     output: self.response.clone(),
                     is_same: self.setup.is_same
                 })
@@ -106,7 +106,7 @@ impl Task for PatternTask {
     }
 }
 
-impl PatternTask {
+impl PatternSimilarityTask {
     fn get_output(&self) -> TaskOutput {
         let data = if self.t < SEND_TIME { // First pattern
             rate_encode(&self.setup.dist1)
@@ -128,7 +128,7 @@ impl PatternTask {
     }
 }
 
-impl TaskEval for PatternTask {
+impl TaskEval for PatternSimilarityTask {
     fn eval_setups() -> Vec<Self::Setup> {
 
         let mut setups = vec![];
@@ -206,12 +206,12 @@ impl TaskEval for PatternTask {
     }
 }
 
-//pub fn generate_setup(n) -> PatternTaskSetup {
+//pub fn generate_setup(n) -> PatternSimilarityTaskSetup {
 //    if random:.random_range((0.0,1.0)) < 0.5 {
 //        let d = pattern(n, (random::random_range((0,n)), random::random_range((0,n))));
 //
 //        // First setup has equal patterns
-//        PatternTaskSetup {
+//        PatternSimilarityTaskSetup {
 //            dist1: d.clone(),
 //            dist2: d,
 //            is_same: true}
@@ -224,7 +224,7 @@ impl TaskEval for PatternTask {
 pub mod pattern {
     use super::*;
 
-    pub fn generate(n:usize) -> PatternTaskSetup {
+    pub fn generate(n:usize) -> PatternSimilarityTaskSetup {
         if rand::random::<f32>() > 0.5 {
             generate_different(n)
         } else {
@@ -233,23 +233,23 @@ pub mod pattern {
     }
 
     // Creates two setups: one with equal patterns and one with different patterns
-    pub fn setup_pair(n: usize) -> (PatternTaskSetup, PatternTaskSetup) {
+    pub fn setup_pair(n: usize) -> (PatternSimilarityTaskSetup, PatternSimilarityTaskSetup) {
         (generate_equal(n), generate_different(n))
     }
 
 
     // Generate setup with equal patterns
-    fn generate_equal(n: usize) -> PatternTaskSetup {
+    fn generate_equal(n: usize) -> PatternSimilarityTaskSetup {
         let d = pattern(n, (random::random_range((0,n)), random::random_range((0,n))));
 
-        PatternTaskSetup {
+        PatternSimilarityTaskSetup {
             dist1: d.clone(),
             dist2: d,
             is_same: true}
     }
 
     // Generate setup with different patterns
-    fn generate_different(n: usize) -> PatternTaskSetup {
+    fn generate_different(n: usize) -> PatternSimilarityTaskSetup {
         let p1 = (random::random_range((0,n)), random::random_range((0,n)));
 
         let mut p2;
@@ -261,7 +261,7 @@ pub mod pattern {
             }
         }
 
-        PatternTaskSetup {
+        PatternSimilarityTaskSetup {
             dist1: pattern(n, p1) * 0.3,
             dist2: pattern(n, p2) * 0.3,
             is_same: false}

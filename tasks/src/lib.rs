@@ -14,7 +14,7 @@ pub mod xor_task;
 pub mod lorenz_task;
 pub mod mnist_task;
 
-pub mod pattern_task;
+pub mod pattern_similarity;
 pub mod multipattern;
 
 

@@ -193,7 +193,7 @@ impl TaskEval for MultiPatternTask {
             total_loss += loss;
         }
 
-        //100.0 - total_loss + 
+        //100.0 - total_loss +
         Self::accuracy(&results).unwrap() * 50.0
     }
 
