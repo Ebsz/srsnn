@@ -29,6 +29,8 @@ const LOG_FREQ: usize = 1;
 
 const VALIDATION_FREQ: usize = 1;
 
+const MAX_RETRIES: usize = 5;
+
 pub struct Optimizer;
 impl Configurable for Optimizer {
     type Config = OptimizationConfig;
@@ -46,6 +48,7 @@ impl Optimizer {
 
         let mut stats = OptimizationStatistics::new();
 
+        let mut retries = 0;
         let mut gen = 0;
         while !stop_signal.load(Ordering::SeqCst)
             && stats.sum_generations() < conf.optimizer.max_generations  {
@@ -71,17 +74,25 @@ impl Optimizer {
             log_generation::<T>(gen, &mut stats, &evaluations, &ps, &eval);
 
             if Array1::<f32>::from_vec(fitness.clone()).std(0.0) == 0.0 {
-               log::warn!("cannot optimize because eval stddev was 0.0, trying again");
+               if retries < MAX_RETRIES {
+                   log::warn!("cannot optimize because eval stddev was 0.0, trying again");
+                   retries += 1;
 
-               //algo = A::new(conf.algorithm.clone(), M::params(&conf.model, &env));
-               //stats.new_run();
+                   continue;
+               } else {
+                   log::warn!("No improvement after {MAX_RETRIES} attempts, resetting..");
+                   algo = A::new(conf.algorithm.clone(), M::params(&conf.model, &env));
+                   stats.new_run();
+                   retries = 0;
 
-               continue;
+                   continue;
+               }
             }
 
             algo.step(fitness);
 
-            gen += 1
+            retries = 0;
+            gen += 1;
         }
 
         stats
