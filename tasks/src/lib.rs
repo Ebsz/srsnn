@@ -7,6 +7,8 @@ use std::fmt::Debug;
 
 pub mod testing;
 
+pub mod pattern;
+
 pub mod catching_task;
 pub mod pole_balancing_task;
 

@@ -20,6 +20,7 @@ use tasks::{Task, TaskEval};
 use tasks::catching_task::CatchingTask;
 use tasks::xor_task::XORTask;
 use tasks::pole_balancing_task::PoleBalancingTask;
+use tasks::pattern::PatternTask;
 use tasks::mnist_task::MNISTTask;
 use tasks::multipattern::MultiPatternTask;
 use tasks::pattern_similarity::PatternSimilarityTask;
@@ -61,12 +62,13 @@ pub trait Process: Sync {
 
     fn resolve_t<M: Model>(config: BaseConfig) {
         match config.task.as_str() {
-            "pattern_similarity"       => { Self::run::<M, PatternSimilarityTask>(config); },
-            "multipattern"  => { Self::run::<M, MultiPatternTask>(config); },
-            "catching"      => { Self::run::<M, CatchingTask>(config); },
-            "xor"           => { Self::run::<M, XORTask>(config); },
-            "mnist"         => { Self::run::<M, MNISTTask>(config); },
-            "testing"         => { Self::run::<M, TestTask>(config); },
+            "pattern"               => { Self::run::<M, PatternTask>(config); },
+            "pattern_similarity"    => { Self::run::<M, PatternSimilarityTask>(config); },
+            "multipattern"          => { Self::run::<M, MultiPatternTask>(config); },
+            "catching"              => { Self::run::<M, CatchingTask>(config); },
+            "xor"                   => { Self::run::<M, XORTask>(config); },
+            "mnist"                 => { Self::run::<M, MNISTTask>(config); },
+            "testing"               => { Self::run::<M, TestTask>(config); },
             //"polebalance"   => { Self::run::<M, PoleBalancingTask>(config); },
             //"movement"    => { Self::run::<M, MovementTask>(config); },
             //"survival"    => { Self::run::<M, SurvivalTask>(config); },
