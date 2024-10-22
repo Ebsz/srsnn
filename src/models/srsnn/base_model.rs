@@ -31,9 +31,15 @@ const INH_PARAMS: [f32; 4] = [0.1, 0.2, -65.0, 2.0]; // Fast spiking (FS) neuron
 pub struct BaseModel;
 
 impl RSNN for BaseModel {
-    fn params(config: &RSNNConfig<Self>, _env: &Environment) -> ParameterSet {
+    fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet {
+        assert!(env.outputs % config.model.k_out == 0,
+            "Number of output neurons({}) % output types({}) != 0", env.outputs, config.model.k_out);
+
+        log::info!("env: {:?}", env);
+
         // Type connection probability matrix: [k + output]
-        let t_cpm = Parameter::Matrix(Array::zeros((config.model.k + 1, config.model.k + 1)));
+        let t_cpm = Parameter::Matrix(Array::zeros(
+                (config.model.k + config.model.k_out, config.model.k + config.model.k_out)));
 
         // Probability distribution over the k types
         let p = Parameter::Vector(Array::zeros(config.model.k));
@@ -65,9 +71,13 @@ impl RSNN for BaseModel {
         assert!(!p_test.iter().all(|x| x.is_nan()), "p contained NaN - p: {p}, v1: {v1}");
 
         let mut dist = math::distribute(config.n, p.as_slice().unwrap());
-        dist.push(env.outputs); // Add output type
 
-        let labels = csa::op::label(dist, config.model.k+1);
+        // Add output types
+        for _ in 0..config.model.k_out {
+            dist.push(env.outputs / config.model.k_out);
+        }
+
+        let labels = csa::op::label(dist, config.model.k+ config.model.k_out);
 
         let w = weights(config.model.max_w); // Self::default_weights();
 
@@ -134,7 +144,7 @@ impl BaseModel {
             _ => { panic!("invalid parameter set") }
         };
 
-        assert!(t_cpm.shape() == [config.model.k+1, config.model.k+1]);
+        assert!(t_cpm.shape() == [config.model.k + config.model.k_out, config.model.k + config.model.k_out]);
         assert!(p.shape() == [config.model.k]);
         assert!(input_t_cp.shape() == [config.model.k]);
         assert!(d.shape() == [config.model.k]);
@@ -145,7 +155,7 @@ impl BaseModel {
 
     fn minimal_dynamics(v: &Array1<f32>, l: LabelFn, config: &RSNNConfig<Self>) -> NeuronSet {
         // Dynamics matrix: each row is the dynamical parameters for a type
-        let mut dm: Array2<f32> = Array::zeros((config.model.k + 1, 5));
+        let mut dm: Array2<f32> = Array::zeros((config.model.k + config.model.k_out, 5));
 
         let dv = v.mapv(|x| math::ml::sigmoid(x)); // Inhibitory flag
 
@@ -160,8 +170,11 @@ impl BaseModel {
             }
         }
 
-        // Output is always excitatory
-        dm.slice_mut(s![-(config.model.out_k as i32),..]).assign(&excitatory);
+        // Set output types to always be excitatory
+        for i in 0..config.model.k_out {
+            dm.slice_mut(s![-(1+ i as i32),..]).assign(&excitatory);
+
+        }
 
         NeuronSet { f: Arc::new(
             move |i| dm.slice(s![l(i) as usize, ..]).to_owned()
@@ -189,12 +202,7 @@ impl BaseModel {
 
         let input_mask = m & csa::op::disc(config.model.distance_threshold, d);
 
-        // Default weights
         let w = Self::default_weights();
-
-//        let w = ValueSet { f: Arc::new(
-//            move |_i, _j| config.model.max_w
-//        )};
 
         ConnectionSet {
             m: input_mask,
@@ -211,8 +219,8 @@ impl Configurable for BaseModel {
 pub struct BaseModelConfig {
     pub k: usize,       // # of types
 
-    pub in_k: usize,    // # of input types
-    pub out_k: usize,   // # of output types
+    pub k_in: usize,    // # of input types
+    pub k_out: usize,   // # of output types
 
     pub max_w: f32,
     pub distance_threshold: f32,

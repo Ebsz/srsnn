@@ -116,12 +116,6 @@ impl<R: RSNN> Model for RSNNModel<R> {
         let input_cm = input_cs.m.r_matrix(self.n, self.env.inputs);
         let input_w = input_cs.v[0].r_matrix(self.n, self.env.inputs);
 
-        //let output_cm = output_mask.r_matrix(self.env.outputs, self.n);
-
-        //if output_cm.iter().all(|c| *c == 0) {
-        //    log::trace!("No output connections");
-        //}
-
         if input_cm.iter().all(|c| *c == 0) {
             log::trace!("No connections from input");
         }
