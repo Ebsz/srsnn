@@ -106,12 +106,11 @@ impl RSNN for BaseModel {
             d: vec![dynamics]
         };
 
-        let input_cs = Self::get_input_cs(v3, labels.clone(), coords.clone(), config);
+        let input_cs = Self::get_input_cs(v2, labels.clone(), coords.clone(), config);
 
         (ns, input_cs)
     }
 }
-
 
 impl BaseModel {
     pub fn parse_params<'a>(ps: &'a ParameterSet, config: &'a RSNNConfig<Self>)
