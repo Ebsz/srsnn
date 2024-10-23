@@ -37,6 +37,8 @@ pub struct BaseModel;
 
 impl RSNN for BaseModel {
     fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet {
+        assert!(env.inputs % config.model.k_in == 0,
+            "Number of input neurons({}) % input types({}) != 0", env.inputs, config.model.k_in);
         assert!(env.outputs % config.model.k_out == 0,
             "Number of output neurons({}) % output types({}) != 0", env.outputs, config.model.k_out);
 
@@ -47,14 +49,14 @@ impl RSNN for BaseModel {
         // Probability distribution over the k types
         let p = Parameter::Vector(Array::zeros(config.model.k));
 
-        // Input->type connection probabilities
-        let input_t_cp = Parameter::Vector(Array::zeros(config.model.k));
+        // Input->type cpm
+        let input_t_cpm = Parameter::Matrix(Array::zeros((config.model.k, config.model.k_in)));
 
         // Dynamics vectors
         let d = Parameter::Vector(Array::zeros((config.model.k)));
 
         ParameterSet {
-            set: vec![t_cpm, p, input_t_cp, d],
+            set: vec![t_cpm, p, input_t_cpm, d],
         }
     }
 
@@ -64,7 +66,7 @@ impl RSNN for BaseModel {
         env: &Environment)
         -> (NetworkSet, ConnectionSet)
     {
-        let (m1, v1, v2, v3) = Self::parse_params(params, config);
+        let (m1, v1, m2, v2) = Self::parse_params(params, config);
 
         let t_cpm = m1.mapv(|x| math::ml::sigmoid(x));
         let p = math::ml::softmax(v1);
@@ -82,7 +84,7 @@ impl RSNN for BaseModel {
 
         let labels = csa::op::label(dist, config.model.k+ config.model.k_out);
 
-        let (dynamics, itypes) = Self::minimal_dynamics(v3, labels.clone(), config);
+        let (dynamics, itypes) = Self::minimal_dynamics(v2, labels.clone(), config);
 
         let sbm_mask = csa::op::sbm(labels.clone(), ValueSet::from_value(t_cpm.clone()));
 
@@ -98,7 +100,7 @@ impl RSNN for BaseModel {
 
         let mask = sbm_mask & disc;
 
-        let w = Self::minimal_weights(itypes, labels.clone(), config); // Self::default_weights();
+        let w = Self::minimal_weights(itypes, labels.clone(), config);
 
         let ns = NetworkSet {
             m: mask,
@@ -106,7 +108,7 @@ impl RSNN for BaseModel {
             d: vec![dynamics]
         };
 
-        let input_cs = Self::get_input_cs(v2, labels.clone(), coords.clone(), config);
+        let input_cs = Self::input_cs(m2, labels.clone(), coords.clone(), config, env);
 
         (ns, input_cs)
     }
@@ -117,7 +119,7 @@ impl BaseModel {
         -> (
             &'a Array2<f32>,
             &'a Array1<f32>,
-            &'a Array1<f32>,
+            &'a Array2<f32>,
             &'a Array1<f32>,
             ) {
 
@@ -131,8 +133,8 @@ impl BaseModel {
             _ => { panic!("invalid parameter set") }
         };
 
-        let input_t_cp = match &ps.set[2] {
-            Parameter::Vector(x) => {x},
+        let input_t_cpm = match &ps.set[2] {
+            Parameter::Matrix(x) => {x},
             _ => { panic!("invalid parameter set") }
         };
 
@@ -143,11 +145,11 @@ impl BaseModel {
 
         assert!(t_cpm.shape() == [config.model.k + config.model.k_out, config.model.k + config.model.k_out]);
         assert!(p.shape() == [config.model.k]);
-        assert!(input_t_cp.shape() == [config.model.k]);
+        assert!(input_t_cpm.shape() == [config.model.k, config.model.k_in]);
         assert!(d.shape() == [config.model.k]);
 
 
-        (t_cpm, p, input_t_cp, d)
+        (t_cpm, p, input_t_cpm, d)
     }
 
     fn minimal_weights(itypes: Vec<usize>, l: LabelFn, config: &RSNNConfig<Self>) -> (ValueSet) {
@@ -191,24 +193,25 @@ impl BaseModel {
         itypes)
     }
 
-    fn get_input_cs(v3: &Array1<f32>, l: LabelFn, g: CoordinateFn, config: &RSNNConfig<Self>)
+    fn input_cs(m2: &Array2<f32>, l: LabelFn, g: CoordinateFn, config: &RSNNConfig<Self>, env: &Environment)
         -> ConnectionSet {
-        let input_t_cp = v3.mapv(|x| math::ml::sigmoid(x));
+        let input_t_cpm = m2.mapv(|x| math::ml::sigmoid(x));
 
-        let cp = ValueSet { f: Arc::new(
-            move |i, _| input_t_cp[i as usize]
-            )};
+        // Distribute the input neurons equally over each input type
+        let dist = vec![env.inputs / config.model.k_in;config.model.k_in];
 
-        let l2 = l.clone();
+        let input_label = csa::op::label(dist, config.model.k_in);
+
         let m = Mask {
             f: Arc::new(
-                   move |i, j| random::random_range((0.0, 1.0)) < (cp.f)(l2(i), j)
-               )
+               move |i, j| {
+                   random::random_range((0.0, 1.0)) < input_t_cpm[[l(i) as usize, input_label(j) as usize]]
+               })
         };
 
-        let input_g: CoordinateFn = Arc::new(move |_| (0.0, 0.0));
-
-        let d: Metric = csa::op::distance_metric(g, input_g); // NOTE: Ensure this is correct
+        let max_x = config.model.max_coordinate;
+        let g_in: CoordinateFn = Arc::new(move |_| (rand::random::<f32>() * max_x, 0.0));
+        let d: Metric = csa::op::distance_metric(g, g_in);
 
         let input_mask = m & csa::op::disc(config.model.distance_threshold, d);
 
