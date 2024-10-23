@@ -58,7 +58,7 @@ impl DefaultProcess {
 
         let record = run_analysis::<T>(&repr);
         plots::generate_plots(&record);
-        plots::plot_run_spikes(&record);
+        plots::plot_run_spikes(&record, None);
 
         Self::save(repr.clone(),
             format!("network_{}_{}_{}",

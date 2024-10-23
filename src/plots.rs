@@ -79,7 +79,7 @@ pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn 
 }
 
 
-pub fn plot_run_spikes(r: &Record) {
+pub fn plot_run_spikes(r: &Record, filename: Option<&str>) {
     let mut spk_rec: Vec<Array1<f32>> = vec![];
 
     for i in r.get(RecordType::Spikes) {
@@ -110,7 +110,12 @@ pub fn plot_run_spikes(r: &Record) {
         }
     }
 
-    let _ = plot_spikes_with_io(spk_rec, spk_in, spk_out, "dual_spikeplot.png");
+    let file = match filename {
+        Some(f) => {f},
+        None => "dual_spikeplot.png"
+    };
+
+    let _ = plot_spikes_with_io(spk_rec, spk_in, spk_out, file);
 }
 
 /// Plot a split spike chart with recurrent spikes on top, input spikes below

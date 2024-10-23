@@ -47,6 +47,7 @@ pub fn analyze_network(r: &DefaultRepresentation) {
     let n_input_connections: u32 = r.input_cm.iter().sum();
     let input_density = n_input_connections as f32 / (r.input_cm.shape()[0] * r.input_cm.shape()[1]) as f32;
     println!("Input - {n_input_connections} input connections, density: {input_density}");
+    println!("Input weights - mean: {:.3}, std: {:.3}", r.input_w.mean().unwrap(), r.input_w.std(0.0));
 
     //let n_output_connections: u32 = r.output_cm.iter().sum();
     //let output_density = n_output_connections as f32 / (r.output_cm.shape()[0] * r.output_cm.shape()[1]) as f32;

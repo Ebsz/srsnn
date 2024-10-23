@@ -137,9 +137,10 @@ pub trait Process: Sync {
                 model = {:#?}\n\
                 algorithm = {:#?}\n\
                 eval = {:#?}\n\
-                optimizer= {:#?}",
+                optimizer = {:#?}\n\
+                environment = {:#?}",
                 main_config.model, main_config.algorithm, main_config.eval,
-                main_config.optimizer);
+                main_config.optimizer, env);
     }
 
     fn save<S: Serialize>(object: S, name: String) {
