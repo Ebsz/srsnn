@@ -17,6 +17,7 @@ use utils::environment::Environment;
 use serde::Deserialize;
 
 use ndarray::{s, Array, Array1, Array2};
+use ndarray_rand::rand_distr::{Binomial, Distribution};
 
 use std::sync::Arc;
 
@@ -27,9 +28,12 @@ const INHIBITORY_THRESHOLD: f32 = 0.70;
 const EXCITATORY_PARAMS: [f32; 5] = [0.02, 0.2, -65.0, 2.0, 0.0];
 const INHIBITORY_PARAMS: [f32; 5] = [0.1,  0.2, -65.0, 2.0, 1.0];
 
-const EXCITATORY_WT: f32 = 1.0;
-const INHIBITORY_WT: f32 = 1.31;
-const INPUT_WT: f32 = 1.88;
+const EXCITATORY_WT: f32 = 0.33;
+const INHIBITORY_WT: f32 = 0.41;
+const INPUT_WT: f32 = 0.55;
+
+const WT_DRAW_COUNT: u64 = 8;
+const WT_DRAW_PROB: f64 = 0.2;
 
 
 #[derive(Clone, Debug)]
@@ -156,9 +160,9 @@ impl BaseModel {
         let w_map: Array1<f32> = (0..(config.model.k + config.model.k_out))
             .map(|i| if itypes.contains(&i) { INHIBITORY_WT} else {EXCITATORY_WT}).collect();
 
-
+        let bin = Binomial::new(WT_DRAW_COUNT, WT_DRAW_PROB).unwrap();
         ValueSet { f: Arc::new(
-            move |_i, j| w_map[l(j) as usize]
+            move |_i, j| w_map[l(j) as usize] * (1 + bin.sample(&mut rand::thread_rng())) as f32
         )}
     }
 
@@ -225,8 +229,9 @@ impl BaseModel {
 }
 
 fn weights(w: f32) -> ValueSet {
+    let bin = Binomial::new(WT_DRAW_COUNT, WT_DRAW_PROB).unwrap();
     ValueSet { f: Arc::new(
-        move |_i, _j| w
+        move |_i, _j| w * (1 + bin.sample(&mut rand::thread_rng())) as f32
     )}
 }
 
