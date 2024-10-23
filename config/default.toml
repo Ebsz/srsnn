@@ -1,50 +1,42 @@
-# Default
-process = "default"
-#process = "test"
-
-model = "test_model"
-#model = "minimal"
-#model = "gt_model"
-
-#task = "testing"
-#task = "pattern"
-task = "multipattern"
-
-algorithm = "snes"
-
 log_level = "debug"
 
+process = "default"
+
+model = "base_model"
+task = "pattern"
+algorithm = "snes"
+
+
 [experiment]
-n_runs = 10
+n_runs = 50
 
 [optimizer]
-max_generations = 500
+max_generations = 250
 
 [snes]
 pop_size = 100
-lr_mu = 0.1
-lr_sigma = 0.01 # 0.01
 
-init_sigma = 2.0        # 1.0
-init_mu_mean = 0.0     # 0.0
-init_mu_stddev = 2.0    # 2.0
+lr_mu = 0.1
+lr_sigma = 0.01
+
+init_sigma = 1.0
+init_mu_mean = 0.0
+init_mu_stddev = 1.0
 
 [eval]
-max_threads = 32
-trials = 10
+max_threads = 64
+trials = 8
 
 [batch]
-batch_size = 16
+batch_size = 32
 
 [rsnn]
 n = 128
 
 [rsnn.model]
 k = 6
-in_k = 1
-out_k = 1
-
-max_w = 1.0
+k_out = 3
+k_in = 4
 
 distance_threshold = 3.0
 max_coordinate = 10.0
