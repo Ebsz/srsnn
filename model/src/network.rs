@@ -15,7 +15,7 @@ use std::ops::AddAssign;
 
 
 /// The effect of a spike is multiplied by this; determines the impact of a single spike.
-const DEFAULT_SYNAPTIC_COEFFICIENT: f32 = 5.0;
+const DEFAULT_SYNAPTIC_COEFFICIENT: f32 = 1.0;
 //const RANDOM_FIRING_PROBABILITY: f32 = 0.01;
 
 pub trait Network {
