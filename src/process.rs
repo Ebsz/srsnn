@@ -133,7 +133,7 @@ pub trait Process: Sync {
         env: &Environment) {
         log::info!("Model: {} ({} params)", base_config.model, M::params(&main_config.model, env).size());
         log::info!("Task: {}", base_config.task);
-        log::info!("\n[Configs] \n\
+        log::info!("Configs: \n\
                 model = {:#?}\n\
                 algorithm = {:#?}\n\
                 eval = {:#?}\n\

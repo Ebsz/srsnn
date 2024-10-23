@@ -33,7 +33,9 @@ fn main() {
     let config = base_config(config_name.clone());
 
     init_logger(config.log_level.clone());
-    log::debug!("Using config: {}", config_name.unwrap_or("default".to_string()));
+
+    log::info!("Using config: {}", config_name.unwrap_or("default".to_string()));
+    log::info!("Package version: {}", env!("CARGO_PKG_VERSION"));
 
     random::random_seed();
 
