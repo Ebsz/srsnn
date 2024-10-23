@@ -24,6 +24,7 @@ use std::sync::Arc;
 
 // with N(0,1), 0.7 gives a starting inhibitory prob of ~0.2
 const INHIBITORY_THRESHOLD: f32 = 0.70;
+const INHIBITORY_FRACTION: f32 = 0.2;
 
 const EXCITATORY_PARAMS: [f32; 5] = [0.02, 0.2, -65.0, 2.0, 0.0];
 const INHIBITORY_PARAMS: [f32; 5] = [0.1,  0.2, -65.0, 2.0, 1.0];
@@ -50,17 +51,11 @@ impl RSNN for BaseModel {
         let t_cpm = Parameter::Matrix(Array::zeros(
                 (config.model.k + config.model.k_out, config.model.k + config.model.k_out)));
 
-        // Probability distribution over the k types
-        let p = Parameter::Vector(Array::zeros(config.model.k));
-
         // Input->type cpm
         let input_t_cpm = Parameter::Matrix(Array::zeros((config.model.k, config.model.k_in)));
 
-        // Dynamics vectors
-        let d = Parameter::Vector(Array::zeros((config.model.k)));
-
         ParameterSet {
-            set: vec![t_cpm, p, input_t_cpm, d],
+            set: vec![t_cpm, input_t_cpm],
         }
     }
 
@@ -70,16 +65,12 @@ impl RSNN for BaseModel {
         env: &Environment)
         -> (NetworkSet, ConnectionSet)
     {
-        let (m1, v1, m2, v2) = Self::parse_params(params, config);
+        let (m1, m2) = Self::parse_params(params, config);
 
         let t_cpm = m1.mapv(|x| math::ml::sigmoid(x));
-        let p = math::ml::softmax(v1);
 
-        let p_test = p.as_slice().unwrap();
-        assert!(!p.iter().all(|x| x.is_nan()), "p contained NaN - p: {p}, v1: {v1}");
-        assert!(!p_test.iter().all(|x| x.is_nan()), "p contained NaN - p: {p}, v1: {v1}");
-
-        let mut dist = math::distribute(config.n, p.as_slice().unwrap());
+        let p = vec![1.0/config.model.k as f32; config.model.k];
+        let mut dist = math::distribute(config.n, &p);
 
         // Add output types
         for _ in 0..config.model.k_out {
@@ -88,7 +79,7 @@ impl RSNN for BaseModel {
 
         let labels = csa::op::label(dist, config.model.k+ config.model.k_out);
 
-        let (dynamics, itypes) = Self::minimal_dynamics(v2, labels.clone(), config);
+        let (dynamics, itypes) = Self::static_dynamics(labels.clone(), config);
 
         let sbm_mask = csa::op::sbm(labels.clone(), ValueSet::from_value(t_cpm.clone()));
 
@@ -122,9 +113,7 @@ impl BaseModel {
     pub fn parse_params<'a>(ps: &'a ParameterSet, config: &'a RSNNConfig<Self>)
         -> (
             &'a Array2<f32>,
-            &'a Array1<f32>,
             &'a Array2<f32>,
-            &'a Array1<f32>,
             ) {
 
         let t_cpm = match &ps.set[0] {
@@ -132,28 +121,15 @@ impl BaseModel {
             _ => { panic!("invalid parameter set") }
         };
 
-        let p = match &ps.set[1] {
-            Parameter::Vector(x) => {x},
-            _ => { panic!("invalid parameter set") }
-        };
-
-        let input_t_cpm = match &ps.set[2] {
+        let input_t_cpm = match &ps.set[1] {
             Parameter::Matrix(x) => {x},
             _ => { panic!("invalid parameter set") }
         };
 
-        let d = match &ps.set[3] {
-            Parameter::Vector(x) => {x},
-            _ => { panic!("invalid parameter set") }
-        };
-
         assert!(t_cpm.shape() == [config.model.k + config.model.k_out, config.model.k + config.model.k_out]);
-        assert!(p.shape() == [config.model.k]);
         assert!(input_t_cpm.shape() == [config.model.k, config.model.k_in]);
-        assert!(d.shape() == [config.model.k]);
 
-
-        (t_cpm, p, input_t_cpm, d)
+        (t_cpm, input_t_cpm)
     }
 
     fn minimal_weights(itypes: Vec<usize>, l: LabelFn, config: &RSNNConfig<Self>) -> (ValueSet) {
@@ -166,24 +142,24 @@ impl BaseModel {
         )}
     }
 
-    fn minimal_dynamics(v: &Array1<f32>, l: LabelFn, config: &RSNNConfig<Self>) -> (NeuronSet, Vec<usize>) {
+    fn static_dynamics(l: LabelFn, config: &RSNNConfig<Self>) -> (NeuronSet, Vec<usize>) {
         // Dynamics matrix: each row is the dynamical parameters for a type
         let mut dm: Array2<f32> = Array::zeros((config.model.k + config.model.k_out, 5));
-
-        let dv = v.mapv(|x| math::ml::sigmoid(x)); // Inhibitory flag
 
         let inhibitory: Array1<f32> = INHIBITORY_PARAMS.into_iter().collect();
         let excitatory: Array1<f32> = EXCITATORY_PARAMS.into_iter().collect();
 
+        let n_inhibitory_types = (config.model.k as f32 * INHIBITORY_FRACTION) as usize;
+
         let mut itypes = vec![];
 
-        for i in 0..config.model.k {
-            if dv[i] > INHIBITORY_THRESHOLD {
-                dm.slice_mut(s![i,..]).assign(&inhibitory);
-                itypes.push(i);
-            } else {
-                dm.slice_mut(s![i,..]).assign(&excitatory);
-            }
+        for i in 0..(config.model.k - n_inhibitory_types) {
+            dm.slice_mut(s![i,..]).assign(&excitatory);
+        }
+
+        for i in (config.model.k - n_inhibitory_types)..config.model.k {
+            dm.slice_mut(s![i,..]).assign(&inhibitory);
+            itypes.push(i);
         }
 
         // Set output types to always be excitatory
