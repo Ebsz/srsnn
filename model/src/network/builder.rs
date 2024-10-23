@@ -5,7 +5,7 @@
 use crate::network::SpikingNetwork;
 use crate::network::representation::{NetworkRepresentation, NeuronDescription};
 use crate::neuron::NeuronModel;
-use crate::synapse::BaseSynapse;
+use crate::synapse::basic::BasicSynapse;
 
 use crate::synapse::representation::{NeuronType, MatrixRepresentation};
 
@@ -16,7 +16,7 @@ pub struct NetworkBuilder;
 
 impl NetworkBuilder {
     pub fn build<N: NeuronModel>(desc: &NetworkRepresentation<NeuronDescription<N>>)
-        -> SpikingNetwork<N, BaseSynapse<MatrixRepresentation>> {
+        -> SpikingNetwork<N, BasicSynapse<MatrixRepresentation>> {
         let neuron_params = Self::parse_neuron_params(desc);
         let neuron_types = Self::parse_neuron_types(desc);
 
@@ -30,7 +30,7 @@ impl NetworkBuilder {
         let input_matrix = &(desc.input_cm.mapv(|v| v as f32)) * &desc.input_w;
 
         let representation = MatrixRepresentation::new(synapse_matrix, neuron_types);
-        let synapse = BaseSynapse::new(representation);
+        let synapse = BasicSynapse::new(representation);
 
         //use crate::network::representation::DefaultRepresentation;
         //utils::data::save::<NetworkRepresentation<NeuronDescription<N>>>(desc.clone(), "network.json");

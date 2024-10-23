@@ -9,7 +9,7 @@ use network::representation::{NetworkRepresentation, NeuronDescription};
 
 use neuron::izhikevich::Izhikevich;
 
-use synapse::BaseSynapse;
+use synapse::basic::BasicSynapse;
 use synapse::representation::MatrixRepresentation;
 
 use utils::config::Configurable;
@@ -17,7 +17,7 @@ use utils::parameters::ParameterSet;
 use utils::environment::Environment;
 
 
-pub type DefaultNetwork = SpikingNetwork<Izhikevich, BaseSynapse<MatrixRepresentation>>;
+pub type DefaultNetwork = SpikingNetwork<Izhikevich, BasicSynapse<MatrixRepresentation>>;
 pub type DefaultNeuron = NeuronDescription<Izhikevich>;
 
 
