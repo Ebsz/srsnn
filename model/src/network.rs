@@ -82,6 +82,8 @@ impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
     pub fn new(neurons: N, synapse: S, input_matrix: Array2<f32>, env: Environment) -> SpikingNetwork<N, S> {
         let network_size = neurons.len();
 
+        assert!(input_matrix.shape() == [network_size - env.outputs, env.inputs], "Input matrix has wrong shape");
+
         SpikingNetwork {
             neurons,
             synapse,
