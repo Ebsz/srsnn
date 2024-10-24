@@ -26,8 +26,8 @@ use std::sync::Arc;
 const INHIBITORY_THRESHOLD: f32 = 0.70;
 const INHIBITORY_FRACTION: f32 = 0.2;
 
-const EXCITATORY_PARAMS: [f32; 5] = [0.02, 0.2, -65.0, 2.0, 0.0];
-const INHIBITORY_PARAMS: [f32; 5] = [0.1,  0.2, -65.0, 2.0, 1.0];
+const EXCITATORY_PARAMS: [f32; 5] = [0.02, 0.2, -65.0, 8.0, 0.0]; // Regular spiking (RS) neuron
+const INHIBITORY_PARAMS: [f32; 5] = [0.1,  0.2, -65.0, 2.0, 1.0]; // Fast spiking (FS) neuron
 
 const EXCITATORY_WT: f32 = 0.33;
 const INHIBITORY_WT: f32 = 0.41;

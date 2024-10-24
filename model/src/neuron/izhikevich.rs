@@ -39,19 +39,20 @@ pub struct IzhikevichParameters {
 }
 
 impl IzhikevichParameters {
+    // Default parameters correspond to regular spiking (RS) neurons
+    pub const DEFAULTS: (f32, f32, f32, f32) = (0.02, 0.2, -65.0, 8.0);
+
     pub const RANGES: [(f32, f32); 4] =
         [(0.02, 0.1), (0.2, 0.25), (-65.0, -50.0), (2.0, 8.0)];
 }
 
 impl Default for IzhikevichParameters {
     fn default() -> Self {
-        const DEFAULTS: (f32, f32, f32, f32) = (0.02, 0.2, -65.0, 2.0);
-
         IzhikevichParameters {
-            a: DEFAULTS.0,
-            b: DEFAULTS.1,
-            c: DEFAULTS.2,
-            d: DEFAULTS.3,
+            a: Self::DEFAULTS.0,
+            b: Self::DEFAULTS.1,
+            c: Self::DEFAULTS.2,
+            d: Self::DEFAULTS.3,
         }
     }
 }
