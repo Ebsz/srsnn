@@ -1,39 +1,17 @@
 use ndarray::Array1;
+
 use std::collections::HashMap;
 
-
-#[derive(Clone, Debug, Hash, Eq, PartialEq)]
-pub enum RecordType {
-    Spikes,
-    Potentials,
-    InputSpikes,
-    OutputSpikes
-}
-
-#[derive(Clone, Debug)]
-pub enum RecordDataType {
-    Spikes(Array1<f32>),
-    Potentials(Array1<f32>),
-    InputSpikes(Array1<f32>),
-    OutputSpikes(Array1<f32>)
-}
 
 #[derive(Clone)]
 pub struct Record {
     pub records: HashMap<RecordType, Vec<RecordDataType>>
 }
 
-pub trait Recording {
-    type Data;
-
-    fn get(&self) -> Self::Data;
-}
-
 impl Record {
     pub fn new() -> Record {
         let mut records = HashMap::new();
 
-        // TODO: use strum to iterate over RecordTypes instead
         records.insert(RecordType::Spikes, Vec::new());
         records.insert(RecordType::Potentials, Vec::new());
         records.insert(RecordType::InputSpikes, Vec::new());
@@ -50,7 +28,7 @@ impl Record {
         }
     }
 
-    pub fn get(&self, record_type: RecordType) -> &Vec<RecordDataType>{
+    pub fn get(&self, record_type: RecordType) -> &[RecordDataType] {
         if let Some(d) = self.records.get(&record_type) {
             d
         } else {
@@ -58,31 +36,34 @@ impl Record {
         }
     }
 
-    //pub fn get_value<T: Recording>(&self, record_type: RecordType) -> T {
-    //    self.records.get(&record_type).clone()
-    //}
+    pub fn get_record(&self, record_type: RecordType) -> Vec<Array1<f32>> {
+        let rec = self.get(record_type);
+        let mut data = vec![];
 
-    pub fn get_potentials(&self) -> Vec<Array1<f32>>{
-        // TODO: won't want to implement this for each RecordType, so
-        // this unpacking should probably be performed where it's used
-        // ...macros?
-        let rec = self.get(RecordType::Potentials);
-
-        let mut potentials = vec![];
-        for a in rec {
-            if let RecordDataType::Potentials(p) = a {
-                potentials.push(p.clone())
+        for r in rec {
+            if let RecordDataType::Potentials(p) = r {
+                data.push(p.clone())
             } else {
-                panic!("Could not get record of potentials")
+                panic!("Could not get record!")
             }
         }
 
-        potentials
+        data
     }
 }
 
-//impl SpikeRecord {
-//    pub fn to_firing_rate(&self) -> {
-//        const TIME_WINDOW: u32 = 10;
-//    }
-//}
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub enum RecordType {
+    Spikes,
+    Potentials,
+    InputSpikes,
+    OutputSpikes
+}
+
+#[derive(Clone, Debug)]
+pub enum RecordDataType {
+    Spikes(Array1<f32>),
+    Potentials(Array1<f32>),
+    InputSpikes(Array1<f32>),
+    OutputSpikes(Array1<f32>)
+}

@@ -7,25 +7,15 @@ use evolution::stats::OptimizationStatistics;
 
 
 pub fn generate_plots(record: &Record) {
-    // Potentials
-    let single_pot = record.get_potentials().iter().map(|x| x[0]).collect();
+    let single_pot: Vec<f32> = record.get_record(RecordType::Potentials).iter().map(|x| x[0]).collect();
 
-    let plot_ok = plot_single_neuron_potential(single_pot);
+    let plot_ok = plot_single_neuron_potential(&single_pot);
     match plot_ok {
         Ok(_) => (),
         Err(e) => println!("Error creating plot: {:?}", e),
     }
 
-    // Spikes
-    let mut spikedata: Vec<Array1<f32>> = vec![];
-
-    for i in record.get(RecordType::Spikes) {
-        if let RecordDataType::Spikes(s) = i {
-            spikedata.push(s.clone());
-        } else {
-            panic!("Error parsing spike records");
-        }
-    }
+    let mut spikedata: Vec<Array1<f32>> = record.get_record(RecordType::Spikes);
 
     let plot_ok = plot_spikes(spikedata.clone(), "spikeplot.png");
 
@@ -33,17 +23,11 @@ pub fn generate_plots(record: &Record) {
         Ok(_) => (),
         Err(e) => println!("Error creating plot: {:?}", e),
     }
-
-    let mut spike_array: Array2<f32> = Array::zeros((spikedata.len(), spikedata[0].shape()[0]));
-
-    for (i, p) in spikedata.iter().enumerate() {
-        spike_array.slice_mut(s!(i,..)).assign(&p);
-    }
 }
 
 pub fn plot_all_potentials(record: &Record) {
     let mut pots: Vec<Vec<f32>> = Vec::new();
-    let potentials = record.get_potentials();
+    let potentials = record.get_record(RecordType::Potentials);
 
     for i in 0..potentials[0].shape()[0] {
         pots.push(potentials.iter().map(|x| x[i]).collect());
@@ -70,12 +54,8 @@ pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
         "Generation std", format!("{}_std.png", name).as_str());
 }
 
-pub fn plot_network_energy(energy: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {
-    plt::plot_single_variable(energy, "Energy", "Energy", "energy.png", &RED)
-}
-
-pub fn plot_single_neuron_potential(potentials: Vec<f32>) -> Result<(), Box<dyn std::error::Error>> {
-    plt::plot_single_variable(potentials, "Potential", "Potentials", "pots.png", &BLACK)
+pub fn plot_single_neuron_potential(potentials: &[f32]) -> Result<(), Box<dyn std::error::Error>> {
+    plt::plot_single_variable(&potentials, "Potential", "Potentials", "pots.png", &BLACK)
 }
 
 
@@ -293,7 +273,7 @@ pub mod plt {
     //use ndarray::Array3;
 
     pub fn plot_single_variable(
-        data: Vec<f32>,
+        data: &[f32],
         description: &str,
         caption: &str,
         filename: &str,
@@ -390,7 +370,7 @@ pub mod plt {
     }
 
     /// Plot two variables against each other
-    pub fn plot_two(
+    pub fn xy_plot(
         points: Vec<(f32, f32)>,
         filename: &str,
         caption: &str)
