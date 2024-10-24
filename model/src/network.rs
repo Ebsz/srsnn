@@ -4,7 +4,7 @@ pub mod builder;
 use crate::neuron::NeuronModel;
 use crate::spikes::Spikes;
 use crate::synapse::Synapse;
-use crate::record::{Record, RecordType, RecordDataType};
+use crate::record::{Record, RecordType};
 
 use utils::environment::Environment;
 
@@ -52,17 +52,18 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
         synaptic_input.slice_mut(s![..n_in]).add_assign(&external_input);
         synaptic_input = synaptic_input * self.synaptic_coefficient;
 
-        self.network_state = self.neurons.step(synaptic_input);
+        self.network_state = self.neurons.step(synaptic_input.clone());
 
         let state: Array1<u32> = (&self.network_state).into();
 
         let output: Spikes = state.slice(s![-(self.env.outputs as i32)..]).to_owned().into();
 
         if self.recording {
-            self.record.log(RecordType::Potentials, RecordDataType::Potentials(self.neurons.potentials()));
-            self.record.log(RecordType::Spikes, RecordDataType::Spikes(self.network_state.as_float()));
-            self.record.log(RecordType::InputSpikes, RecordDataType::InputSpikes(input.as_float()));
-            self.record.log(RecordType::OutputSpikes, RecordDataType::OutputSpikes(output.as_float()));
+            self.record.log(RecordType::Potentials, self.neurons.potentials());
+            self.record.log(RecordType::Spikes, self.network_state.as_float());
+            self.record.log(RecordType::InputSpikes, input.as_float());
+            self.record.log(RecordType::OutputSpikes, output.as_float());
+            self.record.log(RecordType::SynapticCurrent, synaptic_input);
         }
 
         output

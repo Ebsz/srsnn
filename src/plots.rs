@@ -1,13 +1,13 @@
 use plotters::prelude::*;
 
 use ndarray::{s, Array, Array1, Array2};
-use model::record::{Record, RecordType, RecordDataType};
+use model::record::{Record, RecordType};
 
 use evolution::stats::OptimizationStatistics;
 
 
 pub fn generate_plots(record: &Record) {
-    let single_pot: Vec<f32> = record.get_record(RecordType::Potentials).iter().map(|x| x[0]).collect();
+    let single_pot: Vec<f32> = record.get(RecordType::Potentials).iter().map(|x| x[0]).collect();
 
     let plot_ok = plot_single_neuron_potential(&single_pot);
     match plot_ok {
@@ -15,9 +15,9 @@ pub fn generate_plots(record: &Record) {
         Err(e) => println!("Error creating plot: {:?}", e),
     }
 
-    let mut spikedata: Vec<Array1<f32>> = record.get_record(RecordType::Spikes);
+    let mut spikedata: Vec<Array1<f32>> = record.get(RecordType::Spikes);
 
-    let plot_ok = plot_spikes(spikedata.clone(), "spikeplot.png");
+    let plot_ok = plot_spikes(spikedata, "spikeplot.png");
 
     match plot_ok {
         Ok(_) => (),
@@ -27,7 +27,7 @@ pub fn generate_plots(record: &Record) {
 
 pub fn plot_all_potentials(record: &Record) {
     let mut pots: Vec<Vec<f32>> = Vec::new();
-    let potentials = record.get_record(RecordType::Potentials);
+    let potentials = record.get(RecordType::Potentials);
 
     for i in 0..potentials[0].shape()[0] {
         pots.push(potentials.iter().map(|x| x[i]).collect());
@@ -58,37 +58,11 @@ pub fn plot_single_neuron_potential(potentials: &[f32]) -> Result<(), Box<dyn st
     plt::plot_single_variable(&potentials, "Potential", "Potentials", "pots.png", &BLACK)
 }
 
-
 pub fn plot_run_spikes(r: &Record, filename: Option<&str>) {
-    let mut spk_rec: Vec<Array1<f32>> = vec![];
+    let mut spk_rec = r.get(RecordType::Spikes);
 
-    for i in r.get(RecordType::Spikes) {
-        if let RecordDataType::Spikes(s) = i {
-            spk_rec.push(s.clone());
-        } else {
-            panic!("Error parsing spike records");
-        }
-    }
-
-    let mut spk_in: Vec<Array1<f32>> = vec![];
-
-    for i in r.get(RecordType::InputSpikes) {
-        if let RecordDataType::InputSpikes(s) = i {
-            spk_in.push(s.clone());
-        } else {
-            panic!("Error parsing spike records");
-        }
-    }
-
-    let mut spk_out: Vec<Array1<f32>> = vec![];
-
-    for i in r.get(RecordType::OutputSpikes) {
-        if let RecordDataType::OutputSpikes(s) = i {
-            spk_out.push(s.clone());
-        } else {
-            panic!("Error parsing spike records");
-        }
-    }
+    let mut spk_in = r.get(RecordType::InputSpikes);
+    let mut spk_out = r.get(RecordType::OutputSpikes);
 
     let file = match filename {
         Some(f) => {f},
@@ -99,7 +73,7 @@ pub fn plot_run_spikes(r: &Record, filename: Option<&str>) {
 }
 
 /// Plot a split spike chart with recurrent spikes on top, input spikes below
-pub fn plot_spikes_with_io(
+fn plot_spikes_with_io(
     spk_rec: Vec<Array1<f32>>,
     spk_in: Vec<Array1<f32>>,
     spk_out: Vec<Array1<f32>>,
@@ -200,7 +174,7 @@ pub fn plot_spikes(spikedata: Vec<Array1<f32>>, filename: &str) -> Result<(), Bo
 }
 
 /// Convert the raw record data to points that can be plotted
-fn to_spike_points(spikedata: &Vec<Array1<f32>>) -> Vec<(i32, i32)> {
+fn to_spike_points(spikedata: &[Array1<f32>]) -> Vec<(i32, i32)> {
     let mut points: Vec<(i32, i32)> = vec![];
 
     for (t, s) in spikedata.iter().enumerate() {
@@ -217,50 +191,32 @@ fn to_spike_points(spikedata: &Vec<Array1<f32>>) -> Vec<(i32, i32)> {
     points
 }
 
-//pub fn plot_firing_rates(data: Array2<f32>) -> Result<(), Box<dyn std::error::Error>> {
-//    let filename = "firing_rates.png";
-//    //let points = data.iter().map()
-//
-//    let max_x = data.nrows();
-//    let max_y = data.ncols();
-//
-//    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
-//    root.fill(&WHITE)?;
-//
-//    let mut chart = ChartBuilder::on(&root)
-//        .caption("Network firing rates", ("sans-serif", 30).into_font())
-//        .margin(15)
-//        .x_label_area_size(20)
-//        .y_label_area_size(20)
-//        .build_cartesian_2d(0..max_x, 0..max_y)?;
-//
-//
-//    chart.configure_mesh().draw()?;
-//
-//    //chart.draw_series(
-//    //points.iter().map(|p|
-//
-//    Ok(())
-//}
+pub fn single_neuron_dynamics(record: &Record)
+    -> Result<(), Box<dyn std::error::Error>> {
+    let filename = "dynamics.png";
 
-//pub fn plot_firing_rates(r: &Record) {
-//    // Spike_data ->
-//    let mut spike_data: Vec<Array1<f32>> = vec![];
-//
-//    for i in r.get(RecordType::Spikes) {
-//        if let RecordDataType::Spikes(s) = i {
-//            spike_data.push(s.clone());
-//        } else {
-//            panic!("Error parsing spike records");
-//        }
-//    }
-//
-//    let sd: Array2<f32> = Array::zeros((spike_data.len(), spike_data[0].shape()[0]));
-//
-//    // into Array2<f32>
-//
-//    //crate::analysis::spikedata::to_firing_rate(sd);
-//}
+    let pots: Vec<f32> = record.get(RecordType::Potentials).iter().map(|x| x[0]).collect();
+    let spikes: Vec<Array1<f32>> = record.get(RecordType::Spikes);
+    let synaptic_current: Vec<f32> = record.get(RecordType::SynapticCurrent).iter().map(|x| x[0]).collect();
+
+    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
+    root.fill(&WHITE)?;
+
+    //let areas = root.split_evenly((3,1));
+    let (top, btm) = root.split_vertically((85).percent());
+
+    let (t1, t2) = top.split_vertically((50).percent());
+
+    plt::subplot::series(&synaptic_current, &t1);
+    plt::subplot::series(&pots, &t2);
+    plt::subplot::spikes(spikes, &btm);
+
+    root.present()?;
+
+    log::info!("Plot saved to {}", filename);
+
+    Ok(())
+}
 
 
 pub fn plot_degree_distribution(data: &Array1<u32>) {
@@ -497,5 +453,75 @@ pub mod plt {
 
         log::info!("Plot saved to {}", filename);
         Ok(())
+    }
+
+    pub mod subplot {
+        use super::*;
+
+        use plotters::coord::Shift;
+
+
+        pub fn series<DB: DrawingBackend + 'static> (
+            data: &[f32],
+            d: &DrawingArea<DB, Shift>)
+        -> Result<(), Box<dyn std::error::Error>> {
+            let max_x: f32 = data.len() as f32;
+
+            let mut min_y: f32 = math::minf(data);
+            let mut max_y: f32 = math::maxf(data);
+
+            if min_y == max_y {
+                min_y = min_y * 0.9;
+                max_y = max_y * 1.1;
+            }
+
+            let mut chart = ChartBuilder::on(&d)
+                .margin(12)
+                .set_label_area_size(LabelAreaPosition::Left, 20)
+                .set_label_area_size(LabelAreaPosition::Top, 20)
+                .build_cartesian_2d(0.0..max_x, min_y..max_y)?;
+
+            chart
+                .configure_mesh()
+                .disable_mesh()
+                .draw()?;
+
+            let series: LineSeries<DB, (f32, f32)> = LineSeries::new(
+                data.iter().enumerate().map(|(i, x)| (i as f32, *x)),
+                &BLACK,
+            );
+
+            chart.draw_series(series)?;
+
+            Ok(())
+        }
+
+        pub fn spikes<DB: DrawingBackend + 'static> (
+            spikedata: Vec<Array1<f32>>,
+            d: &DrawingArea<DB, Shift>)
+        -> Result<(), Box<dyn std::error::Error>> {
+            let max_x = spikedata.len() as i32;
+
+            let min_y = -1;
+            let max_y = spikedata[0].shape()[0] as i32;
+
+            let points = to_spike_points(&spikedata);
+
+            let mut chart = ChartBuilder::on(&d)
+                .margin(15)
+                //.set_label_area_size(LabelAreaPosition::Left, 20)
+                //.set_label_area_size(LabelAreaPosition::Bottom, 20)
+                .x_label_area_size(20)
+                .y_label_area_size(20)
+                .build_cartesian_2d(0..max_x, min_y..max_y)?;
+
+            chart.configure_mesh().draw()?;
+
+            chart.draw_series(
+                points.iter().map(|p| Circle::new(*p, 3, BLACK.filled())),
+            ).unwrap();
+
+            Ok(())
+        }
     }
 }
