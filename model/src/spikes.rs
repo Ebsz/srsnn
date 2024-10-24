@@ -1,5 +1,7 @@
 use ndarray::{Array, Array1};
 
+use std::fmt;
+
 
 #[derive(Clone, Debug)]
 pub struct Spikes {
@@ -44,14 +46,13 @@ impl From<Array1<u32>> for Spikes {
     }
 }
 
-///// Convert to a Vec of indices of firing neurons.
-//impl Into<Vec<u32>> for &Spikes {
-//    fn into(self) -> Vec<u32> {
-//        self.data.iter().enumerate()
-//            .filter_map(|(i, firing)| if *firing { Some(i as u32) } else { None })
-//            .collect()
-//    }
-//}
+impl fmt::Display for Spikes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let d: Array1<u32> = self.into();
+
+        write!(f, "{}", d)
+    }
+}
 
 #[cfg(test)]
 mod tests {
