@@ -17,7 +17,7 @@ pub type NeuronType = Array1<f32>;
 pub trait SynapseRepresentation {
     fn step(&mut self, input: &Spikes) -> SynapticPotential;
 
-    fn neuron_count(&self) -> usize;
+    fn shape(&self) -> (usize, usize);
     fn connection_count(&self) -> usize;
 }
 
@@ -44,8 +44,9 @@ impl SynapseRepresentation for MapRepresentation {
         output
     }
 
-    fn neuron_count(&self) -> usize {
-        self.neuron_type.len()
+    /// Assumes synapses on
+    fn shape(&self) -> (usize, usize) {
+        (self.neuron_type.len(), self.neuron_type.len())
     }
 
     fn connection_count(&self) -> usize {
@@ -92,8 +93,8 @@ impl SynapseRepresentation for MatrixRepresentation {
         self.weights.dot(&ns)
     }
 
-    fn neuron_count(&self) -> usize {
-        self.weights.shape()[0]
+    fn shape(&self) -> (usize, usize) {
+        (self.weights.shape()[0], self.weights.shape()[1])
     }
 
     fn connection_count(&self) -> usize {
@@ -113,7 +114,7 @@ impl MatrixRepresentation {
 
     /// % of connections of all possible
     pub fn density(&self) -> f32 {
-        self.connection_count() as f32 / self.neuron_count().pow(2) as f32
+        self.connection_count() as f32 / self.shape().0.pow(2) as f32
     }
 }
 

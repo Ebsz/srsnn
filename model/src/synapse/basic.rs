@@ -14,8 +14,8 @@ impl<R: SynapseRepresentation> Synapse for BasicSynapse<R> {
         self.representation.step(input)
     }
 
-    fn neuron_count(&self) -> usize{
-        self.representation.neuron_count()
+    fn shape(&self) -> (usize, usize) {
+        self.representation.shape()
     }
 
     fn reset(&mut self) {
