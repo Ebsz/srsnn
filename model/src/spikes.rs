@@ -2,6 +2,8 @@ use ndarray::{Array, Array1};
 
 use std::fmt;
 
+use num_traits::Num;
+
 
 #[derive(Clone, Debug)]
 pub struct Spikes {
@@ -15,12 +17,6 @@ impl Spikes {
         }
     }
 
-    // TODO: implement and use AsRef instead; requires making data private
-    // and only giving access through refs, so we can keep track of changes
-    pub fn as_float(&self) -> Array1<f32> {
-        self.data.mapv(|x| if x { 1.0 } else { 0.0 })
-    }
-
     /// Get the indices of neurons that fire
     pub fn firing(&self) -> Vec<usize> {
         self.data.iter().enumerate().filter(|(_, n)| **n).map(|(i,_)| i).collect()
@@ -31,14 +27,16 @@ impl Spikes {
     }
 }
 
-impl Into<Array1<u32>> for &Spikes {
-    fn into(self) -> Array1<u32> {
-        self.data.map(|s| if *s { 1 } else { 0})
+impl<T: Num> Into<Array1<T>> for &Spikes {
+    fn into(self) -> Array1<T> {
+        self.data.map(|s| if *s { T::one() } else { T::zero() })
     }
 }
 
 impl From<Array1<u32>> for Spikes {
     fn from(a: Array1<u32>) -> Self {
+        assert!(a.iter().all(|x| *x == 0 || *x == 1));
+
         Spikes {
             // NOTE: Defining this as != 0 means that values > 1 are ignored
             data: a.mapv(|v| if v != 0 { true } else { false })
@@ -83,6 +81,6 @@ mod tests {
         let s = Spikes::new(N);
 
         let a: Array1<f32> = Array::zeros(N);
-        assert_eq!(s.as_float(), a);
+        assert_eq!(s.into(), a);
     }
 }

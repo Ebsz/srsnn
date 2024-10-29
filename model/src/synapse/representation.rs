@@ -87,7 +87,7 @@ pub struct MatrixRepresentation {
 
 impl SynapseRepresentation for MatrixRepresentation {
     fn step(&mut self, input: &Spikes) -> SynapticPotential {
-        let ns = &input.as_float() * &self.neuron_type;
+        let ns = &input.into() * &self.neuron_type;
 
         self.weights.dot(&ns)
     }

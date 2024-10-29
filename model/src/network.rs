@@ -43,7 +43,8 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
     fn step(&mut self, input: Spikes) -> Spikes {
         assert!(input.len() == self.env.inputs);
 
-        let external_input = self.input_matrix.dot(&input.as_float());
+        let input_f: Array1<f32> = (&input).into();
+        let external_input = self.input_matrix.dot(&input_f);
 
         let mut synaptic_input = self.synapse.step(&self.network_state);
 
@@ -60,9 +61,9 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
 
         if self.recording {
             self.record.log(RecordType::Potentials, self.neurons.potentials());
-            self.record.log(RecordType::Spikes, self.network_state.as_float());
-            self.record.log(RecordType::InputSpikes, input.as_float());
-            self.record.log(RecordType::OutputSpikes, output.as_float());
+            self.record.log(RecordType::Spikes, (&self.network_state).into());
+            self.record.log(RecordType::InputSpikes, (&input).into());
+            self.record.log(RecordType::OutputSpikes, (&output).into());
             self.record.log(RecordType::SynapticCurrent, synaptic_input);
         }
 
