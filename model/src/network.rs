@@ -28,7 +28,7 @@ pub struct SpikingNetwork<N: NeuronModel, S: Synapse> {
     pub synapse: S,
     pub env: Environment,
 
-    pub input_matrix: Array2<f32>,
+    pub input_synapse: S,
 
     pub record: Record,
     pub recording: bool,
@@ -43,8 +43,9 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
     fn step(&mut self, input: Spikes) -> Spikes {
         assert!(input.len() == self.env.inputs);
 
-        let input_f: Array1<f32> = (&input).into();
-        let external_input = self.input_matrix.dot(&input_f);
+        let external_input = self.input_synapse.step(&input);
+        //let input_f: Array1<f32> = (&input).into();
+        //let external_input = self.input_matrix.dot(&input_f);
 
         let mut synaptic_input = self.synapse.step(&self.network_state);
 
@@ -52,6 +53,8 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
 
         synaptic_input.slice_mut(s![..n_in]).add_assign(&external_input);
         synaptic_input = synaptic_input * self.synaptic_coefficient;
+
+        log::trace!("external:{external_input}, synaptic_input: {synaptic_input}, state: {}", self.network_state);
 
         self.network_state = self.neurons.step(synaptic_input.clone());
 
@@ -81,17 +84,18 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
 }
 
 impl<N: NeuronModel, S: Synapse> SpikingNetwork<N, S> {
-    pub fn new(neurons: N, synapse: S, input_matrix: Array2<f32>, env: Environment) -> SpikingNetwork<N, S> {
+    pub fn new(neurons: N, synapse: S, input_synapse: S, env: Environment) -> SpikingNetwork<N, S> {
         let network_size = neurons.len();
 
-        assert!(input_matrix.shape() == [network_size - env.outputs, env.inputs], "Input matrix has wrong shape");
+        assert!(input_synapse.shape() == [network_size - env.outputs, env.inputs].into(),
+        "Input matrix has wrong shape");
 
         SpikingNetwork {
             neurons,
             synapse,
             env,
 
-            input_matrix,
+            input_synapse,
 
             network_state: Spikes::new(network_size),
 

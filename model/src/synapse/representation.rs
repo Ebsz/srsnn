@@ -104,7 +104,8 @@ impl SynapseRepresentation for MatrixRepresentation {
 
 impl MatrixRepresentation {
     pub fn new(weight_matrix: Array2<f32>, neuron_type: NeuronType) -> MatrixRepresentation {
-        assert!(weight_matrix.shape()[0] == neuron_type.shape()[0]);
+        assert!(weight_matrix.shape()[1] == neuron_type.shape()[0],
+        "weight_matrix.shape({:?} != neuron_type.shape({:?})", weight_matrix.shape(), neuron_type.shape());
 
         MatrixRepresentation {
             weights: weight_matrix,
