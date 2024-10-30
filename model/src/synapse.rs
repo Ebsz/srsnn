@@ -1,5 +1,6 @@
 pub mod representation;
 pub mod basic;
+pub mod exponential;
 
 use crate::spikes::Spikes;
 

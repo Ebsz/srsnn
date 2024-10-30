@@ -138,7 +138,6 @@ fn plot_spikes_with_io(
         out_points.iter().map(|p| Circle::new(*p, 2, BLACK.filled())),
     ).unwrap();
 
-
     log::info!("Plot saved to {}", filename);
 
     Ok(())
@@ -191,6 +190,10 @@ fn to_spike_points(spikedata: &[Array1<f32>]) -> Vec<(i32, i32)> {
     points
 }
 
+pub fn plot_degree_distribution(data: &Array1<u32>) {
+    let _ = plt::histogram(data, "dgdist.png", "Degree distribution");
+}
+
 pub fn single_neuron_dynamics(record: &Record)
     -> Result<(), Box<dyn std::error::Error>> {
     let filename = "dynamics.png";
@@ -218,15 +221,10 @@ pub fn single_neuron_dynamics(record: &Record)
     Ok(())
 }
 
-
-pub fn plot_degree_distribution(data: &Array1<u32>) {
-    let _ = plt::histogram(data, "dgdist.png", "Degree distribution");
-}
-
 pub mod plt {
     use super::*;
+
     use utils::math;
-    //use ndarray::Array3;
 
     pub fn plot_single_variable(
         data: &[f32],
@@ -401,6 +399,7 @@ pub mod plt {
         Ok(())
     }
 
+    //use ndarray::Array3;
     //pub fn plot_3d(
     //    data: &Array3<u32>,
     //    filename: &str,
@@ -476,9 +475,9 @@ pub mod plt {
             }
 
             let mut chart = ChartBuilder::on(&d)
-                .margin(12)
+                .margin(30)
                 .set_label_area_size(LabelAreaPosition::Left, 20)
-                .set_label_area_size(LabelAreaPosition::Top, 20)
+                .set_label_area_size(LabelAreaPosition::Bottom, 20)
                 .build_cartesian_2d(0.0..max_x, min_y..max_y)?;
 
             chart
