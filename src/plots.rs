@@ -45,13 +45,21 @@ pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
     let best: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.best_series().clone()).collect();
     let mean: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.mean_series().clone()).collect();
     let std: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.stddev_series().clone()).collect();
+    let acc: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.acc_series().clone()).collect();
+
+    println!("best: {}, {}", best.len(), best[0].len());
+    println!("mean: {}, {}", mean.len(), mean[0].len());
+    println!("std: {}, {}", std.len(), std[0].len());
+    println!("acc: {}, {}", acc.len(), acc[0].len());
 
     let _ = plt::plot_multiple_series(best,
         "Generation best", format!("{}_best.png", name).as_str());
     let _ = plt::plot_multiple_series(mean,
         "Generation mean", format!("{}_mean.png", name).as_str());
     let _ = plt::plot_multiple_series(std,
-        "Generation std", format!("{}_std.png", name).as_str());
+        "Generation standard deviation", format!("{}_std.png", name).as_str());
+    let _ = plt::plot_multiple_series(acc,
+        "Generation accuracy", format!("{}_acc.png", name).as_str());
 }
 
 pub fn plot_single_neuron_potential(potentials: &[f32]) -> Result<(), Box<dyn std::error::Error>> {
@@ -299,22 +307,23 @@ pub mod plt {
 
         chart.configure_mesh().draw()?;
 
-        //let colors: Vec<RGBColor> = (0..data.len()).map(|i| RGBColor((0 + i * 20) as u8, 0 , (255 - i * 20) as u8)).collect();
+        let color_map: Vec<RGBColor> = Array::linspace(0.0, 1.0, data.len()).iter()
+            .map(|x| RGBColor((0.0 + x * 255.0) as u8, 0 , (255.0 - x * 255.0) as u8)).collect();
 
-        for d in data.iter() {
+        for (i, d) in data.iter().enumerate() {
             let series = LineSeries::new(
                 d.iter().enumerate().map(|(i, x)| (i as f32, *x)),
-                &RED,
+                color_map[i],
             );
             chart
                 .draw_series(series)?;
         }
 
-        chart
-            .configure_series_labels()
-            .background_style(&WHITE.mix(0.8))
-            .border_style(&BLACK)
-            .draw()?;
+        //chart
+        //    .configure_series_labels()
+        //    .background_style(&WHITE.mix(0.8))
+        //    .border_style(&BLACK)
+        //    .draw()?;
 
         root.present()?;
 

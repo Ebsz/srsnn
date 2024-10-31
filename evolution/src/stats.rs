@@ -122,4 +122,8 @@ impl Run {
     pub fn stddev_series(&self) -> Vec<f32> {
         self.generations.iter().map(|g| g.2).collect()
     }
+
+    pub fn acc_series(&self) -> Vec<f32> {
+        self.accuracy.clone()
+    }
 }

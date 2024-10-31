@@ -9,6 +9,7 @@ algorithm = "snes"
 
 [experiment]
 n_runs = 50
+plot_individual_runs = false
 
 [optimizer]
 max_generations = 250

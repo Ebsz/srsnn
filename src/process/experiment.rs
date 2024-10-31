@@ -30,6 +30,8 @@ impl Process for Experiment {
 
         log::info!("Starting experiment with {} runs", experiment_conf.n_runs);
         let experiment_stats = Self::multiple_runs::<M, T>(&conf, main_conf, experiment_conf);
+
+        Self::experiment_report(experiment_stats);
     }
 }
 
@@ -57,7 +59,9 @@ impl Experiment {
             let stats = Optimizer::optimize::<M, T, SeparableNES>(evaluator,
                 &main_conf, env.clone(), stop_signal.clone());
 
-            Self::run_report::<T>(&stats, n);
+            if experiment_conf.plot_individual_runs {
+                Self::run_report::<T>(&stats, n);
+            }
 
             run_stats.push(stats);
 
@@ -78,15 +82,25 @@ impl Experiment {
         plots::plot_run_spikes(&record, Some(format!("spikeplot_{n}").as_str()));
     }
 
-    //fn experiment_report<T: Task + TaskEval>(stats: Vec<OptimizationStatistics> {
-    //    // Plot 10 best runs
+    fn experiment_report(stats: Vec<OptimizationStatistics>) {
+        // Merge the stats
+        let mut experiment_report = OptimizationStatistics::empty();
 
-    //}
+        for s in stats {
+            println!("n runs: {}", s.runs.len());
+            experiment_report.push_run(s.run().clone());
+        }
+
+        plots::plot_stats(&experiment_report, format!("experiment").as_str());
+
+        utils::data::save(experiment_report, "experiment_report.json");
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct ExperimentConfig {
-    pub n_runs: usize
+    pub n_runs: usize,
+    pub plot_individual_runs: bool,
 }
 
 impl Configurable for Experiment {

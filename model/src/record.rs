@@ -2,14 +2,16 @@
 ///
 /// All data points are real vectors, stored as Array1<f32>.
 
-use ndarray::Array1;
+use ndarray::{Array, Array1, Array2};
 
 use std::collections::HashMap;
 
 
+pub type RecordData = Array1<f32>;
+
 #[derive(Clone)]
 pub struct Record {
-    pub records: HashMap<RecordType, Vec<Array1<f32>>>
+    pub records: HashMap<RecordType, Vec<RecordData>>
 }
 
 impl Record {
@@ -27,22 +29,34 @@ impl Record {
         }
     }
 
-    pub fn log(&mut self, record_type: RecordType, data: Array1<f32>) {
+    pub fn log(&mut self, record_type: RecordType, data: RecordData) {
         if let Some(d) = self.records.get_mut(&record_type) {
             d.push(data);
         }
     }
 
-    pub fn get(&self, record_type: RecordType) -> Vec<Array1<f32>> {
+    pub fn get(&self, record_type: RecordType) -> Vec<RecordData> {
         self.get_ref(record_type).iter().map(|r| (*r).clone()).collect()
     }
 
-    pub fn get_ref(&self, record_type: RecordType) -> &[Array1<f32>] {
+    pub fn get_ref(&self, record_type: RecordType) -> &[RecordData] {
         if let Some(d) = self.records.get(&record_type) {
             d
         } else {
             panic!("Could not get record of type {:?}", record_type);
         }
+    }
+
+    pub fn as_array(&self, record_type: RecordType) -> Array2<f32>{
+        let record = self.get_ref(record_type);
+
+        let mut out: Array2<f32> = Array::zeros((0, record[0].shape()[0]));
+
+        for r in record {
+            out.push_row(r.into());
+        }
+
+        out
     }
 }
 

@@ -8,6 +8,7 @@ use crate::process::{Process, MainConf};
 use crate::eval::MultiEvaluator;
 use crate::optimization::Optimizer;
 use crate::plots;
+use crate::plots::plt;
 use model::Model;
 
 use tasks::{Task, TaskEval};
@@ -17,9 +18,12 @@ use evolution::stats::OptimizationStatistics;
 
 use utils::random;
 use utils::environment::Environment;
+use model::record::RecordType;
 
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
+
+use ndarray::Array2;
 
 
 pub struct DefaultProcess;
@@ -57,9 +61,17 @@ impl DefaultProcess {
         analyze_network(repr);
 
         let record = run_analysis::<T>(&repr);
+
         plots::generate_plots(&record);
         plots::plot_run_spikes(&record, None);
         plots::single_neuron_dynamics(&record);
+
+        let s: Array2<u32> = record.as_array(RecordType::Spikes).map(|x| *x as u32);
+        let fr = utils::analysis::firing_rate(s, 10);
+        let p_series = record.as_array(RecordType::Potentials);
+
+        let _ = plt::plot_matrix(&fr, "firing_rate.png");
+        let _ = plt::plot_matrix(&p_series, "potentials.png");
 
         Self::save(repr.clone(),
             format!("network_{}_{}_{}",
