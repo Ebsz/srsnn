@@ -18,6 +18,15 @@ pub struct ExponentialSynapse {
 }
 
 impl Synapse for ExponentialSynapse {
+    fn new(w: Array2<f32>, neuron_type: Array1<f32>) -> Self {
+        ExponentialSynapse {
+            s: Array::zeros(w.shape()[0]),
+
+            w,
+            neuron_type,
+        }
+    }
+
     fn step(&mut self, input: &Spikes) -> Array1<f32> {
         let ns = &input.into() * &self.neuron_type;
 
@@ -36,13 +45,3 @@ impl Synapse for ExponentialSynapse {
     }
 }
 
-impl ExponentialSynapse {
-    pub fn new(w: Array2<f32>, neuron_type: Array1<f32>) -> Self {
-        ExponentialSynapse {
-            s: Array::zeros(w.shape()[0]),
-
-            w,
-            neuron_type,
-        }
-    }
-}

@@ -6,14 +6,17 @@ use tasks::task_runner::TaskRunner;
 use visual::tasks::TaskRenderer;
 use visual::task_window::TaskWindow;
 
+use model::network::SpikingNetwork;
 use model::network::representation::DefaultRepresentation;
 use model::network::builder::NetworkBuilder;
+use model::neuron::izhikevich::Izhikevich;
+use model::synapse::Synapse;
 
 
-pub fn visualize_network_on_task<T: Task + TaskRenderer>(task: T, repr: &DefaultRepresentation) {
+pub fn visualize_network_on_task<T: Task + TaskRenderer, S: Synapse>(task: T, repr: &DefaultRepresentation) {
     log::info!("Visualizing genome behavior on task");
 
-    let network = NetworkBuilder::build(repr);
+    let network: SpikingNetwork<Izhikevich, S> = NetworkBuilder::build(repr);
     let mut runnable = RunnableNetwork {
         network,
         inputs: repr.env.inputs,

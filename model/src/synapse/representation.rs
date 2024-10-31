@@ -1,18 +1,13 @@
 //! Representations are low-level containers for synaptic connections between neurons.
-//!
 
 use crate::spikes::Spikes;
-use crate::synapse::SynapticPotential;
+use crate::synapse::{SynapticPotential, NeuronType};
 
 use ndarray::{Array, Array1, Array2};
 
 use std::collections::HashMap;
 use std::convert::From;
 
-
-/// A vector describing the neuron type of N neurons, where entry i is -1.0 if
-/// neuron i is inhibitory, or 1.0 if it is excitatory.
-pub type NeuronType = Array1<f32>;
 
 pub trait SynapseRepresentation {
     fn step(&mut self, input: &Spikes) -> SynapticPotential;
@@ -21,66 +16,8 @@ pub trait SynapseRepresentation {
     fn connection_count(&self) -> usize;
 }
 
-/// Connections are stored in a HashMap as from->to;
-/// that is, connections[i] contains weights of the neurons that neuron i projects TO.
-pub struct MapRepresentation {
-    connections: HashMap<usize, Vec<(usize, f32)>>,
-    neuron_type: NeuronType
-}
-
-impl SynapseRepresentation for MapRepresentation {
-    fn step(&mut self, input: &Spikes) -> SynapticPotential {
-        let mut output: Array1<f32> = Array::zeros(input.len());
-
-        for neuron in input.firing() {
-            // Indices of neurons that is projected to by the firing neuron
-            let targets = self.connections.entry(neuron).or_insert(Vec::new());
-
-            for (i, w) in targets {
-                output[*i] += *w * self.neuron_type[neuron];
-            }
-        }
-
-        output
-    }
-
-    /// Assumes synapses on
-    fn shape(&self) -> (usize, usize) {
-        (self.neuron_type.len(), self.neuron_type.len())
-    }
-
-    fn connection_count(&self) -> usize {
-        self.connections.iter().fold(0usize, |acc, c| acc + c.1.len())
-    }
-}
-
-impl MapRepresentation {
-    pub fn new(connections: HashMap<usize, Vec<(usize, f32)>>, neuron_type: NeuronType) -> MapRepresentation {
-        MapRepresentation {
-            connections,
-            neuron_type
-        }
-    }
-}
-
-impl From<&MatrixRepresentation> for MapRepresentation {
-    fn from(item: &MatrixRepresentation) -> MapRepresentation {
-        let mut connections: HashMap<usize, Vec<(usize, f32)>> = HashMap::new();
-
-        for (from_neuron, weights) in item.weights.t().outer_iter().enumerate() {
-            for (to_neuron, w) in weights.iter().enumerate() {
-                connections.entry(from_neuron).or_insert(Vec::new()).push((to_neuron, *w));
-            }
-        }
-
-        MapRepresentation::new(connections, item.neuron_type.to_owned())
-    }
-}
-
-/// Connections betweenN neurons represented by an NXN matrix.
-///
-/// This means that entry W_jk is the weight from neuron k to neuron j
-///
+/// Connections between neurons represented by an N x N matrix,
+/// where entry W_jk is the weight from neuron k to neuron j
 pub struct MatrixRepresentation {
     pub weights: Array2<f32>,
     pub neuron_type: NeuronType,
@@ -118,6 +55,65 @@ impl MatrixRepresentation {
         self.connection_count() as f32 / self.shape().0.pow(2) as f32
     }
 }
+
+
+/// Connections are stored in a HashMap as from->to;
+/// that is, connections[i] contains weights of the neurons that neuron i projects TO.
+pub struct MapRepresentation {
+    connections: HashMap<usize, Vec<(usize, f32)>>,
+    neuron_type: NeuronType
+}
+
+impl SynapseRepresentation for MapRepresentation {
+    fn step(&mut self, input: &Spikes) -> SynapticPotential {
+        let mut output: Array1<f32> = Array::zeros(input.len());
+
+        for neuron in input.firing() {
+            // Indices of neurons that is projected to by the firing neuron
+            let targets = self.connections.entry(neuron).or_insert(Vec::new());
+
+            for (i, w) in targets {
+                output[*i] += *w * self.neuron_type[neuron];
+            }
+        }
+
+        output
+    }
+
+    /// Assumes synapses on
+    fn shape(&self) -> (usize, usize) {
+        (self.neuron_type.len(), self.neuron_type.len())
+    }
+
+    fn connection_count(&self) -> usize {
+        self.connections.iter().fold(0usize, |acc, c| acc + c.1.len())
+    }
+}
+
+impl MapRepresentation {
+    pub fn from_map(connections: HashMap<usize, Vec<(usize, f32)>>, neuron_type: NeuronType)
+        -> MapRepresentation {
+        MapRepresentation {
+            connections,
+            neuron_type
+        }
+    }
+}
+
+impl From<&MatrixRepresentation> for MapRepresentation {
+    fn from(item: &MatrixRepresentation) -> MapRepresentation {
+        let mut connections: HashMap<usize, Vec<(usize, f32)>> = HashMap::new();
+
+        for (from_neuron, weights) in item.weights.t().outer_iter().enumerate() {
+            for (to_neuron, w) in weights.iter().enumerate() {
+                connections.entry(from_neuron).or_insert(Vec::new()).push((to_neuron, *w));
+            }
+        }
+
+        MapRepresentation::from_map(connections, item.neuron_type.to_owned())
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

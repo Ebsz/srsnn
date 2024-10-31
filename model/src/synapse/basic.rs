@@ -5,11 +5,11 @@ use crate::synapse::representation::{SynapseRepresentation, MapRepresentation, M
 use ndarray::{Array1, Array2};
 
 
-pub struct BasicSynapse<R: SynapseRepresentation> {
-    pub representation: R
+pub struct BasicSynapse {
+    pub representation: Box<dyn SynapseRepresentation>
 }
 
-impl<R: SynapseRepresentation> Synapse for BasicSynapse<R> {
+impl Synapse for BasicSynapse {
     fn step(&mut self, input: &Spikes) -> SynapticPotential {
         self.representation.step(input)
     }
@@ -21,27 +21,29 @@ impl<R: SynapseRepresentation> Synapse for BasicSynapse<R> {
     fn reset(&mut self) {
         // this does nothing, because the base synapse does not have state
     }
+
+    fn new(w: Array2<f32>, neuron_type: Array1<f32>) -> Self {
+        BasicSynapse {
+            representation: Box::new(MatrixRepresentation::new(w, neuron_type))
+        }
+    }
 }
 
-impl<R: SynapseRepresentation> BasicSynapse<R> {
-    pub fn new(representation: R) -> BasicSynapse<R> {
+impl BasicSynapse {
+    pub fn from_repr(representation: Box<dyn SynapseRepresentation>) -> BasicSynapse {
         BasicSynapse {
             representation
         }
     }
 
-    pub fn from_matrix(weights: Array2<f32>, neuron_type: Array1<f32>) -> BasicSynapse<MatrixRepresentation> {
-        BasicSynapse {
-            representation: MatrixRepresentation::new(weights, neuron_type)
-        }
-    }
 }
 
-impl From<&BasicSynapse<MatrixRepresentation>> for BasicSynapse<MapRepresentation> {
-    fn from(item: &BasicSynapse<MatrixRepresentation>) -> BasicSynapse<MapRepresentation> {
-        BasicSynapse::<MapRepresentation>::new(MapRepresentation::from(&item.representation))
-    }
-}
+
+//impl From<&BasicSynapse<MatrixRepresentation>> for BasicSynapse<MapRepresentation> {
+//    fn from(item: &BasicSynapse<MatrixRepresentation>) -> BasicSynapse<MapRepresentation> {
+//        BasicSynapse::<MapRepresentation>::new(MapRepresentation::from(&item.representation))
+//    }
+//}
 
 #[test]
 fn test_create_and_step_base_synapse() {

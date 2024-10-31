@@ -22,6 +22,20 @@ pub struct BiExponentialSynapse {
 }
 
 impl Synapse for BiExponentialSynapse {
+    fn new(w: Array2<f32>, neuron_type: Array1<f32>) -> Self {
+        let n_in = w.shape()[0];
+
+        BiExponentialSynapse {
+            s: Array::zeros(n_in),
+            h: Array::zeros(n_in),
+
+            w,
+            neuron_type,
+
+            t: 0,
+        }
+    }
+
     fn step(&mut self, input: &Spikes) -> Array1<f32> {
         let ns = &input.into() * &self.neuron_type;
 
@@ -41,20 +55,5 @@ impl Synapse for BiExponentialSynapse {
         self.s = Array::zeros(self.w.shape()[0]);
         self.h = Array::zeros(self.w.shape()[0]);
     }
-}
 
-impl BiExponentialSynapse {
-    pub fn new(w: Array2<f32>, neuron_type: Array1<f32>) -> Self {
-        let n_in = w.shape()[0];
-
-        BiExponentialSynapse {
-            s: Array::zeros(n_in),
-            h: Array::zeros(n_in),
-
-            w,
-            neuron_type,
-
-            t: 0,
-        }
-    }
 }
