@@ -29,10 +29,6 @@ const INHIBITORY_FRACTION: f32 = 0.2;
 const EXCITATORY_PARAMS: [f32; 5] = [0.02, 0.2, -65.0, 8.0, 0.0]; // Regular spiking (RS) neuron
 const INHIBITORY_PARAMS: [f32; 5] = [0.1,  0.2, -65.0, 2.0, 1.0]; // Fast spiking (FS) neuron
 
-const EXCITATORY_WT: f32 = 0.33;
-const INHIBITORY_WT: f32 = 0.41;
-const INPUT_WT: f32 = 0.55;
-
 const WT_DRAW_COUNT: u64 = 8;
 const WT_DRAW_PROB: f64 = 0.2;
 
@@ -134,7 +130,7 @@ impl BaseModel {
 
     fn minimal_weights(itypes: Vec<usize>, l: LabelFn, config: &RSNNConfig<Self>) -> (ValueSet) {
         let w_map: Array1<f32> = (0..(config.model.k + config.model.k_out))
-            .map(|i| if itypes.contains(&i) { INHIBITORY_WT} else {EXCITATORY_WT}).collect();
+            .map(|i| if itypes.contains(&i) { config.model.inh_w } else { config.model.exc_w }).collect();
 
         let bin = Binomial::new(WT_DRAW_COUNT, WT_DRAW_PROB).unwrap();
         ValueSet { f: Arc::new(
@@ -195,7 +191,7 @@ impl BaseModel {
 
         let input_mask = m & csa::op::disc(config.model.distance_threshold, d);
 
-        let w = weights(INPUT_WT);
+        let w = weights(config.model.input_w);
 
         ConnectionSet {
             m: input_mask,
@@ -223,7 +219,11 @@ pub struct BaseModelConfig {
     pub k_out: usize,   // # of output types
 
     pub distance_threshold: f32,
-    pub max_coordinate: f32
+    pub max_coordinate: f32,
+
+    pub input_w: f32,
+    pub exc_w: f32,
+    pub inh_w: f32,
 }
 
 impl ConfigSection for BaseModelConfig {

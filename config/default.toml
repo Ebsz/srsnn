@@ -41,3 +41,8 @@ k_in = 4
 
 distance_threshold = 3.0
 max_coordinate = 10.0
+
+exc_w = 1.0 # 0.33
+inh_w = 1.32 # 0.41
+
+input_w = 1.78 # 0.55
