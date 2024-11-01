@@ -13,7 +13,7 @@ use ndarray::{Array, Array1, Array2, Axis};
 const N_TRIALS: usize = 128;
 
 const SEND_TIME: u32 = 50;
-const RESPONSE_DELAY: u32 = 16;
+const RESPONSE_DELAY: u32 = 10;
 const RESPONSE_WINDOW: u32 = 100;
 
 const RESPONSE_START_T: u32 = SEND_TIME + RESPONSE_DELAY;
@@ -21,7 +21,7 @@ const MAX_T: u32 = SEND_TIME + RESPONSE_DELAY + RESPONSE_WINDOW;
 
 const N_CLASSES: usize = 3;
 
-const OUTPUTS_PER_CLASS: usize = 1;
+const OUTPUTS_PER_CLASS: usize = 5;
 const AGENT_INPUTS: usize = 4;
 const AGENT_OUTPUTS: usize = N_CLASSES * OUTPUTS_PER_CLASS;
 
