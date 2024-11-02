@@ -3,7 +3,13 @@ use plotters::prelude::*;
 use ndarray::{s, Array, Array1, Array2};
 use model::record::{Record, RecordType};
 
-use evolution::stats::OptimizationStatistics;
+use evolution::stats::{OptimizationStatistics, Run};
+
+use utils::math;
+
+use whittaker_eilers::WhittakerSmoother;
+
+use ndarray::array;
 
 
 pub fn generate_plots(record: &Record) {
@@ -47,10 +53,6 @@ pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
     let std: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.stddev_series().clone()).collect();
     let acc: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.acc_series().clone()).collect();
 
-    println!("best: {}, {}", best.len(), best[0].len());
-    println!("mean: {}, {}", mean.len(), mean[0].len());
-    println!("std: {}, {}", std.len(), std[0].len());
-    println!("acc: {}, {}", acc.len(), acc[0].len());
 
     let _ = plt::plot_multiple_series(best,
         "Generation best", format!("{}_best.png", name).as_str());
@@ -60,6 +62,23 @@ pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
         "Generation standard deviation", format!("{}_std.png", name).as_str());
     let _ = plt::plot_multiple_series(acc,
         "Generation accuracy", format!("{}_acc.png", name).as_str());
+}
+
+pub fn plot_run(r: &Run, name: &str) {
+    let best: Vec<f32> = r.best_series();
+    let mean: Vec<f32> = r.mean_series();
+    let std:  Vec<f32> = r.stddev_series();
+    let acc:  Vec<f32> = r.acc_series();
+
+    let _ = plot_smoothed(&best,
+        "Generation best", format!("{}_best.png", name).as_str());
+    let _ = plot_smoothed(&mean,
+        "Generation mean", format!("{}_mean.png", name).as_str());
+    let _ = plot_smoothed(&std,
+        "Generation standard deviation", format!("{}_std.png", name).as_str());
+    let _ = plot_smoothed(&acc,
+        "Generation accuracy", format!("{}_acc.png", name).as_str());
+
 }
 
 pub fn plot_single_neuron_potential(potentials: &[f32]) -> Result<(), Box<dyn std::error::Error>> {
@@ -207,7 +226,7 @@ pub fn single_neuron_dynamics(record: &Record)
     let filename = "dynamics.png";
 
     let pots: Vec<f32> = record.get(RecordType::Potentials).iter().map(|x| x[0]).collect();
-    let spikes: Vec<Array1<f32>> = record.get(RecordType::Spikes);
+    let spikes: Vec<Array1<f32>> = record.get(RecordType::Spikes).iter().map(|x| array!( x[0] ) ).collect();
     let synaptic_current: Vec<f32> = record.get(RecordType::SynapticCurrent).iter().map(|x| x[0]).collect();
 
     let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
@@ -223,6 +242,61 @@ pub fn single_neuron_dynamics(record: &Record)
     plt::subplot::spikes(spikes, &btm);
 
     root.present()?;
+
+    log::info!("Plot saved to {}", filename);
+
+    Ok(())
+}
+
+
+pub fn plot_smoothed(
+    data: &[f32],
+    caption: &str,
+    filename: &str)
+    -> Result<(), Box<dyn std::error::Error>> {
+    let max_x: f32 = data.len() as f32;
+    let min_x: f32 = 0.0;
+
+    let max_y: f32 = math::maxf(data);
+    let min_y: f32 = math::minf(data);
+
+    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
+    root.fill(&WHITE)?;
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption(caption, ("sans-serif", 50).into_font())
+        .margin(15)
+        .x_label_area_size(30)
+        .y_label_area_size(30)
+        .build_cartesian_2d(min_x..max_x, min_y..max_y)?;
+
+    chart.configure_mesh().draw()?;
+
+    let series = LineSeries::new(
+        data.iter().enumerate().map(|(i, x)| (i as f32, *x)),
+        RGBColor(100,150,200)
+    );
+
+    chart
+        .draw_series(series)?
+        .label("Original")
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLACK));
+
+    let smoother = WhittakerSmoother::new(2e4, 2, data.len(), None, None).unwrap();
+    let f: Vec<f64> = data.iter().map(|x| *x as f64).collect();
+    let s = smoother.smooth(&f).unwrap();
+
+    let s_series = LineSeries::new(
+        s.iter().enumerate().map(|(i, x)| (i as f32, *x as f32)),
+        RGBColor(222,89,120)
+    );
+
+    chart
+        .draw_series(s_series)?
+        .label("Smoothed")
+        .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &BLUE));
+
+        root.present()?;
 
     log::info!("Plot saved to {}", filename);
 
@@ -245,8 +319,8 @@ pub mod plt {
         let max_x: f32 = data.len() as f32;
         let min_x: f32 = 0.0;
 
-        let max_y: f32 = data.iter().fold(0.0f32, |acc, &x| if x > acc {x} else {acc});
-        let min_y: f32 = data.iter().fold(0.0f32, |acc, &x| if x < acc {x} else {acc});
+        let max_y: f32 = math::maxf(data);
+        let min_y: f32 = math::minf(data);
 
         let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
         root.fill(&WHITE)?;
@@ -292,8 +366,8 @@ pub mod plt {
         let max_x: f32 = data[0].len() as f32;
         let min_x: f32 = 0.0;
 
-        let max_y: f32 = data[0].iter().fold(0.0f32, |acc, &x| if x > acc {x} else {acc});
-        let min_y: f32 = data[0].iter().fold(0.0f32, |acc, &x| if x < acc {x} else {acc});
+        let max_y: f32 = math::maxf(&data[0]);
+        let min_y: f32 = math::minf(&data[0]);
 
         let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
         root.fill(&WHITE)?;

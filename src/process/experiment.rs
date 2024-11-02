@@ -1,7 +1,7 @@
 //! Runs a config a set number of times
 
 use crate::config::{get_config, BaseConfig};
-use crate::analysis::run_analysis;
+use crate::analysis;
 use crate::process::{Process, MainConf};
 use crate::eval::MultiEvaluator;
 use crate::optimization::Optimizer;
@@ -78,7 +78,10 @@ impl Experiment {
 
         Self::save::<OptimizationStatistics>(stats.clone(), format!("run_stats_{n}"));
         let (f, repr, _) = stats.best();
-        let record = run_analysis::<T>(&repr);
+
+        let setup = T::eval_setups()[0].clone();
+        let record = analysis::run_analysis::<T>(repr, &[setup])[0].clone();
+
         plots::plot_run_spikes(&record, Some(format!("spikeplot_{n}").as_str()));
     }
 

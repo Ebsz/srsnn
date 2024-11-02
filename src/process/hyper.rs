@@ -5,7 +5,7 @@ use crate::eval::MultiEvaluator;
 use crate::process::Process;
 use crate::optimization::Optimizer;
 use crate::config::BaseConfig;
-use crate::analysis::{analyze_network, run_analysis};
+use crate::analysis;
 
 use model::Model;
 use model::network::representation::DefaultRepresentation;
@@ -86,11 +86,7 @@ impl HyperOptimization {
             |x| x.best()).max_by(|a,b| a.0.partial_cmp(&b.0).expect("")).unwrap();
 
         println!("Best eval: {e}");
-        analyze_network(&repr);
-
-        let record = run_analysis::<T>(&repr);
-        plots::generate_plots(&record);
-
+        analysis::analyze_network(&repr);
 
         Self::save(repr.clone(),
             format!("experiment_{}", utils::random::random_range((0,1000000)).to_string()));

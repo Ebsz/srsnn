@@ -80,7 +80,7 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
                 let _ = input_queue.push((m.0, m.1.develop()));
             }
         }
-        log::debug!("Developed {} models in {:.2}s", models.len(), t0.elapsed().as_secs_f32());
+        log::trace!("Developed {} models in {:.2}s", models.len(), t0.elapsed().as_secs_f32());
 
         assert!(input_queue.len() == n_samples);
 

@@ -104,7 +104,7 @@ impl Run {
     }
 
     // Return the best individual of the run
-    fn best(&self) -> (f32, &DefaultRepresentation, &ParameterSet) {
+    pub fn best(&self) -> (f32, &DefaultRepresentation, &ParameterSet) {
         match &self.best_network {
             Some((f, r, p)) => { (*f, &r, &p) },
             None => { panic!("best called on Run with no best network"); }

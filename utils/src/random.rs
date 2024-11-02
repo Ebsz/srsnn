@@ -23,6 +23,7 @@ thread_local! {
 }
 
 pub fn set_seed(seed: u64) {
+    log::debug!("Seed: {seed}");
     RNG.replace(StdRng::seed_from_u64(seed));
 }
 

@@ -10,22 +10,24 @@ use tasks::task_runner::TaskRunner;
 use ndarray::{s, Axis, Array, Array1, Array2};
 
 
-pub fn run_analysis<T: Task + TaskEval> (
-    repr: &DefaultRepresentation)
--> Record {
-    log::info!("performing run analysis");
+pub fn run_analysis<T: Task + TaskEval> (repr: &DefaultRepresentation, setups: &[T::Setup])
+-> Vec<Record> {
+    log::debug!("Performing run analysis");
 
-    let setups = T::eval_setups();
+    let mut records = vec![];
 
-    let task = T::new(&setups[0]);
-    let mut runnable = RunnableNetwork::<DefaultNetwork>::build(repr);
+    for s in setups {
+        let task = T::new(&setups[0]);
+        let mut runnable = RunnableNetwork::<DefaultNetwork>::build(repr);
+        runnable.network.enable_recording();
 
-    runnable.network.enable_recording();
+        let mut runner = TaskRunner::new(task, &mut runnable);
+        runner.run();
 
-    let mut runner = TaskRunner::new(task, &mut runnable);
-    runner.run();
+        records.push(runnable.network.record);
+    }
 
-    runnable.network.record
+    records
 }
 
 pub fn analyze_network(r: &DefaultRepresentation) {

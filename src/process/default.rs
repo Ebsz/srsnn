@@ -60,7 +60,9 @@ impl DefaultProcess {
         log::info!("Best fitness: {f}");
         analyze_network(repr);
 
-        let record = run_analysis::<T>(&repr);
+
+        let setup = T::eval_setups()[0].clone();
+        let record = run_analysis::<T>(repr, &[setup])[0].clone();
 
         plots::generate_plots(&record);
         plots::plot_run_spikes(&record, None);
