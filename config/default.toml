@@ -1,18 +1,16 @@
 log_level = "debug"
 
-process = "default"
+process = "experiment"
 
 model = "base_model"
-task = "pattern"
-algorithm = "snes"
-
+task = "pattern_similarity"
 
 [experiment]
 n_runs = 50
 plot_individual_runs = false
 
 [optimizer]
-max_generations = 250
+max_generations = 1000
 
 [snes]
 pop_size = 100
@@ -35,14 +33,14 @@ batch_size = 32
 n = 128
 
 [rsnn.model]
-k = 6
-k_out = 3
-k_in = 4
+k = 8
+k_in = 1
+k_out = 1
 
 distance_threshold = 3.0
 max_coordinate = 10.0
 
-exc_w = 1.0 # 0.33
+exc_w = 1.1 # 0.33
 inh_w = 1.32 # 0.41
 
-input_w = 1.78 # 0.55
+input_w = 1.44 # 0.55
