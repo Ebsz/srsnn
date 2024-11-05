@@ -95,10 +95,12 @@ impl Experiment {
         let mut experiment_stats = OptimizationStatistics::empty();
 
         for s in stats {
-            experiment_stats.push_run(s.run().clone());
+            for r in s.runs {
+                experiment_stats.push_run(r.clone());
+            }
         }
 
-        plots::plot_stats(&experiment_stats, format!("experiment").as_str());
+        //plots::plot_stats(&experiment_stats, format!("experiment").as_str());
 
         let report = ExperimentReport {
             stats: experiment_stats,
