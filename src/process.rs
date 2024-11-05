@@ -97,7 +97,7 @@ pub trait Process: Sync {
 
     fn evaluator<T: Task + TaskEval>(base_conf: &BaseConfig, eval_conf: &EvalConfig, setups: Vec<T::Setup>) -> MultiEvaluator<T> {
         let batch_conf = match base_conf.task.as_str() {
-            "mnist" | "pattern" | "multipattern"  => {
+            "mnist" | "pattern" | "multipattern" | "pattern_similarity" => {
                 let bc = get_config::<Batch>();
 
                 log::info!("Batch config:\n{:#?}", bc);

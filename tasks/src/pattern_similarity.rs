@@ -4,10 +4,6 @@
 //! Two types of trial:
 //! - Both patterns are drawn from the same distribution; output neurons should not fire.
 //! - Patterns are drawn from different distributions; output neurons should fire.
-//!
-//! NOTE: The fitness function is currently not working, with a bug that returns perfect fitness
-//! for models who do not spike at all.
-
 
 use crate::{Task, TaskEval, TaskInput, TaskOutput, TaskState, TaskEnvironment};
 
@@ -19,13 +15,13 @@ use ndarray::{array, Array, Array1, Array2};
 use ndarray_rand::rand_distr::StandardNormal;
 
 
-const DATASET_SIZE: usize = 128;
+const DATASET_SIZE: usize = 1024;
 
 const PATTERN_SIZE: usize = 5;
-const PATTERN_MAX_PROBABILITY: f32 = 0.5;
+const PATTERN_MAX_PROBABILITY: f32 = 0.35;
 
 const SEND_TIME: u32 = 50;        // How long each pattern is sent.
-const SEND_DELAY: u32 = 70;       // Delay between patterns
+const SEND_DELAY: u32 = 30;       // Delay between patterns
 
 const RESPONSE_WINDOW: u32 = 50;
 const RESPONSE_START_T: u32 = 2 * SEND_TIME + 2 * SEND_DELAY; // t0 for the response window
@@ -33,12 +29,17 @@ const RESPONSE_START_T: u32 = 2 * SEND_TIME + 2 * SEND_DELAY; // t0 for the resp
 const MAX_T: u32 = 2 * SEND_TIME + 2 * SEND_DELAY + RESPONSE_WINDOW;
 
 const AGENT_INPUTS: usize = PATTERN_SIZE.pow(2);
-const AGENT_OUTPUTS: usize = 25;
+const AGENT_OUTPUTS: usize = 10;
+
+const MAX_SPIKERATE: f32 = 0.15; // Output spike frequency is capped above this
+
+const MAX_SPIKE_COUNT: usize = RESPONSE_WINDOW as usize * AGENT_OUTPUTS;
+const SPIKE_CAP: f32 = MAX_SPIKE_COUNT as f32 * MAX_SPIKERATE;
 
 
 #[derive(Debug)]
 pub struct PatternSimilarityTaskResult {
-    pub output: Array2<u32>,
+    pub response: Array2<u32>,
     pub is_same: bool
 }
 
@@ -74,7 +75,7 @@ impl Task for PatternSimilarityTask {
             return TaskState {
                 output: self.get_output(),
                 result: Some(PatternSimilarityTaskResult {
-                    output: self.response.clone(),
+                    response: self.response.clone(),
                     is_same: self.setup.is_same
                 })
             }
@@ -144,54 +145,49 @@ impl TaskEval for PatternSimilarityTask {
     }
 
     fn fitness(results: Vec<Self::Result>) -> f32 {
-//        let mut fitness = 0.0;
-//
-//        for r in &results {
-//            let (w, h) = (r.output.shape()[0], r.output.shape()[1]);
-//
-//            let avg_fr = r.output.iter().sum::<u32>() as f32 /  (w * h)  as f32;
-//
-//            // p[0]: patterns are equal, p[1]: patterns not equal
-//            let prediction = array![1.0 - avg_fr, avg_fr];
-//
-//            let expected = if r.is_same { array![1.0, 0.0] } else { array![0.0, 1.0] };
-//
-//            //let ce_loss = math::ml::cross_entropy(&prediction, &expected);
-//            let ce_loss = math::ml::cross_entropy(&prediction, &(expected * 0.4));
-//
-//            //println!("{ce_loss}");
-//
-//            //println!("avg_fr: {avg_fr}, prediction: {prediction}, expected: {expected}, loss: {ce_loss}");
-//
-//            fitness += 10.0 - math::minf(&[ce_loss, 10.0]);
-//        }
-//
-//        // Normalize fitness to (0, 100)
-//        fitness = fitness * 100.0 /(5.0 * results.len() as f32);
-//
-//        //if fitness == 100.0 {
-//        //    for r in &results {
-//        //        println!("is_same: {}", r.is_same);
-//        //        println!("{:#?}", r.output);
-//        //    }
-//
-//        //}
-//
-//        fitness
+        //let mut fitness = 0.0;
 
-        Self::accuracy(&results).unwrap()
+        //for r in &results {
+        //    //let (w, h) = (r.response.shape()[0], r.response.shape()[1]);
+        //    //let avg_fr = r.response.iter().sum::<u32>() as f32 /  (w * h)  as f32;
+
+        //    let mut sum_spikes = r.response.iter().sum::<u32>() as f32;
+
+        //    sum_spikes = math::minf(&[sum_spikes as f32, SPIKE_CAP]);
+
+        //    let fr = sum_spikes / SPIKE_CAP;
+
+        //    // p[0]: patterns are equal, p[1]: patterns not equal
+        //    let prediction = array![1.0 - fr, fr];
+
+        //    let expected = if r.is_same { array![1.0, 0.0] } else { array![0.0, 1.0] };
+
+        //    //let ce_loss = math::ml::cross_entropy(&prediction, &(expected * 0.4));
+        //    let ce_loss = math::ml::cross_entropy(&prediction, &expected);
+
+        //    fitness += 10.0 - math::minf(&[ce_loss, 10.0]);
+        //}
+
+        //// Normalize fitness to (0, 100)
+        //fitness = fitness * 100.0 /(5.0 * results.len() as f32);
+
+        //fitness
+
+        Self::accuracy(&results).unwrap() * 100.0
     }
 
     fn accuracy(results: &[Self::Result]) -> Option<f32> {
         let mut correct = 0;
 
         for r in results {
-            let (w, h) = (r.output.shape()[0], r.output.shape()[1]);
+            let mut sum_spikes = r.response.iter().sum::<u32>() as f32;
 
-            let avg_fr = r.output.iter().sum::<u32>() as f32 /  (w * h)  as f32;
+            sum_spikes = math::minf(&[sum_spikes as f32, SPIKE_CAP]);
+
+            let fr = sum_spikes / SPIKE_CAP;
 
             // p[0]: patterns are equal, p[1]: patterns not equal
-            let prediction = array![1.0 - avg_fr, avg_fr];
+            let prediction = array![1.0 - fr, fr];
 
             let is_same = math::max_index(prediction) == 0;
 
