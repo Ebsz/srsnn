@@ -55,9 +55,9 @@ pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
 
 
     let _ = plt::plot_multiple_series(best,
-        "Generation best", format!("{}_best.png", name).as_str());
+        "Generation best fitness", format!("{}_best.png", name).as_str());
     let _ = plt::plot_multiple_series(mean,
-        "Generation mean", format!("{}_mean.png", name).as_str());
+        "Generation mean fitness", format!("{}_mean.png", name).as_str());
     let _ = plt::plot_multiple_series(std,
         "Generation standard deviation", format!("{}_std.png", name).as_str());
     let _ = plt::plot_multiple_series(acc,
@@ -71,14 +71,13 @@ pub fn plot_run(r: &Run, name: &str) {
     let acc:  Vec<f32> = r.acc_series();
 
     let _ = plot_smoothed(&best,
-        "Generation best", format!("{}_best.png", name).as_str());
+        "Generation best fitness", format!("{}_best.png", name).as_str());
     let _ = plot_smoothed(&mean,
-        "Generation mean", format!("{}_mean.png", name).as_str());
+        "Generation mean fitness", format!("{}_mean.png", name).as_str());
     let _ = plot_smoothed(&std,
-        "Generation standard deviation", format!("{}_std.png", name).as_str());
+        "Generation fitness stddev", format!("{}_std.png", name).as_str());
     let _ = plot_smoothed(&acc,
-        "Generation accuracy", format!("{}_acc.png", name).as_str());
-
+        "Generation best accuracy", format!("{}_acc.png", name).as_str());
 }
 
 pub fn plot_single_neuron_potential(potentials: &[f32]) -> Result<(), Box<dyn std::error::Error>> {

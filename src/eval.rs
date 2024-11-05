@@ -109,10 +109,13 @@ impl<M: Model, T: Task + TaskEval> Evaluate<M, DefaultRepresentation> for MultiE
             }
         });
 
-        let mut evals = vec![];
+        let mut evals: Vec<Evaluation> = vec![];
+
         while let Some(e) = output_queue.pop() {
             evals.push(e);
         }
+
+        assert!(evals.len() == n_samples);
 
         // handle multitrial evals
         if self.config.trials > 1 {

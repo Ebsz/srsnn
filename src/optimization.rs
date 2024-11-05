@@ -147,7 +147,7 @@ fn log_generation<T: Task + TaskEval>(
     analyze_model::<T>(best_repr);
 
     if gen % LOG_FREQ == 0 {
-        log::info!("Gen. {} - best fit: {:.3}, mean: {:.3}, std: {:.3}",
+        log::info!("Gen. {} - [Fitness] best: {:.3}, mean: {:.3}, std: {:.3} ]",
             gen, best_fitness, fitness_mean, fitness_std);
     }
 

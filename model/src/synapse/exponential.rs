@@ -44,4 +44,3 @@ impl Synapse for ExponentialSynapse {
         self.s = Array::zeros(self.w.shape()[0]);
     }
 }
-
