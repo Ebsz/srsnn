@@ -1,5 +1,9 @@
 //! Runs a config a set number of times
 
+pub mod report;
+
+use report::ExperimentReport;
+
 use crate::config::{get_config, BaseConfig};
 use crate::analysis;
 use crate::process::{Process, MainConf};
@@ -15,10 +19,11 @@ use evolution::stats::OptimizationStatistics;
 
 use utils::config::{Configurable, ConfigSection};
 
+use serde::Deserialize;
+
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-
-use serde::Deserialize;
+use std::env;
 
 
 pub struct Experiment;
@@ -31,7 +36,7 @@ impl Process for Experiment {
         log::info!("Starting experiment with {} runs", experiment_conf.n_runs);
         let experiment_stats = Self::multiple_runs::<M, T>(&conf, main_conf, experiment_conf);
 
-        Self::experiment_report(experiment_stats);
+        Self::experiment_report(experiment_stats, conf);
     }
 }
 
@@ -85,18 +90,23 @@ impl Experiment {
         plots::plot_run_spikes(&record, Some(format!("spikeplot_{n}").as_str()));
     }
 
-    fn experiment_report(stats: Vec<OptimizationStatistics>) {
+    fn experiment_report(stats: Vec<OptimizationStatistics>, conf: BaseConfig) {
         // Merge the stats
-        let mut experiment_report = OptimizationStatistics::empty();
+        let mut experiment_stats = OptimizationStatistics::empty();
 
         for s in stats {
-            println!("n runs: {}", s.runs.len());
-            experiment_report.push_run(s.run().clone());
+            experiment_stats.push_run(s.run().clone());
         }
 
-        plots::plot_stats(&experiment_report, format!("experiment").as_str());
+        plots::plot_stats(&experiment_stats, format!("experiment").as_str());
 
-        utils::data::save(experiment_report, "experiment_report.json");
+        let report = ExperimentReport {
+            stats: experiment_stats,
+            version: env!("CARGO_PKG_VERSION").to_string(),
+            conf,
+        };
+
+        utils::data::save(report, "experiment_report.json");
     }
 }
 

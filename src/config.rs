@@ -1,7 +1,7 @@
 use utils::config::{Configurable, ConfigSection};
 
 use config::{Config, ConfigError, File};
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
 use std::cell::RefCell;
 
@@ -14,7 +14,7 @@ thread_local! {
 }
 
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BaseConfig {
     pub process: String,
     pub task: String,
