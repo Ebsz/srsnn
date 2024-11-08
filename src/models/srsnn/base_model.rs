@@ -3,7 +3,8 @@
 
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
-use csa::op::{LabelFn, CoordinateFn, Metric};
+use csa::op::LabelFn;
+use csa::op::geometric::{CoordinateFn, Metric};
 use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
 
@@ -80,14 +81,14 @@ impl RSNN for BaseModel {
         let sbm_mask = csa::op::sbm(labels.clone(), ValueSet::from_value(t_cpm.clone()));
 
         // geometric setup
-        let coords: CoordinateFn = csa::op::random_coordinates(
+        let coords: CoordinateFn = csa::op::geometric::random_coordinates(
             0.0,
             config.model.max_coordinate,
             config.n + env.outputs);
 
-        let d: Metric = csa::op::distance_metric(coords.clone(), coords.clone());
+        let d: Metric = csa::op::geometric::distance_metric(coords.clone(), coords.clone());
 
-        let disc = csa::op::disc(config.model.distance_threshold, d);
+        let disc = csa::op::geometric::disc(config.model.distance_threshold, d);
 
         let mask = sbm_mask & disc;
 
@@ -187,9 +188,9 @@ impl BaseModel {
 
         let max_x = config.model.max_coordinate;
         let g_in: CoordinateFn = Arc::new(move |_| (rand::random::<f32>() * max_x, 0.0));
-        let d: Metric = csa::op::distance_metric(g, g_in);
+        let d: Metric = csa::op::geometric::distance_metric(g, g_in);
 
-        let input_mask = m & csa::op::disc(config.model.distance_threshold, d);
+        let input_mask = m & csa::op::geometric::disc(config.model.distance_threshold, d);
 
         let w = weights(config.model.input_w);
 

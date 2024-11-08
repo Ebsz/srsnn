@@ -48,43 +48,6 @@ pub fn sbm(l: LabelFn, cpm: ValueSet) -> Mask {
     }
 }
 
-/// Operates on a metric to restrict connectivity to neurons whose distance is less than r
-pub fn disc(r: f32, m: Metric) -> Mask {
-    Mask {
-        f: Arc::new(
-               move |i, j| m(i,j) < r
-           )
-    }
-}
-
-pub type CoordinateFn = Arc<dyn Fn(u32) -> (f32, f32)>;
-pub type Metric = Arc<dyn Fn(u32, u32) -> f32>;
-
-pub fn random_coordinates(min: f32, max: f32, n: usize) -> CoordinateFn {
-    let mut c = vec![];
-
-    for _ in 0..n {
-        let p = (random::random_range((min, max)), random::random_range((min, max)));
-        c.push(p);
-    }
-
-    Arc::new(move |i| c[i as usize])
-}
-
-pub fn static_coordinates(pos: (f32, f32)) -> CoordinateFn {
-    Arc::new(move |_| pos)
-}
-
-/// g1 maps for i's; g2 maps for j's
-pub fn distance_metric(g1: CoordinateFn, g2: CoordinateFn) -> Metric {
-    Arc::new(move |i, j|  {
-        let (ix, iy) = g1(i);
-        let (jx, jy) = g2(j);
-
-        ((ix - jx).powf(2.0) + (iy - jy).powf(2.0)).sqrt()
-    })
-}
-
 /// The group operator applies the label function to all
 /// the structures in the network set
 pub fn group(l: LabelFn, m: Mask) -> Mask {
@@ -94,6 +57,50 @@ pub fn group(l: LabelFn, m: Mask) -> Mask {
         move |i, j| f(l(i), l(j))
         )}
 }
+
+
+pub mod geometric {
+    use super::*;
+
+    pub type Metric = Arc<dyn Fn(u32, u32) -> f32>;
+    pub type CoordinateFn = Arc<dyn Fn(u32) -> (f32, f32)>;
+
+    /// Operates on a metric to restrict connectivity to neurons whose distance is less than r
+    pub fn disc(r: f32, m: Metric) -> Mask {
+        Mask {
+            f: Arc::new(
+                   move |i, j| m(i,j) < r
+               )
+        }
+    }
+
+    pub fn random_coordinates(min: f32, max: f32, n: usize) -> CoordinateFn {
+        let mut c = vec![];
+
+        for _ in 0..n {
+            let p = (random::random_range((min, max)), random::random_range((min, max)));
+            c.push(p);
+        }
+
+        Arc::new(move |i| c[i as usize])
+    }
+
+    pub fn static_coordinates(pos: (f32, f32)) -> CoordinateFn {
+        Arc::new(move |_| pos)
+    }
+
+    /// g1 maps for i's; g2 maps for j's
+    pub fn distance_metric(g1: CoordinateFn, g2: CoordinateFn) -> Metric {
+        Arc::new(move |i, j|  {
+            let (ix, iy) = g1(i);
+            let (jx, jy) = g2(j);
+
+            ((ix - jx).powf(2.0) + (iy - jy).powf(2.0)).sqrt()
+        })
+    }
+
+}
+
 
 
 #[cfg(test)]

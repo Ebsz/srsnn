@@ -2,7 +2,8 @@
 
 use crate::models::rsnn::{RSNN, RSNNConfig};
 
-use csa::op::{LabelFn, CoordinateFn, Metric};
+use csa::op::LabelFn;
+use csa::op::geometric::{CoordinateFn, Metric};
 use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
 
@@ -87,14 +88,14 @@ impl RSNN for GeometricTypedModel {
         let sbm_mask = csa::op::sbm(labels.clone(), ValueSet::from_value(t_cpm.clone()));
 
         // geometric setup
-        let coords: CoordinateFn = csa::op::random_coordinates(
+        let coords: CoordinateFn = csa::op::geometric::random_coordinates(
             0.0,
             config.model.max_coordinate,
             config.n + env.outputs);
 
-        let d: Metric = csa::op::distance_metric(coords.clone(), coords.clone());
+        let d: Metric = csa::op::geometric::distance_metric(coords.clone(), coords.clone());
 
-        let disc = csa::op::disc(config.model.distance_threshold, d);
+        let disc = csa::op::geometric::disc(config.model.distance_threshold, d);
 
         let mask = sbm_mask & disc;
 
@@ -207,9 +208,9 @@ impl GeometricTypedModel {
 
         let input_g: CoordinateFn = Arc::new(move |_| (0.0, 0.0));
 
-        let d: Metric = csa::op::distance_metric(g, input_g); // NOTE: Ensure this is correct
+        let d: Metric = csa::op::geometric::distance_metric(g, input_g); // NOTE: Ensure this is correct
 
-        let input_mask = m & csa::op::disc(config.model.distance_threshold, d);
+        let input_mask = m & csa::op::geometric::disc(config.model.distance_threshold, d);
 
         let w = ValueSet { f: Arc::new(
             move |i, _| input_t_w[[l(i) as usize]]
