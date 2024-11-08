@@ -1,4 +1,4 @@
-use crate::ValueSet;
+use crate::{ValueSet, NeuronSet};
 use crate::mask::Mask;
 
 use utils::random;
@@ -56,6 +56,13 @@ pub fn group(l: LabelFn, m: Mask) -> Mask {
     Mask { f: Arc::new(
         move |i, j| f(l(i), l(j))
         )}
+}
+
+/// Group operator on neuron sets
+pub fn n_group(l: LabelFn, n: NeuronSet) -> NeuronSet {
+    let f = n.f.clone();
+
+    NeuronSet { f: Arc::new( move |i| f(l(i))) }
 }
 
 

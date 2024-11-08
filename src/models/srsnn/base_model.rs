@@ -17,7 +17,7 @@ use utils::environment::Environment;
 
 use serde::Deserialize;
 
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{array, Array, Array1, Array2};
 use ndarray_rand::rand_distr::{Binomial, Distribution};
 
 use std::sync::Arc;
@@ -140,34 +140,32 @@ impl BaseModel {
     }
 
     fn static_dynamics(l: LabelFn, config: &RSNNConfig<Self>) -> (NeuronSet, Vec<usize>) {
-        // Dynamics matrix: each row is the dynamical parameters for a type
-        let mut dm: Array2<f32> = Array::zeros((config.model.k + config.model.k_out, 5));
+        let (td, itypes) = Self::type_dynamics(config);
 
-        let inhibitory: Array1<f32> = INHIBITORY_PARAMS.into_iter().collect();
-        let excitatory: Array1<f32> = EXCITATORY_PARAMS.into_iter().collect();
+        let dynamics_ns = csa::op::n_group(l, td);
+
+        (dynamics_ns, itypes)
+    }
+
+    fn type_dynamics(config: &RSNNConfig<Self>) -> (NeuronSet, Vec<usize>) {
+        let d: Array2<f32> = array![EXCITATORY_PARAMS, INHIBITORY_PARAMS];
 
         let n_inhibitory_types = (config.model.k as f32 * INHIBITORY_FRACTION) as usize;
 
-        let mut itypes = vec![];
+        let mut dist_map = vec![];
 
-        for i in 0..(config.model.k - n_inhibitory_types) {
-            dm.slice_mut(s![i,..]).assign(&excitatory);
-        }
+        dist_map.append(&mut vec![0; config.model.k - n_inhibitory_types]);
+        dist_map.append(&mut vec![1; n_inhibitory_types]);
+        dist_map.append(&mut vec![0; config.model.k_out]);
 
-        for i in (config.model.k - n_inhibitory_types)..config.model.k {
-            dm.slice_mut(s![i,..]).assign(&inhibitory);
-            itypes.push(i);
-        }
+        let itypes: Vec<usize> = ((config.model.k-n_inhibitory_types)..config.model.k).collect();
 
-        // Set output types to always be excitatory
-        for i in 0..config.model.k_out {
-            dm.slice_mut(s![-(1+ i as i32),..]).assign(&excitatory);
-        }
+        // Mapping from type indices -> dynamics indices
+        let l: LabelFn = Arc::new(move |i| dist_map[i as usize] as u32);
 
-        (NeuronSet { f: Arc::new(
-            move |i| dm.slice(s![l(i) as usize, ..]).to_owned()
-        )},
-        itypes)
+        let v_d = NeuronSet::from_value(d);
+
+        (csa::op::n_group(l, v_d), itypes)
     }
 
     fn input_cs(m2: &Array2<f32>, l: LabelFn, g: CoordinateFn, config: &RSNNConfig<Self>, env: &Environment)

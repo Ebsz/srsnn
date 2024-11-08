@@ -1,7 +1,7 @@
 pub mod mask;
 pub mod op;
 
-use ndarray::{Array1, Array, Array2};
+use ndarray::{s, Array, Array1, Array2};
 
 use std::sync::Arc;
 
@@ -67,6 +67,12 @@ pub struct NeuronSet {
 }
 
 impl NeuronSet  {
+    pub fn from_value(v: Array2<f32>) -> Self {
+        NeuronSet {
+            f: Arc::new( move |i| v.slice(s![i as usize, ..]).to_owned())
+        }
+    }
+
     pub fn vec(&self, n: usize) -> Vec<Array1<f32>> {
         let mut s = Vec::new();
 
