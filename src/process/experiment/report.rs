@@ -9,5 +9,6 @@ use evolution::stats::OptimizationStatistics;
 pub struct ExperimentReport {
     pub stats: OptimizationStatistics,
     pub conf: BaseConfig,
-    pub version: String
+    pub version: String,
+    pub desc: Option<String>
 }

@@ -106,6 +106,7 @@ impl Experiment {
             stats: experiment_stats,
             version: env!("CARGO_PKG_VERSION").to_string(),
             conf,
+            desc: None
         };
 
         utils::data::save(report, "experiment_report.json");
