@@ -1,80 +1,35 @@
-/// Generic model of a recurrent spiking neural network
+use crate::models::generator::Generator;
 
-use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
-use csa::mask::Mask;
+
 
 use model::Model;
 use model::network::representation::{DefaultRepresentation, NetworkRepresentation, NeuronDescription};
 use model::neuron::izhikevich::IzhikevichParameters;
 
 use utils::parameters::ParameterSet;
-use utils::config::{Configurable, ConfigSection};
 use utils::environment::Environment;
-use utils::random;
+use utils::config::{Configurable, ConfigSection};
 
 use serde::Deserialize;
 
-use ndarray::array;
-
-use std::sync::Arc;
 use std::fmt::Debug;
 
 
-pub trait RSNN: Configurable + Clone + Debug + Sync {
-    fn get(p: &ParameterSet, config: &RSNNConfig<Self>, env: &Environment) -> (NetworkSet, ConnectionSet);
-    fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet;
-
-    fn default_dynamics() -> NeuronSet {
-        NeuronSet { f: Arc::new(
-            move |_i| array![0.02, 0.2, -65.0, 2.0, 0.0]
-        )}
-    }
-
-    fn random_weights(min: f32, max: f32) -> ValueSet {
-        ValueSet { f: Arc::new(
-            move |_i, _j| random::random_range((min, max))
-        )}
-    }
-
-    fn default_weights() -> ValueSet {
-        ValueSet { f: Arc::new(
-            move |_i, _j| 1.0
-        )}
-    }
-
-    fn default_input() -> ConnectionSet {
-        let m_in = Mask { f: Arc::new( move |i, j| i == j ) };
-
-        let w_in = Self::default_weights();
-
-        ConnectionSet {
-            m: m_in,
-            v: vec![w_in]
-        }
-    }
-
-    fn default_output() -> Mask {
-        Mask { f: Arc::new( move |i, j| i == j ) }
-    }
-
-    /// 4 Izhikevich parameters + inhibitory flag
-    const N_DYNAMICAL_PARAMETERS: usize = 5;
-}
-
-pub struct RSNNModel<R: RSNN> {
+/// A fully defined network generator that can be sampled repeatedly
+pub struct GeneratorModel<G: Generator> {
     n: usize,
-    conf: RSNNConfig<R>,
+    conf: ModelConfig<G>,
 
     params: ParameterSet,
     env: Environment,
 }
 
-impl<R: RSNN> Model for RSNNModel<R> {
+impl<G: Generator> Model for GeneratorModel<G> {
     fn new(
-        conf: &RSNNConfig<R>,
+        conf: &ModelConfig<G>,
         params: &ParameterSet,
         env: &Environment) -> Self {
-        RSNNModel {
+        GeneratorModel {
             n: conf.n,
             params: params.clone(),
             env: env.clone(),
@@ -86,7 +41,7 @@ impl<R: RSNN> Model for RSNNModel<R> {
     fn develop(&self) -> DefaultRepresentation {
         let n = self.n + self.env.outputs;
 
-        let (neural_set, input_cs) = R::get(&self.params, &self.conf, &self.env);
+        let (neural_set, input_cs) = G::get(&self.params, &self.conf, &self.env);
 
         let mask = neural_set.m;
 
@@ -128,23 +83,23 @@ impl<R: RSNN> Model for RSNNModel<R> {
             self.env.clone())
     }
 
-    fn params(config: &RSNNConfig<R>, env: &Environment) -> ParameterSet {
-        R::params(config, env)
+    fn params(config: &ModelConfig<G>, env: &Environment) -> ParameterSet {
+        G::params(config, env)
     }
 }
 
-impl<R: RSNN> Configurable for RSNNModel<R> {
-    type Config = RSNNConfig<R>;
+impl<G: Generator> Configurable for GeneratorModel<G> {
+    type Config = ModelConfig<G>;
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct RSNNConfig<R: RSNN> {
+pub struct ModelConfig<G: Generator> {
     pub n: usize,
-    pub model: R::Config
+    pub model: G::Config
 }
 
-impl<R: RSNN> ConfigSection for RSNNConfig<R> {
+impl<G: Generator> ConfigSection for ModelConfig<G> {
     fn name() -> String {
-        "rsnn".to_string()
+        "generator".to_string()
     }
 }

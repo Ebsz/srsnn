@@ -29,10 +29,10 @@ trials = 8
 [batch]
 batch_size = 32
 
-[rsnn]
+[generator]
 n = 128
 
-[rsnn.model]
+[generator.model]
 k = 8
 k_in = 1
 k_out = 1

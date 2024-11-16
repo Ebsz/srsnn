@@ -1,7 +1,8 @@
-//! Base model that other models are derived from, while also defining the baseline
+//! Base generator model that other models are derived from, while also defining the baseline
 //! of comparison for every other models.
 
-use crate::models::rsnn::{RSNN, RSNNConfig};
+use crate::models::generator::Generator;
+use crate::models::generator_model::ModelConfig;
 
 use csa::op::LabelFn;
 use csa::op::geometric::{CoordinateFn, Metric};
@@ -37,8 +38,8 @@ const WT_DRAW_PROB: f64 = 0.2;
 #[derive(Clone, Debug)]
 pub struct BaseModel;
 
-impl RSNN for BaseModel {
-    fn params(config: &RSNNConfig<Self>, env: &Environment) -> ParameterSet {
+impl Generator for BaseModel {
+    fn params(config: &ModelConfig<Self>, env: &Environment) -> ParameterSet {
         assert!(env.inputs % config.model.k_in == 0,
             "Number of input neurons({}) % input types({}) != 0", env.inputs, config.model.k_in);
         assert!(env.outputs % config.model.k_out == 0,
@@ -58,7 +59,7 @@ impl RSNN for BaseModel {
 
     fn get(
         params: &ParameterSet,
-        config: &RSNNConfig<Self>,
+        config: &ModelConfig<Self>,
         env: &Environment)
         -> (NetworkSet, ConnectionSet)
     {
@@ -107,7 +108,7 @@ impl RSNN for BaseModel {
 }
 
 impl BaseModel {
-    pub fn parse_params<'a>(ps: &'a ParameterSet, config: &'a RSNNConfig<Self>)
+    pub fn parse_params<'a>(ps: &'a ParameterSet, config: &'a ModelConfig<Self>)
         -> (
             &'a Array2<f32>,
             &'a Array2<f32>,
@@ -129,7 +130,7 @@ impl BaseModel {
         (t_cpm, input_t_cpm)
     }
 
-    fn minimal_weights(itypes: Vec<usize>, l: LabelFn, config: &RSNNConfig<Self>) -> (ValueSet) {
+    fn minimal_weights(itypes: Vec<usize>, l: LabelFn, config: &ModelConfig<Self>) -> (ValueSet) {
         let w_map: Array1<f32> = (0..(config.model.k + config.model.k_out))
             .map(|i| if itypes.contains(&i) { config.model.inh_w } else { config.model.exc_w }).collect();
 
@@ -139,7 +140,7 @@ impl BaseModel {
         )}
     }
 
-    fn static_dynamics(l: LabelFn, config: &RSNNConfig<Self>) -> (NeuronSet, Vec<usize>) {
+    fn static_dynamics(l: LabelFn, config: &ModelConfig<Self>) -> (NeuronSet, Vec<usize>) {
         let (td, itypes) = Self::type_dynamics(config);
 
         let dynamics_ns = csa::op::n_group(l, td);
@@ -147,7 +148,7 @@ impl BaseModel {
         (dynamics_ns, itypes)
     }
 
-    fn type_dynamics(config: &RSNNConfig<Self>) -> (NeuronSet, Vec<usize>) {
+    fn type_dynamics(config: &ModelConfig<Self>) -> (NeuronSet, Vec<usize>) {
         let d: Array2<f32> = array![EXCITATORY_PARAMS, INHIBITORY_PARAMS];
 
         let n_inhibitory_types = (config.model.k as f32 * INHIBITORY_FRACTION) as usize;
@@ -168,7 +169,7 @@ impl BaseModel {
         (csa::op::n_group(l, v_d), itypes)
     }
 
-    fn input_cs(m2: &Array2<f32>, l: LabelFn, g: CoordinateFn, config: &RSNNConfig<Self>, env: &Environment)
+    fn input_cs(m2: &Array2<f32>, l: LabelFn, g: CoordinateFn, config: &ModelConfig<Self>, env: &Environment)
         -> ConnectionSet {
         let input_t_cpm = m2.mapv(|x| math::ml::sigmoid(x));
 

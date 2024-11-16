@@ -4,8 +4,9 @@ use srsnn::plots;
 use srsnn::config;
 use srsnn::analysis;
 use srsnn::eval;
-use srsnn::models::srsnn::base_model::BaseModel;
-use srsnn::models::rsnn::RSNNModel;
+
+use srsnn::models::generator_model::GeneratorModel;
+use srsnn::models::generator::base::BaseModel;
 
 use srsnn::process::experiment::report::ExperimentReport;
 
@@ -66,7 +67,7 @@ fn normalize(d: Array2<f32>) -> Array2<f32> {
 
 fn model_parameters(p: &ParameterSet) {
     let conf = config::base_config(None);
-    let model_config = config::get_config::<RSNNModel<BaseModel>>();
+    let model_config = config::get_config::<GeneratorModel<BaseModel>>();
     let (m1, m2) =  BaseModel::parse_params(p, &model_config);
 
     let t_cpm = normalize(m1.mapv(|x| math::ml::sigmoid(x)));
