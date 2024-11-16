@@ -10,7 +10,7 @@ use ndarray::{s, Array, Array1, Array2, Axis};
 
 
 const AGENT_INPUTS: usize = 16;
-const AGENT_OUTPUTS: usize = 8;
+const AGENT_OUTPUTS: usize = 9;
 
 const MAX_T: u32 = 1000;
 
@@ -87,7 +87,7 @@ impl TaskEval for TestTask {
         // 3. Compare the difference between the function and the target function
 
         for r in results {
-            let fr = analysis::firing_rate(r.record, 32);
+            //let fr = analysis::firing_rate(r.record, 32);
 
             //println!("{}", fr);
 
@@ -123,9 +123,8 @@ impl TestTask {
 }
 
 fn output(t: u32) -> Array1<f32> {
-    let o = encoding::rate_encode(&ff(t));
-
-    //println!("{}", o);
+    //let o = encoding::rate_encode(&ff(t));
+    let o = encoding::rate_encode(&input_noise(t));
 
     o
 }
@@ -136,4 +135,8 @@ fn f(t: u32) -> f32 {
 
 fn ff(t: u32) -> Array1<f32> {
     Array::ones(AGENT_INPUTS) * ml::sigmoid(2.0 * f32::sin(0.04 * t as f32) - 4.0)
+}
+
+fn input_noise(t: u32) -> Array1<f32> {
+    Array::ones(AGENT_INPUTS) * 0.2
 }
