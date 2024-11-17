@@ -69,7 +69,7 @@ pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> 
 
 /// Get a random sample from a specified range
 pub fn random_range<T: SampleUniform + PartialOrd>(range: (T, T)) -> T {
-    RNG.with(|rng| rng.borrow_mut().gen_range(range.0..range.1))
+    rand::thread_rng().gen_range(range.0..range.1)
 }
 
 
