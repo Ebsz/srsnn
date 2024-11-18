@@ -38,16 +38,6 @@ pub fn label(dist: Vec<usize>, k: usize) -> LabelFn {
     Arc::new(move |i| dist_map[i as usize] as u32)
 }
 
-pub fn sbm(l: LabelFn, cpm: ValueSet) -> Mask {
-    let f = cpm.f;
-
-    Mask {
-        f: Arc::new(
-               move |i, j| random::random_range((0.0, 1.0)) < f(l(i), l(j))
-           )
-    }
-}
-
 /// The group operator applies the label function to all
 /// the structures in the network set
 pub fn group(l: LabelFn, m: Mask) -> Mask {
@@ -57,6 +47,11 @@ pub fn group(l: LabelFn, m: Mask) -> Mask {
         move |i, j| f(l(i), l(j))
         )}
 }
+
+pub fn sbm(l: LabelFn, cpm: ValueSet) -> Mask {
+    group(l, p(cpm))
+}
+
 
 /// Group operator on neuron sets
 pub fn n_group(l: LabelFn, n: NeuronSet) -> NeuronSet {

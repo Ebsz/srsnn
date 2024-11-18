@@ -9,6 +9,7 @@ use std::sync::Arc;
 pub type MaskFn = Arc<dyn Fn(u32, u32) -> bool>;
 
 /// A mask consists of a function (i,j) -> {0,1}
+#[derive(Clone)]
 pub struct Mask {
     pub f: MaskFn
 }
@@ -84,7 +85,6 @@ impl BitAnd for Mask {
         }
     }
 }
-
 
 pub fn empty() -> Mask {
     Mask { f: Arc::new(|_i, _j| false) }
