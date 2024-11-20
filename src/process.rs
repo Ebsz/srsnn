@@ -60,6 +60,8 @@ pub trait Process: Sync {
         }
     }
 
+    /// NOTE: When adding a new task, to enable batching, it must also be added to the
+    /// condition in the evaluator() function below. It's stupid, but I don't have time to fix it right now.
     fn resolve_t<M: Model>(config: BaseConfig) {
         match config.task.as_str() {
             "pattern"               => { Self::run::<M, PatternTask>(config); },
@@ -69,6 +71,7 @@ pub trait Process: Sync {
             "xor"                   => { Self::run::<M, XORTask>(config); },
             "mnist"                 => { Self::run::<M, MNISTTask>(config); },
             "testing"               => { Self::run::<M, TestTask>(config); },
+            "sin_time_series"       => { Self::run::<M, TimeSeriesTask<SinSeries>>(config); },
             //"polebalance"   => { Self::run::<M, PoleBalancingTask>(config); },
             //"movement"    => { Self::run::<M, MovementTask>(config); },
             //"survival"    => { Self::run::<M, SurvivalTask>(config); },

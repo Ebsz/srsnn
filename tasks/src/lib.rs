@@ -19,6 +19,7 @@ pub mod mnist_task;
 pub mod pattern_similarity;
 pub mod multipattern;
 
+pub mod time_series;
 
 
 /// Input to the task, from the agent
