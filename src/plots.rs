@@ -53,15 +53,18 @@ pub fn plot_stats(stats: &OptimizationStatistics, name: &str) {
     let std: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.stddev_series().clone()).collect();
     let acc: Vec<Vec<f32>> = stats.runs.iter().map(|x| x.acc_series().clone()).collect();
 
-
     let _ = plt::plot_multiple_series(best,
         "Generation best fitness", format!("{}_best.png", name).as_str());
     let _ = plt::plot_multiple_series(mean,
         "Generation mean fitness", format!("{}_mean.png", name).as_str());
     let _ = plt::plot_multiple_series(std,
         "Generation standard deviation", format!("{}_std.png", name).as_str());
-    let _ = plt::plot_multiple_series(acc,
-        "Generation accuracy", format!("{}_acc.png", name).as_str());
+
+    if !acc.is_empty() && !acc[0].is_empty() {
+        let _ = plt::plot_multiple_series(acc,
+            "Generation accuracy", format!("{}_acc.png", name).as_str());
+
+    }
 }
 
 pub fn plot_run(r: &Run, name: &str) {
@@ -482,33 +485,58 @@ pub mod plt {
     }
 
     //use ndarray::Array3;
-    //pub fn plot_3d(
-    //    data: &Array3<u32>,
-    //    filename: &str,
-    //    caption: &str)
-    //    -> Result<(), Box<dyn std::error::Error>> {
+    pub fn plot_3d(
+        data: &Array2<f64>,
+        filename: &str,
+        caption: &str)
+        -> Result<(), Box<dyn std::error::Error>> {
 
-    //    let min_x = 0.0;
-    //    let min_y = 0.0;
-    //    let max_z = 0.0;
-    //    let max_x = 1.0;
-    //    let max_y = 1.0;
-    //    let max_z = 1.0;
+        println!("shape: {:?}", data.shape());
 
-    //    let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
-    //    root.fill(&WHITE)?;
+        assert!(data.shape()[1] == 3);
 
-    //    let mut chart = ChartBuilder::on(&root)
-    //        .caption(caption, ("sans-serif", 30).into_font())
-    //        .margin(5)
-    //        .x_label_area_size(30)
-    //        .y_label_area_size(35)
-    //        .build_cartesian_3d(min_x..max_x, min_y..max_y, min_x..max_x)?;
+        let a = data.slice(s![.., 2]);
 
-    //    chart.configure_axes().draw()?;
+        let min_x = -1.0;
+        let min_y = -1.0;
+        let max_z = -1.0;
+        let max_x = 1.0;
+        let max_y = 1.0;
+        let max_z = 1.0;
 
-    //    Ok(())
-    //}
+        let root = BitMapBackend::new(filename, (960, 720)).into_drawing_area();
+        root.fill(&WHITE)?;
+
+        let mut chart = ChartBuilder::on(&root)
+            .caption(caption, ("sans-serif", 30).into_font())
+            .margin(5)
+            .x_label_area_size(30)
+            .y_label_area_size(35)
+            .build_cartesian_3d(min_x..max_x, min_y..max_y, min_x..max_x)?;
+
+        //chart.with_projection(|mut pb| {
+        //    pb.pitch = 1.2;
+        //    pb.yaw = 0.5;
+        //    pb.scale = 0.7;
+        //    pb.into_matrix()
+        //});
+
+        chart.configure_axes().draw()?;
+
+        let series: Vec<(f64, f64, f64)> = data.rows().into_iter().map(|x| (x[0], x[1], x[2])).collect();
+
+        chart.draw_series(LineSeries::new(
+                series,
+                &BLUE
+        )).unwrap();
+
+        //chart.draw_series(LineSeries::new(
+        //        (-100..100).map(|y| y as f64 / 100.0).map(|y| ((y * 10.0).sin(), y, (y * 10.0).cos())),
+        //        &BLUE
+        //)).unwrap();
+
+        Ok(())
+    }
 
     pub fn plot_matrix(data: &Array2<f32>, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
         let (dw, dh) = (data.shape()[0], data.shape()[1]);

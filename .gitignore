@@ -6,3 +6,7 @@
 
 /srsnn
 /debug
+
+/src/bin/
+
+__pycache__
