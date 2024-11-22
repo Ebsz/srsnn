@@ -1,14 +1,16 @@
 use std::collections::HashMap;
 
+use num_traits::Float;
+
 
 pub const P_TOLERANCE: f32 = 1.0001;
 
-pub fn maxf(data: &[f32]) -> f32 {
-    data.iter().fold(f32::NEG_INFINITY, |acc, &x| if x > acc {x} else {acc})
+pub fn maxf<F: Float>(data: &[F]) -> F {
+    data.iter().fold(F::neg_infinity(), |acc, &x| if x > acc {x} else {acc})
 }
 
-pub fn minf(data: &[f32]) -> f32 {
-    data.iter().fold(f32::INFINITY, |acc, &x| if x < acc {x} else {acc})
+pub fn minf<F: Float>(data: &[F]) -> F {
+    data.iter().fold(F::infinity(), |acc, &x| if x < acc {x} else {acc})
 }
 
 /// Return the index of the entry in the array with the max value
