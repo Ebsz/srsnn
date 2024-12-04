@@ -9,6 +9,8 @@ use tasks::task_runner::TaskRunner;
 
 use ndarray::{s, Axis, Array, Array1, Array2};
 
+use graph::{Graph, GraphAnalysis};
+
 
 pub fn run_analysis<T: Task + TaskEval> (repr: &DefaultRepresentation, setups: &[T::Setup])
 -> Vec<Record> {
@@ -30,9 +32,9 @@ pub fn run_analysis<T: Task + TaskEval> (repr: &DefaultRepresentation, setups: &
     records
 }
 
-pub fn analyze_network(r: &DefaultRepresentation) {
-    let graph: graph::Graph = r.into();
-    let graph_analysis = graph::GraphAnalysis::analyze(&graph);
+pub fn analyze_network(r: &DefaultRepresentation) -> (Graph, GraphAnalysis) {
+    let graph: Graph = r.into();
+    let graph_analysis = GraphAnalysis::analyze(&graph);
 
     println!("graph analysis:");
     println!("{graph}\n\n");
@@ -54,6 +56,8 @@ pub fn analyze_network(r: &DefaultRepresentation) {
     //let n_output_connections: u32 = r.output_cm.iter().sum();
     //let output_density = n_output_connections as f32 / (r.output_cm.shape()[0] * r.output_cm.shape()[1]) as f32;
     //println!("Output - {n_output_connections} output connections, density: {output_density}");
+
+    (graph, graph_analysis)
 }
 
 pub mod graph {

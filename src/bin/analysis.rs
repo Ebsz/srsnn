@@ -33,7 +33,9 @@ fn parse_arg() -> Option<String> {
 fn main() {
     let r = load_network();
 
-    analysis::analyze_network(&r);
+    let (g, ga) = analysis::analyze_network(&r);
+
+    srsnn::plots::plot_degree_distribution(&ga.degree_dist);
 
     //let rg = Graph::reduce(&graph);
     //let rga = GraphAnalysis::analyze(&rg);
