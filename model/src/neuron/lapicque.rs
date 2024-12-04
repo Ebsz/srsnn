@@ -9,8 +9,8 @@ use ndarray::{Array, Array1};
 use serde::{Serialize, Deserialize};
 
 
-const DEFAULT_R: f32 = 5e7f32;
-const DEFAULT_C: f32 = 1e-10f32;
+const DEFAULT_R: f32 = 5f32;
+const DEFAULT_C: f32 = 1e-3f32;
 
 const TIME_STEP: f32 = 0.001;
 const FIRING_THRESHOLD: f32 = 1.0;
@@ -42,7 +42,6 @@ impl NeuronModel for Lapicque {
 
         // Reset neurons with v >= firing threshold
         self.v = self.v.mapv(|p| if p >= FIRING_THRESHOLD { 0.0 } else { p });
-
 
         let tau = &self.r * &self.c;
 

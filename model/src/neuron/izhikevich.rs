@@ -30,32 +30,6 @@ pub struct Izhikevich {
     d: Array1<f32>,
 }
 
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
-pub struct IzhikevichParameters {
-    pub a: f32,
-    pub b: f32,
-    pub c: f32,
-    pub d: f32,
-}
-
-impl IzhikevichParameters {
-    // Default parameters correspond to regular spiking (RS) neurons
-    pub const DEFAULTS: (f32, f32, f32, f32) = (0.02, 0.2, -65.0, 8.0);
-
-    pub const RANGES: [(f32, f32); 4] =
-        [(0.02, 0.1), (0.2, 0.25), (-65.0, -50.0), (2.0, 8.0)];
-}
-
-impl Default for IzhikevichParameters {
-    fn default() -> Self {
-        IzhikevichParameters {
-            a: Self::DEFAULTS.0,
-            b: Self::DEFAULTS.1,
-            c: Self::DEFAULTS.2,
-            d: Self::DEFAULTS.3,
-        }
-    }
-}
 
 impl NeuronModel for Izhikevich {
     type Parameters = IzhikevichParameters;
@@ -129,5 +103,48 @@ impl Izhikevich {
                 *&mut self.u[i] = self.u[i] + self.d[i];
             }
         }
+    }
+}
+
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+pub struct IzhikevichParameters {
+    pub a: f32,
+    pub b: f32,
+    pub c: f32,
+    pub d: f32,
+}
+
+impl IzhikevichParameters {
+    pub const RS: Param = (0.02, 0.2, -65.0, 8.0);
+    pub const FS: Param = (0.1, 0.2, -65.0, 2.0);
+    pub const CH: Param = (0.02, 0.2, -50.0, 2.0);
+
+    pub const REGULAR_SPIKING: Param = Self::RS;
+    pub const FAST_SPIKING: Param = Self::FS;
+    pub const CHATTERING: Param = Self::CH;
+
+    // Default parameters correspond to regular spiking (RS) neurons
+    pub const DEFAULT: Param = Self::RS;
+
+    pub const RANGES: [(f32, f32); 4] =
+        [(0.02, 0.1), (0.2, 0.25), (-65.0, -50.0), (2.0, 8.0)];
+}
+
+impl Default for IzhikevichParameters {
+    fn default() -> Self {
+        IzhikevichParameters {
+            a: Self::DEFAULT.0,
+            b: Self::DEFAULT.1,
+            c: Self::DEFAULT.2,
+            d: Self::DEFAULT.3,
+        }
+    }
+}
+
+type Param = (f32, f32, f32, f32);
+
+impl From<(f32, f32, f32, f32)> for IzhikevichParameters {
+    fn from(x: (f32, f32, f32, f32)) -> IzhikevichParameters {
+        IzhikevichParameters { a: x.0, b: x.1, c: x.2, d: x.3 }
     }
 }
