@@ -11,8 +11,6 @@ use utils::parameters::ParameterSet;
 use utils::environment::Environment;
 use utils::random;
 
-use serde::Deserialize;
-
 use ndarray::array;
 
 use std::sync::Arc;

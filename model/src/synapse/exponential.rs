@@ -3,9 +3,8 @@
 use crate::spikes::Spikes;
 use crate::synapse::Synapse;
 
-use ndarray::{array, Array, Array1, Array2};
+use ndarray::{Array, Array1, Array2};
 
-use std::collections::HashMap;
 
 
 const TAU: f32 = 10.0;

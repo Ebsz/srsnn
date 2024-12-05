@@ -9,8 +9,6 @@ use network::representation::{NetworkRepresentation, NeuronDescription};
 
 use neuron::izhikevich::Izhikevich;
 
-use synapse::basic::BasicSynapse;
-use synapse::representation::MatrixRepresentation;
 use synapse::exponential::ExponentialSynapse;
 
 use utils::config::Configurable;

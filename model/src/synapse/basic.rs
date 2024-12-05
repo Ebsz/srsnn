@@ -1,6 +1,6 @@
 use crate::spikes::Spikes;
 use crate::synapse::{Synapse, SynapticPotential};
-use crate::synapse::representation::{SynapseRepresentation, MapRepresentation, MatrixRepresentation};
+use crate::synapse::representation::{SynapseRepresentation, MatrixRepresentation};
 
 use ndarray::{Array1, Array2};
 

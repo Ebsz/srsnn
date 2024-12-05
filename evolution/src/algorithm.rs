@@ -3,9 +3,6 @@ pub mod snes;
 
 use utils::config::Configurable;
 use utils::parameters::ParameterSet;
-use utils::environment::Environment;
-
-use model::Model;
 
 
 pub trait Algorithm: Configurable {

@@ -53,7 +53,7 @@ impl Record {
         let mut out: Array2<f32> = Array::zeros((0, record[0].shape()[0]));
 
         for r in record {
-            out.push_row(r.into());
+            let _ = out.push_row(r.into());
         }
 
         out

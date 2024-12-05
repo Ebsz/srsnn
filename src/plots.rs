@@ -88,10 +88,10 @@ pub fn plot_single_neuron_potential(potentials: &[f32]) -> Result<(), Box<dyn st
 }
 
 pub fn plot_run_spikes(r: &Record, filename: Option<&str>) {
-    let mut spk_rec = r.get(RecordType::Spikes);
+    let spk_rec = r.get(RecordType::Spikes);
 
-    let mut spk_in = r.get(RecordType::InputSpikes);
-    let mut spk_out = r.get(RecordType::OutputSpikes);
+    let spk_in = r.get(RecordType::InputSpikes);
+    let spk_out = r.get(RecordType::OutputSpikes);
 
     let file = match filename {
         Some(f) => {f},
@@ -239,9 +239,9 @@ pub fn single_neuron_dynamics(record: &Record)
 
     let (t1, t2) = top.split_vertically((50).percent());
 
-    plt::subplot::series(&synaptic_current, &t1);
-    plt::subplot::series(&pots, &t2);
-    plt::subplot::spikes(spikes, &btm);
+    let _ = plt::subplot::series(&synaptic_current, &t1);
+    let _ = plt::subplot::series(&pots, &t2);
+    let _ = plt::subplot::spikes(spikes, &btm);
 
     root.present()?;
 
@@ -494,8 +494,6 @@ pub mod plt {
         println!("shape: {:?}", data.shape());
 
         assert!(data.shape()[1] == 3);
-
-        let a = data.slice(s![.., 2]);
 
         let min_x = -1.0;
         let min_y = -1.0;

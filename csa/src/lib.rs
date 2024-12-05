@@ -69,7 +69,7 @@ pub struct NeuronSet {
 impl NeuronSet  {
     pub fn from_value(v: Array2<f32>) -> Self {
         NeuronSet {
-            f: Arc::new( move |i| v.slice(s![i as usize, ..]).to_owned())
+            f: Arc::new( move |i| v.slice(s![i as usize, ..]).to_owned() )
         }
     }
 

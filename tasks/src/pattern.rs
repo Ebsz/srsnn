@@ -3,7 +3,6 @@
 
 use crate::{Task, TaskEval, TaskInput, TaskOutput, TaskState, TaskEnvironment};
 
-use utils::random;
 use utils::math;
 use utils::encoding::rate_encode;
 

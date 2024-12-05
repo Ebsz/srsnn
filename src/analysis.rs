@@ -19,7 +19,7 @@ pub fn run_analysis<T: Task + TaskEval> (repr: &DefaultRepresentation, setups: &
     let mut records = vec![];
 
     for s in setups {
-        let task = T::new(&setups[0]);
+        let task = T::new(s);
         let mut runnable = RunnableNetwork::<DefaultNetwork>::build(repr);
         runnable.network.enable_recording();
 

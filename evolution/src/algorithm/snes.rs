@@ -1,11 +1,8 @@
 use crate::algorithm::Algorithm;
 
-use model::Model;
-
 use utils::random;
 use utils::parameters::ParameterSet;
 use utils::config::{Configurable, ConfigSection};
-use utils::environment::Environment;
 
 use ndarray::{s, Array, Array1, Array2};
 use ndarray_rand::rand_distr::{Normal, StandardNormal};

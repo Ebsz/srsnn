@@ -3,9 +3,7 @@
 use crate::spikes::Spikes;
 use crate::synapse::Synapse;
 
-use ndarray::{array, Array, Array1, Array2};
-
-use std::collections::HashMap;
+use ndarray::{Array, Array1, Array2};
 
 
 const TAU_D: f32 = 5.0;
@@ -14,8 +12,6 @@ const TAU_R: f32 = 8.0;
 pub struct BiExponentialSynapse {
     w: Array2<f32>,
     neuron_type: Array1<f32>,
-
-    t: u32,
 
     s: Array1<f32>,
     h: Array1<f32>
@@ -31,8 +27,6 @@ impl Synapse for BiExponentialSynapse {
 
             w,
             neuron_type,
-
-            t: 0,
         }
     }
 

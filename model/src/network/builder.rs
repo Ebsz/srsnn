@@ -6,9 +6,6 @@ use crate::network::SpikingNetwork;
 use crate::network::representation::{NetworkRepresentation, NeuronDescription};
 use crate::neuron::NeuronModel;
 use crate::synapse::{Synapse, NeuronType};
-use crate::synapse::basic::BasicSynapse;
-
-use crate::synapse::representation::MatrixRepresentation;
 
 use ndarray::{s, Array};
 

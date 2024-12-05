@@ -4,24 +4,23 @@
 
 use crate::config::BaseConfig;
 use crate::process::{Process, MainConf};
-use crate::eval::MultiEvaluator;
-use crate::optimization::Optimizer;
 
 use crate::analysis::{graph, run_analysis};
+use crate::plots;
 
-use crate::runnable::RunnableNetwork;
-
+//use crate::runnable::RunnableNetwork;
+//use crate::eval::MultiEvaluator;
+//use crate::optimization::Optimizer;
 //use crate::models::rsnn::{RSNN, RSNNModel};
 //use crate::models::srsnn::gt_model::GeometricTypedModel;
 //use crate::models::srsnn::test_model::TestModel;
 
-use crate::plots;
-use crate::plots::plt;
-use crate::eval;
+//use crate::plots::plt;
+//use crate::eval;
 
 use model::Model;
-use model::DefaultNetwork;
 use model::network::representation::DefaultRepresentation;
+//use model::DefaultNetwork;
 
 use tasks::{Task, TaskEval, TaskInput};
 use tasks::task_runner::{TaskRunner, Runnable};
@@ -227,8 +226,8 @@ fn test_time_series_task() {
     //let fitness = TimeSeriesTask::fitness(results);
     //log::info!("fitness:  {fitness}, accuracy: {accuracy}");
 
-    plots::plot_spikes(output, "task_output.png");
-    plots::plot_spikes(input, "task_input.png");
+    let _ = plots::plot_spikes(output, "task_output.png");
+    let _ = plots::plot_spikes(input, "task_input.png");
 }
 
 fn test_multipattern_task() {
@@ -275,8 +274,8 @@ fn test_multipattern_task() {
     let fitness = MultiPatternTask::fitness(results);
     log::info!("fitness:  {fitness}, accuracy: {accuracy}");
 
-    plots::plot_spikes(output, "task_output.png");
-    plots::plot_spikes(input, "task_input.png");
+    let _ = plots::plot_spikes(output, "task_output.png");
+    let _ = plots::plot_spikes(input, "task_input.png");
 }
 
 

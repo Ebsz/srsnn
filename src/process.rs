@@ -8,24 +8,21 @@ use crate::eval::config::{Batch, BatchConfig, EvalConfig};
 use crate::config::{get_config, BaseConfig};
 use crate::optimization::{Optimizer, OptimizationConfig};
 
-//use crate::models::rsnn::RSNNModel;
 use crate::models::generator_model::GeneratorModel;
 use crate::models::generator::base::BaseModel;
-//use crate::models::srsnn::gt_model::GeometricTypedModel;
-//use crate::models::srsnn::test_model::TestModel;
-//use crate::models::srsnn::minimal::MinimalModel;
-//use crate::models::srsnn::base_model::BaseModel;
 
 use model::Model;
 
 use tasks::{Task, TaskEval};
 use tasks::catching_task::CatchingTask;
 use tasks::xor_task::XORTask;
-use tasks::pole_balancing_task::PoleBalancingTask;
 use tasks::pattern::PatternTask;
 use tasks::mnist_task::MNISTTask;
 use tasks::multipattern::MultiPatternTask;
 use tasks::pattern_similarity::PatternSimilarityTask;
+
+use tasks::time_series::TimeSeriesTask;
+use tasks::time_series::ts::SinSeries;
 
 use tasks::testing::TestTask;
 
@@ -37,6 +34,7 @@ use utils::environment::Environment;
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+
 
 pub trait Process: Sync {
     //type Output;

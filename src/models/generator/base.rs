@@ -9,8 +9,6 @@ use csa::op::geometric::{CoordinateFn, Metric};
 use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
 
-use model::neuron::izhikevich::IzhikevichParameters;
-
 use utils::{math, random};
 use utils::config::{ConfigSection, Configurable};
 use utils::parameters::{Parameter, ParameterSet};
@@ -130,7 +128,7 @@ impl BaseModel {
         (t_cpm, input_t_cpm)
     }
 
-    fn minimal_weights(itypes: Vec<usize>, l: LabelFn, config: &ModelConfig<Self>) -> (ValueSet) {
+    fn minimal_weights(itypes: Vec<usize>, l: LabelFn, config: &ModelConfig<Self>) -> ValueSet {
         let w_map: Array1<f32> = (0..(config.model.k + config.model.k_out))
             .map(|i| if itypes.contains(&i) { config.model.inh_w } else { config.model.exc_w }).collect();
 
