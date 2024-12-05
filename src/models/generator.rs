@@ -1,5 +1,5 @@
-//pub mod er;
 pub mod base;
+pub mod ed;
 
 use crate::models::generator_model::ModelConfig;
 
