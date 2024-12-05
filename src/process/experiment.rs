@@ -34,9 +34,9 @@ impl Process for Experiment {
         let experiment_conf = get_config::<Self>();
 
         log::info!("Starting experiment with {} runs", experiment_conf.n_runs);
-        let experiment_stats = Self::multiple_runs::<M, T>(&conf, main_conf, experiment_conf);
+        let experiment_stats = Self::multiple_runs::<M, T>(&conf, main_conf, experiment_conf.clone());
 
-        Self::experiment_report(experiment_stats, conf);
+        Self::experiment_report(experiment_stats, conf, experiment_conf);
     }
 }
 
@@ -64,7 +64,7 @@ impl Experiment {
             let stats = Optimizer::optimize::<M, T, SeparableNES>(evaluator,
                 &main_conf, env.clone(), stop_signal.clone());
 
-            if experiment_conf.plot_individual_runs {
+            if experiment_conf.save_individual_runs {
                 Self::run_report::<T>(&stats, n);
             }
 
@@ -79,18 +79,18 @@ impl Experiment {
     }
 
     fn run_report<T: Task + TaskEval>(stats: &OptimizationStatistics, n: usize) {
-        plots::plot_stats(stats, format!("run_{n}").as_str());
+        //plots::plot_stats(stats, format!("run_{n}").as_str());
 
         Self::save::<OptimizationStatistics>(stats.clone(), format!("run_stats_{n}"));
         let (f, repr, _) = stats.best();
 
-        let setup = T::eval_setups()[0].clone();
-        let record = analysis::run_analysis::<T>(repr, &[setup])[0].clone();
+        //let setup = T::eval_setups()[0].clone();
+        //let record = analysis::run_analysis::<T>(repr, &[setup])[0].clone();
 
-        plots::plot_run_spikes(&record, Some(format!("spikeplot_{n}").as_str()));
+        //plots::plot_run_spikes(&record, Some(format!("spikeplot_{n}").as_str()));
     }
 
-    fn experiment_report(stats: Vec<OptimizationStatistics>, conf: BaseConfig) {
+    fn experiment_report(stats: Vec<OptimizationStatistics>, base_conf: BaseConfig, conf: ExperimentConfig) {
         // Merge the stats
         let mut experiment_stats = OptimizationStatistics::empty();
 
@@ -105,8 +105,8 @@ impl Experiment {
         let report = ExperimentReport {
             stats: experiment_stats,
             version: env!("CARGO_PKG_VERSION").to_string(),
-            conf,
-            desc: None
+            conf: base_conf,
+            desc: conf.desc
         };
 
         utils::data::save(report, "experiment_report.json");
@@ -116,7 +116,8 @@ impl Experiment {
 #[derive(Clone, Debug, Deserialize)]
 pub struct ExperimentConfig {
     pub n_runs: usize,
-    pub plot_individual_runs: bool,
+    pub save_individual_runs: bool,
+    pub desc: Option<String>
 }
 
 impl Configurable for Experiment {

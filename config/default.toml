@@ -7,10 +7,11 @@ task = "pattern_similarity"
 
 [experiment]
 n_runs = 50
-plot_individual_runs = false
+save_individual_runs = true
+desc = ""
 
 [optimizer]
-max_generations = 1000
+max_generations = 100
 
 [snes]
 pop_size = 100
