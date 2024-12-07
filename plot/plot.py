@@ -146,13 +146,13 @@ def plot_neuron_models(d):
     print(f"Saved to {filename}")
 
 def run():
-    #files = args()
-    files = ["results/dynamics/neurons/lapicque_r10.0-c0.001.json",
-             "results/dynamics/neurons/lapicque_r5.0-c0.001.json",
-             "results/dynamics/neurons/lapicque_r5.0-c0.005.json",
-             "results/dynamics/neurons/izhikevich_rs.json",
-             "results/dynamics/neurons/izhikevich_fs.json",
-             "results/dynamics/neurons/izhikevich_ch.json"]
+    #files = ["results/dynamics/neurons/lapicque_r10.0-c0.001.json",
+    #         "results/dynamics/neurons/lapicque_r5.0-c0.001.json",
+    #         "results/dynamics/neurons/lapicque_r5.0-c0.005.json",
+    #         "results/dynamics/neurons/izhikevich_rs.json",
+    #         "results/dynamics/neurons/izhikevich_fs.json",
+    #         "results/dynamics/neurons/izhikevich_ch.json"]
+    files = args()
 
 
     print("loading data")
@@ -162,12 +162,13 @@ def run():
             d.append(json.load(f))
 
     n = len(d)
-
-    C = 200
-
     print(f"loaded {n} files")
 
-    plot_neuron_models(d)
+    plot_time_series(d)
+
+
+
+    #plot_neuron_models(d)
 
 #    series = [parse_array1(x) for x in d]
 #

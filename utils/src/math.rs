@@ -2,6 +2,9 @@ use std::collections::HashMap;
 
 use num_traits::Float;
 
+use ndarray::{Array, Array1};
+use rand::Rng;
+
 
 pub const P_TOLERANCE: f32 = 1.0001;
 
@@ -53,6 +56,35 @@ pub fn distribute(n: usize, p: &[f32]) -> Vec<usize> {
     assert!(buckets.iter().sum::<usize>() == n);
 
     buckets
+}
+
+fn multinomial(n: usize, p: &[f64]) -> Array1<u32> {
+    assert!(p.iter().all(|p| *p >= 0.0 && *p <= 1.0), "error in p: {:#?}", p);
+    assert!(p.iter().sum::<f64>() <= P_TOLERANCE.into(),
+        "expected sum(p) <= 1.0, was {}", p.iter().sum::<f64>());
+
+    let k = p.len();
+
+    let mut d: Array1<u32> = Array::zeros(n);
+
+    let mut rng = rand::thread_rng();
+
+    for i in 0..n {
+        let r: f64 = rng.gen();
+
+        let mut sum = 0.0;
+        for (l, prob) in p.iter().enumerate() {
+            sum += prob;
+
+            if r <= sum {
+                d[i] = l as u32;
+
+                break;
+            }
+        }
+    }
+
+    d
 }
 
 pub mod ml {

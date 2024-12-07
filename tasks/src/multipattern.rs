@@ -1,3 +1,5 @@
+//! Pattern detection task
+
 use crate::{Task, TaskEval, TaskInput, TaskOutput, TaskState, TaskEnvironment};
 
 use utils::random;
@@ -11,7 +13,7 @@ use ndarray_rand::rand_distr::StandardNormal;
 const N_CLASSES: usize = 2;
 
 // dataset size = # of setups = N_CLASSES * N_TRIALS
-const N_TRIALS: usize = 64;
+const N_TRIALS: usize = 256;
 
 const PATTERN_SIZE: usize = 5;
 const PATTERN_MAX_PROBABILITY: f32 = 0.3;
@@ -194,7 +196,7 @@ impl TaskEval for MultiPatternTask {
         }
 
         //100.0 - total_loss +
-        Self::accuracy(&results).unwrap() * 50.0
+        Self::accuracy(&results).unwrap() * 100.0
     }
 
     // Temporal binning accuracy

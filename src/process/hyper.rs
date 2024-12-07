@@ -1,4 +1,6 @@
-//! Hyperparameter optimization
+//! Hyperparameter optimization using SNES.
+//!
+//! Fitness function is given by f: setup -> R := setup-best-fitness / gen
 
 use crate::plots;
 use crate::eval::MultiEvaluator;

@@ -1,9 +1,11 @@
 log_level = "debug"
 
 process = "experiment"
+#process = "test"
 
-model = "base_model"
-task = "pattern_similarity"
+model = "ed_model"
+task = "sin_time_series"
+#task = "pattern_similarity"
 
 [experiment]
 n_runs = 50

@@ -8,18 +8,17 @@ use ts::TimeSeries;
 use crate::{Task, TaskEval, TaskInput, TaskOutput, TaskState, TaskEnvironment};
 use crate::lorenz_task;
 
-use utils::random;
 use utils::math;
 use utils::encoding::rate_encode;
 
-use ndarray::{s, Array, Array1, Array2, Axis, Zip};
+use ndarray::{s, Array, Array1, Array2, Axis};
 
 
 const MAX_FR: f32 = 0.2;
 
 const T: u32 = 1000;
 
-const SEND_TIME: u32 = 500; // How long the time series is sent for
+const SEND_TIME: u32 = 300; // How long the time series is sent for
 
 //const T: u32 = SEND_TIME + RESPONSE_DELAY + RESPONSE_WINDOW; // Max time
 //const T1: u32 = SEND_TIME;
@@ -154,8 +153,9 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
 
         let min = math::minf(s.as_slice().unwrap());
         let max = math::maxf(s.as_slice().unwrap());
-        println!("min: {min}, max: {max}");
-        println!("mean: {}, std: {}", s.mean().unwrap(), s.std(0.0));
+
+        //println!("min: {min}, max: {max}");
+        //println!("mean: {}, std: {}", s.mean().unwrap(), s.std(0.0));
 
         setups.push(TimeSeriesTaskSetup { series: s.mapv(|x| x as f32) });
 
@@ -163,11 +163,17 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
     }
 
     fn fitness(results: Vec<Self::Result>) -> f32 {
-        const FR_WINDOW: usize = 20; // Determines how "sharp" the firing rate interpretation is
+
+        // The window of calculating firing rate; determines how "sharp" it is
+        const FR_WINDOW: usize = 20;
+
+        // Time delay after SEND_TIME before evaluating.
+        const EVAL_DELAY: u32 = 75;
+
+        const EVAL_T: usize = (T - SEND_TIME - EVAL_DELAY) as usize;
 
         let mut fitness = 0.0;
 
-        // For sin
         for r in results {
             let firing_rates: Array2<f32> = utils::analysis::firing_rate(r.response, FR_WINDOW);
 
@@ -187,7 +193,6 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
                 row.assign(&a);
             }
 
-            const EVAL_T: usize = (T - SEND_TIME) as usize;
             let predicted: Array2<f32> = arr.slice(s![EVAL_T..,..]).to_owned();
             let observed: Array2<f32> = r.observed.slice(s![EVAL_T..,..]).to_owned();
 
@@ -202,6 +207,26 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
 
                 row.assign(&a);
             }
+
+            // NOTE: Use this to save time series
+            //let o = observed.clone().into_shape(observed.shape()[0] as usize).unwrap();
+            //let p = predicted.clone().into_shape(predicted.shape()[0] as usize).unwrap();
+            //let d = deviations.clone().into_shape(deviations.shape()[0] as usize).unwrap();
+
+            //let f1 = "data/ts/observed.json";
+            //let f2 = "data/ts/predicted.json";
+            //let f3 = "data/ts/deviations.json";
+
+            //utils::data::save::<Array1<f32>>(o, f1);
+            //println!("data saved to {}", f1);
+
+            //utils::data::save::<Array1<f32>>(p, f2);
+            //println!("data saved to {}", f2);
+
+            //utils::data::save::<Array1<f32>>(d, f3);
+            //println!("data saved to {}", f3);
+
+            // ----------- END ---------
 
             //let mut deviations: Array2<f32>
             //    = observed.outer_iter().zip(predicted.outer_iter()).map(|(o, p)| (&o - &p).map(|x| x.powf(2.0))).collect();
@@ -225,24 +250,8 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
 
             //println!("{:?}, {:?}", predicted.shape(), observed.shape());
 
-            //let o = observed.clone().into_shape(observed.shape()[0] as usize).unwrap();
-            //let p = predicted.clone().into_shape(predicted.shape()[0] as usize).unwrap();
-            //let d = deviations.clone().into_shape(deviations.shape()[0] as usize).unwrap();
 
-            //let f1 = "data/ts/observed.json";
-            //let f2 = "data/ts/predicted.json";
-            //let f3 = "data/ts/deviations.json";
-
-            //utils::data::save::<Array1<f32>>(o, f1);
-            //println!("data saved to {}", f1);
-
-            //utils::data::save::<Array1<f32>>(p, f2);
-            //println!("data saved to {}", f2);
-
-            //utils::data::save::<Array1<f32>>(d, f3);
-            //println!("data saved to {}", f3);
-
-            fitness = 1000.0 - deviations.sum();
+            fitness += - deviations.sum();
         }
 
         fitness
@@ -252,7 +261,6 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
         None
     }
 }
-
 
 pub mod ts {
     use super::*;

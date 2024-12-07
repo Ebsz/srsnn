@@ -2,13 +2,13 @@
 
 use srsnn::plots;
 use srsnn::config;
-use srsnn::analysis;
 use srsnn::eval;
 
 use srsnn::models::generator_model::GeneratorModel;
 use srsnn::models::generator::base::BaseModel;
 
 use srsnn::process::experiment::report::ExperimentReport;
+
 
 use model::network::representation::DefaultRepresentation;
 use evolution::stats::OptimizationStatistics;
@@ -17,6 +17,8 @@ use tasks::{Task, TaskEval};
 use tasks::pattern::PatternTask;
 use tasks::multipattern::MultiPatternTask;
 use tasks::pattern_similarity::PatternSimilarityTask;
+use tasks::time_series::TimeSeriesTask;
+use tasks::time_series::ts::SinSeries;
 
 use utils::data;
 use utils::math;
@@ -38,19 +40,10 @@ fn plot_individual_runs(stats: &OptimizationStatistics) {
     }
 }
 
-fn analyze_run<T: Task + TaskEval> (repr: &DefaultRepresentation) {
-    let setup = T::eval_setups()[4].clone();
-    let record = analysis::run_analysis::<T>(repr, &[setup])[0].clone();
 
-    plots::plot_run_spikes(&record, None);
-    plots::single_neuron_dynamics(&record);
-}
-
-/// Evaluates a network over the eval setups, returning the fitness and optional accuracy
-fn evaluate<T: Task + TaskEval> (repr: &DefaultRepresentation) -> (f32, Option<f32>) {
-    let validation_setups = T::eval_setups();
-
-    let results = eval::run_network_on_task::<T>(repr, &validation_setups);
+/// Evaluates a network over a number of setups, returning the fitness and, optionally,  accuracy
+fn evaluate<T: Task + TaskEval> (repr: &DefaultRepresentation, setups: &[T::Setup]) -> (f32, Option<f32>) {
+    let results = eval::run_network_on_task::<T>(repr, setups);
 
     let accuracy = T::accuracy(&results);
     let val = T::fitness(results);
@@ -65,7 +58,7 @@ fn normalize(d: Array2<f32>) -> Array2<f32> {
         .mapv(|x| if x > 0.9999 { 1.0 } else { x })
 }
 
-fn model_parameters(p: &ParameterSet) {
+fn base_model_parameters(p: &ParameterSet) {
     let conf = config::base_config(None);
     let model_config = config::get_config::<GeneratorModel<BaseModel>>();
     let (m1, m2) =  BaseModel::parse_params(p, &model_config);
@@ -83,7 +76,8 @@ fn analyze<T: Task + TaskEval>(stats: OptimizationStatistics) {
         let run_best = r.best();
         print!("[{i}] fitness: {} ", run_best.0);
 
-        let (fitness, accuracy) = evaluate::<T>(run_best.1);
+        let validation_setups = T::eval_setups();
+        let (fitness, accuracy) = evaluate::<T>(run_best.1, &validation_setups);
         match accuracy {
             Some(acc) =>  {
                 println!("validation fitness: {:.3}, accuracy: {:.3}", fitness, acc);
@@ -130,27 +124,47 @@ fn multiple_reports<T: Task + TaskEval>(reports: Vec<ExperimentReport>) {
     }
 }
 
-fn single_report<T: Task + TaskEval>(report: ExperimentReport) -> Vec<(f32, f32, f32, usize)> {
-    log::info!("report: {}", report.desc.unwrap());
-    log::info!("{} runs", report.stats.runs.len());
+fn single_report<T: Task + TaskEval>(report: ExperimentReport) -> Vec<(f32, f32, Option<f32>, usize)> {
+    let desc = report.desc.unwrap();
+    let n_runs = report.stats.runs.len();
+
+    log::info!("report: {}", desc);
+    log::info!("{} runs", n_runs);
 
     let best = ana::n_best_runs(&report.stats, 10);
     //let fitness: Vec<f32> = best.iter().map(|x| x.0).collect();
 
-    let mut stats: Vec<(f32, f32, f32, usize)> = vec![];
+    let mut stats: Vec<(f32, f32, Option<f32>, usize)> = vec![];
+
+    let validation_setups = T::eval_setups();
+
+    let mut report_best: Option<(f32, DefaultRepresentation)> = None;
 
     println!("n \t f\te_f\te_acc\truns");
     for (i, b) in best.iter().enumerate() {
-        let (fitness, accuracy) = evaluate::<T>(&b.0.1);
+        let (fitness, accuracy) = evaluate::<T>(&b.0.1, &validation_setups);
 
-        println!("{i}|\t{:.3}\t{:.3}\t{:.3}\t{}", b.0.0, fitness, accuracy.unwrap(), b.1);
+        if let Some(a) = accuracy {
+            println!("{i}\t\t{:.3}\t\t{:.3}\t\t{:.3}\t\t{}", b.0.0, fitness, a, b.1);
+        } else {
+            println!("{i}\t\t{:.3}\t\t{:.3}\t\t{:.3}\t\t{}", b.0.0, fitness, "-", b.1);
+        }
 
-        save_network(&b.0.1, format!("network_{i}_{}.json", fitness / 100.0).as_str());
-        model_parameters(&b.0.2);
-        println!("-----");
+        //model_parameters(&b.0.2);
 
-        stats.push((b.0.0, fitness, accuracy.unwrap(), b.1));
+        if let Some(c) = &report_best {
+            if fitness > c.0 {
+                report_best = Some((fitness, b.0.1.clone()));
+            }
+        } else {
+            report_best = Some((fitness, b.0.1.clone()));
+        }
+
+        stats.push((b.0.0, fitness, accuracy, b.1));
     }
+
+    let (best_eval, best_repr) = report_best.unwrap();
+    save_network(&best_repr, format!("{}_eval_{}.json", desc, best_eval).as_str());
 
     stats
 }
@@ -162,8 +176,6 @@ fn save_network(r: &DefaultRepresentation, path: &str) {
         Ok(_) => (println!("Network saved to {}", path)),
         Err(e) => println!("Error saving network: {:?}", e),
     }
-
-
 }
 
 fn parse_args() -> Option<Vec<String>> {
@@ -204,9 +216,8 @@ fn main() {
     log::info!("loading experiment reports");
     let reports: Vec<ExperimentReport> = args.iter().map(|p| load_experiment_report(p)).collect();
 
-
-    single_report::<PatternSimilarityTask>(reports[0].clone());
-    //multiple_reports::<PatternSimilarityTask>(reports);
+    //single_report::<PatternSimilarityTask>(reports[0].clone());
+    multiple_reports::<TimeSeriesTask<SinSeries>>(reports);
 
     //multiple_reports(reports);
 

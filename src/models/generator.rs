@@ -52,3 +52,7 @@ pub struct NetworkModel {
     pub d: NeuronSet,
     pub i: ConnectionSet
 }
+
+mod components {
+
+}

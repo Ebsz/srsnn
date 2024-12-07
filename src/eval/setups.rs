@@ -46,10 +46,13 @@ pub struct BatchSetup<T: Task + TaskEval> {
 impl<T: Task + TaskEval> BatchSetup<T> {
     pub fn new(setups: Vec<T::Setup>, batch_size: usize) -> BatchSetup<T> {
         // Split into validation and training setups
-        //const VALIDATION_FRACTION: f32 = 0.20;
+        //const VALIDATION_FRACTION: f32 = 1.0/6.0;
         //let n_train_batches = ((setups.len() as f32 / batch_size as f32)
         //* (1.0 - VALIDATION_FRACTION)) as usize;
         //let p = n_train_batches * batch_size;
+
+        //let train = setups[..p].to_vec();
+        //let val = setups[p..].to_vec();
 
         let train = setups.clone(); //setups[..p].to_vec();
         let val = setups; //[p..].to_vec();

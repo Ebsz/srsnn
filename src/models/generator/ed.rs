@@ -1,7 +1,5 @@
-//! Evolved-Dynamics model, which is identical to the base model except that it is additionally
-//! parameterized by type-based dynamical parameters.
-//!
-
+//! Evolved-Dynamics model, which is identical to the base model except that it
+//! additionally employs type-based dynamical parameters.
 
 use crate::models::generator::Generator;
 use crate::models::generator_model::ModelConfig;
@@ -12,7 +10,6 @@ use csa::op::LabelFn;
 use csa::op::geometric::{CoordinateFn, Metric};
 use csa::{ConnectionSet, ValueSet, NeuronSet, NetworkSet};
 use csa::mask::Mask;
-
 
 use utils::{math, random};
 use utils::config::{ConfigSection, Configurable};

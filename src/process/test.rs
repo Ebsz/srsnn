@@ -16,7 +16,7 @@ use crate::plots;
 //use crate::models::srsnn::test_model::TestModel;
 
 //use crate::plots::plt;
-//use crate::eval;
+use crate::eval;
 
 use model::Model;
 use model::network::representation::DefaultRepresentation;
@@ -45,11 +45,11 @@ use ndarray::{s, Array, Array1, Array2};
 pub struct TestProcess;
 impl Process for TestProcess {
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig) {
-        //log::info!("Running test process");
+        log::info!("Running test process");
 
-        ////test_time_series_task();
-        ////test_multipattern_task();
-        ////Self::pattern_test(conf);
+        //test_time_series_task();
+        //test_multipattern_task();
+        //Self::pattern_test(conf);
 
         //let main_conf = Self::main_conf::<RSNNModel<TestModel>, TimeSeriesTask<SinSeries>, SeparableNES>();
         //let env = Self::environment::<TimeSeriesTask<SinSeries>>();
@@ -57,33 +57,32 @@ impl Process for TestProcess {
 
         //let p = RSNNModel::<TestModel>::params(&main_conf.model, &env);
 
-        //// Get parameter set from SNES
+        // Get parameter set from SNES
         //log::info!("Getting parameter sets");
         //let snes = SeparableNES::new(main_conf.algorithm.clone(), p);
         //let params = snes.parameter_sets();
 
-        //// Create and develop model from the first parameter set
-        ////log::info!("Developing model");
-        ////let model = RSNNModel::<TestModel>::new(&main_conf.model, &params[0], &env);
-        ////let r = model.develop();
-        ////let path = "out/network_base_model_sin_time_series_625264.json"; // Good one
-        //let path = "out/network_base_model_sin_time_series_663239.json"; // Good one
-        //let r: DefaultRepresentation = utils::data::load(path).unwrap();
+        // Create and develop model from the first parameter set
+        //log::info!("Developing model");
+        //let model = RSNNModel::<TestModel>::new(&main_conf.model, &params[0], &env);
+        //let r = model.develop();
 
-        //println!("{:#?}", r.env);
+        //let path = "out/network_base_model_sin_time_series_559870.json"; // base model
+        let path = "out/network_ed_model_sin_time_series_919830.json";      // dynamics model
+        let r: DefaultRepresentation = utils::data::load(path).unwrap();
+        println!("{:#?}", r.env);
 
-        //let setups = TimeSeriesTask::<SinSeries>::eval_setups();
+        let analysis = crate::analysis::analyze_network(&r);
 
-        //let record = run_analysis::<TimeSeriesTask<SinSeries>>(&r, &setups)[0].clone();
+        let setups = TimeSeriesTask::<SinSeries>::eval_setups();
 
-        //plots::plot_run_spikes(&record, None);
-        ////plots::plot_all_potentials(&record);
+        let record = run_analysis::<TimeSeriesTask<SinSeries>>(&r, &setups)[0].clone();
 
-        //let results: Vec<<TimeSeriesTask<SinSeries> as Task>::Result>
-        //    = eval::run_network_on_task::<TimeSeriesTask<SinSeries>>(&r, &setups);
+        let results: Vec<<TimeSeriesTask<SinSeries> as Task>::Result>
+            = eval::run_network_on_task::<TimeSeriesTask<SinSeries>>(&r, &setups);
 
-        //let fitness = TimeSeriesTask::<SinSeries>::fitness(results);
-        //println!("fitness: {fitness}");
+        let fitness = TimeSeriesTask::<SinSeries>::fitness(results);
+        println!("fitness: {fitness}");
 
         //let fr = utils::analysis::firing_rate(results[0].response.clone(), 20);
         //Self::save::<Array2<f32>>(fr, "ts/fr".to_string());
