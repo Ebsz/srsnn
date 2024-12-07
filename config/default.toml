@@ -13,7 +13,7 @@ save_individual_runs = true
 desc = ""
 
 [optimizer]
-max_generations = 100
+max_generations = 200
 
 [snes]
 pop_size = 100

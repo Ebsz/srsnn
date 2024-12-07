@@ -163,7 +163,6 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
     }
 
     fn fitness(results: Vec<Self::Result>) -> f32 {
-
         // The window of calculating firing rate; determines how "sharp" it is
         const FR_WINDOW: usize = 20;
 
@@ -177,8 +176,8 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
         for r in results {
             let firing_rates: Array2<f32> = utils::analysis::firing_rate(r.response, FR_WINDOW);
 
-            // apply max max firing rate per neuron and normalize to (0, 1)
-            let fr = firing_rates.mapv(|x| math::minf(&[x, MAX_FR])) * (1.0 / MAX_FR);
+            //let fr = firing_rates.mapv(|x| math::minf(&[x, MAX_FR])) * (1.0 / MAX_FR);
+            let fr = firing_rates;
 
             // NOTE: This way of doing it only works for D=1, aka. single-dimensional time series
             //let fr_sum = &fr.sum_axis(Axis(1)) / fr.shape()[1] as f32;
@@ -189,9 +188,11 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
                 let a: Array1<f32> = fr.slice(s![i,..]).exact_chunks(OUTPUTS_PER_VARIABLE).into_iter()
                     .map(|x| x.sum() / OUTPUTS_PER_VARIABLE as f32 ).collect();
 
-
                 row.assign(&a);
             }
+
+            // apply max max firing rate per bin and normalize to (0, 1)
+            arr = arr.mapv(|x| math::minf(&[x, MAX_FR])) * (1.0 / MAX_FR);
 
             let predicted: Array2<f32> = arr.slice(s![EVAL_T..,..]).to_owned();
             let observed: Array2<f32> = r.observed.slice(s![EVAL_T..,..]).to_owned();
