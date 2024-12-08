@@ -1,7 +1,5 @@
 use crate::models::generator::Generator;
 
-
-
 use model::Model;
 use model::network::representation::{DefaultRepresentation, NetworkRepresentation, NeuronDescription};
 use model::neuron::izhikevich::IzhikevichParameters;
@@ -65,6 +63,17 @@ impl<G: Generator> Model for GeneratorModel<G> {
                     inhibitory,
             ));
         }
+
+        assert!(neurons.len() == n);
+
+        // Hacky way to make sure output neurons are always excitatory
+        for mut n in neurons[(n - self.env.outputs)..].iter_mut() {
+            n.inhibitory = false;
+        }
+
+        // ensure output neurons are excitatory
+        assert!(neurons[(n - self.env.outputs)..].iter().all(|x| !x.inhibitory),
+        "developing network with inhibitory output neurons");
 
         let network_w = neural_set.v[0].matrix(n);
 
