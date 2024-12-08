@@ -53,11 +53,12 @@ impl Experiment {
         let stop_signal = Arc::new(AtomicBool::new(false));
         Self::init_ctrl_c_handler(stop_signal.clone());
 
-        let setups = T::eval_setups();
 
         let mut run_stats: Vec<OptimizationStatistics> = Vec::new();
 
         for n in 0..experiment_conf.n_runs {
+            let setups = T::eval_setups();
+
             log::info!("Run {n}");
             let evaluator: MultiEvaluator<T> = Self::evaluator(&conf, &main_conf.eval, setups.clone());
 
