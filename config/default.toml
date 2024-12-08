@@ -1,10 +1,9 @@
 log_level = "debug"
 
 process = "experiment"
-#process = "test"
 
 model = "ed_model"
-task = "sin_time_series"
+task = "multi_sin_time_series"
 #task = "pattern_similarity"
 
 [experiment]
@@ -27,7 +26,7 @@ init_mu_stddev = 1.0
 
 [eval]
 max_threads = 64
-trials = 8
+trials = 4
 
 [batch]
 batch_size = 32

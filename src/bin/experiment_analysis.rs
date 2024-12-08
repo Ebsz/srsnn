@@ -188,8 +188,6 @@ fn parse_args() -> Option<Vec<String>> {
     None
 }
 
-
-
 fn load_stats(path: &str) -> OptimizationStatistics {
     match data::load::<OptimizationStatistics>(path) {
         Ok(r) => { r },

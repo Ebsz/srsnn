@@ -23,7 +23,7 @@ use tasks::multipattern::MultiPatternTask;
 use tasks::pattern_similarity::PatternSimilarityTask;
 
 use tasks::time_series::TimeSeriesTask;
-use tasks::time_series::ts::SinSeries;
+use tasks::time_series::ts::{SinSeries, RandomSinSeries};
 
 use tasks::testing::TestTask;
 
@@ -73,7 +73,8 @@ pub trait Process: Sync {
             "xor"                   => { Self::run::<M, XORTask>(config); },
             "mnist"                 => { Self::run::<M, MNISTTask>(config); },
             "testing"               => { Self::run::<M, TestTask>(config); },
-            "sin_time_series"       => { Self::run::<M, TimeSeriesTask<SinSeries>>(config); },
+            "single_sin_time_series"       => { Self::run::<M, TimeSeriesTask<SinSeries>>(config); },
+            "multi_sin_time_series"       => { Self::run::<M, TimeSeriesTask<RandomSinSeries>>(config); },
             //"polebalance"   => { Self::run::<M, PoleBalancingTask>(config); },
             //"movement"    => { Self::run::<M, MovementTask>(config); },
             //"survival"    => { Self::run::<M, SurvivalTask>(config); },

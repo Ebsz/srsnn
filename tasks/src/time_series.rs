@@ -12,11 +12,14 @@ use utils::math;
 use utils::encoding::rate_encode;
 
 use ndarray::{s, Array, Array1, Array2, Axis};
+use ndarray_rand::rand::Rng;
 
+
+const N_SETUPS: usize = 32;
 
 const MAX_FR: f32 = 0.2;
 
-const T: u32 = 1000;
+const T: u32 = 800;
 
 const SEND_TIME: u32 = 300; // How long the time series is sent for
 
@@ -30,12 +33,6 @@ const AGENT_INPUTS: usize = N_VARIABLES * OUTPUTS_PER_VARIABLE;
 const AGENT_OUTPUTS: usize = N_VARIABLES * OUTPUTS_PER_VARIABLE;
 
 const OUTPUT_MAX_PROBABILITY: f32 = 0.1;
-
-
-// Fitness
-//const MAX_SPIKERATE: f32 = 0.15; // Output spike frequency is capped above this
-//const MAX_SPIKE_COUNT: usize = RESPONSE_WINDOW as usize * OUTPUTS_PER_CLASS;
-//const SPIKE_CAP: f32 = MAX_SPIKE_COUNT as f32 * MAX_SPIKERATE;
 
 
 #[derive(Debug)]
@@ -141,23 +138,25 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
     fn eval_setups() -> Vec<Self::Setup> {
         let mut setups = vec![];
 
-        // Generate a time-series
-        //let mut s: Array2<f64> = lorenz_task::simulate(T as usize, lorenz_task::CHAOS, (1.0, 1.0, 1.2));
-        let mut s: Array2<f64> = S::generate(T as usize);
+        for _ in 0..N_SETUPS {
+            // Generate a time-series
+            //let mut s: Array2<f64> = lorenz_task::simulate(T as usize, lorenz_task::CHAOS, (1.0, 1.0, 1.2));
+            let mut s: Array2<f64> = S::generate(T as usize);
 
-        // Normalize to (0,1) using the min/max of all values, which preserves the relative values
-        let min = math::minf(s.as_slice().unwrap());
-        let max = math::maxf(s.as_slice().unwrap());
+            // Normalize to (0,1) using the min/max of all values, which preserves the relative values
+            let min = math::minf(s.as_slice().unwrap());
+            let max = math::maxf(s.as_slice().unwrap());
 
-        s = (&s - min) / (max- min);
+            s = (&s - min) / (max- min);
 
-        let min = math::minf(s.as_slice().unwrap());
-        let max = math::maxf(s.as_slice().unwrap());
+            let min = math::minf(s.as_slice().unwrap());
+            let max = math::maxf(s.as_slice().unwrap());
 
-        //println!("min: {min}, max: {max}");
-        //println!("mean: {}, std: {}", s.mean().unwrap(), s.std(0.0));
+            //println!("min: {min}, max: {max}");
+            //println!("mean: {}, std: {}", s.mean().unwrap(), s.std(0.0));
 
-        setups.push(TimeSeriesTaskSetup { series: s.mapv(|x| x as f32) });
+            setups.push(TimeSeriesTaskSetup { series: s.mapv(|x| x as f32) });
+        }
 
         setups
     }
@@ -301,8 +300,34 @@ pub mod ts {
             1
         }
     }
+
+    /// SinSeries, but with randomly assigned frequencies
+    pub struct RandomSinSeries;
+    impl TimeSeries for RandomSinSeries {
+        fn generate(steps: usize) -> Array2<f64> {
+            let mut s: Array2<f64> = Array::zeros((T as usize, 1));
+
+            let a = 2.0;
+            let b = rand::thread_rng().gen_range(0.03..0.1);
+            let c = 4.0;
+
+            for (i, mut x) in s.iter_mut().enumerate() {
+                *x = sin_t_p(i as u32, a, b, c);
+            }
+
+            s
+        }
+
+        fn variables() -> usize {
+            1
+        }
+    }
 }
 
 fn sin_t(t: u32) -> f64 {
     math::ml::sigmoid(2.0 * f32::sin(0.04 * t as f32) - 4.0).into()
+}
+
+fn sin_t_p(t: u32, a: f32, b: f32, c: f32) -> f64 {
+    math::ml::sigmoid(a * f32::sin(b * t as f32) - c).into()
 }
