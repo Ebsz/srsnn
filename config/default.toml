@@ -2,9 +2,9 @@ log_level = "debug"
 
 process = "experiment"
 
-model = "ed_model"
-task = "multi_sin_time_series"
-#task = "pattern_similarity"
+model = "uniform_model"
+#task = "multi_sin_time_series"
+task = "pattern_similarity"
 
 [experiment]
 n_runs = 50
@@ -26,7 +26,7 @@ init_mu_stddev = 1.0
 
 [eval]
 max_threads = 64
-trials = 4
+trials = 1
 
 [batch]
 batch_size = 32

@@ -79,6 +79,7 @@ impl ParameterSet {
     }
 
     pub fn is_nan(&self) -> bool {
+        self.set.len() != 0 &&
         self.set.iter().all(|a| a.linearize().iter().all(|x| x.is_nan()))
     }
 }

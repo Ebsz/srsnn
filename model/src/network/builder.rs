@@ -19,7 +19,8 @@ impl NetworkBuilder {
         let neuron_types = Self::parse_neuron_types(desc);
 
         // ensure output neurons are excitatory
-        assert!(neuron_types.slice(s![-(desc.env.outputs as i32)..]).iter().all(|x| *x == 1.0));
+        assert!(neuron_types.slice(s![-(desc.env.outputs as i32)..]).iter().all(|x| *x == 1.0),
+        "Building network with inhibitory output neurons");
 
         let model = N::new(desc.n, neuron_params);
 

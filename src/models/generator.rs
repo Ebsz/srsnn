@@ -1,3 +1,4 @@
+pub mod uniform;
 pub mod base;
 pub mod ed;
 

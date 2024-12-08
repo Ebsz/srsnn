@@ -9,6 +9,7 @@ use crate::config::{get_config, BaseConfig};
 use crate::optimization::{Optimizer, OptimizationConfig};
 
 use crate::models::generator_model::GeneratorModel;
+use crate::models::generator::uniform::UniformModel;
 use crate::models::generator::base::BaseModel;
 use crate::models::generator::ed::EvolvedDynamicsModel;
 
@@ -50,6 +51,7 @@ pub trait Process: Sync {
         match config.model.as_str() {
             "base_model"        => { Self::resolve_t::<GeneratorModel<BaseModel>>(config); },
             "ed_model"         => { Self::resolve_t::<GeneratorModel<EvolvedDynamicsModel>>(config); },
+            "uniform_model"         => { Self::resolve_t::<GeneratorModel<UniformModel>>(config); },
             //"gt_model"          => { Self::resolve_t::<RSNNModel<GeometricTypedModel>>(config); },
             //"test_model"        => { Self::resolve_t::<RSNNModel<TestModel>>(config); },
             //"plain"         => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
