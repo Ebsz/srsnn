@@ -1,33 +1,70 @@
-use crate::models::generator::{Generator, NetworkModel};
-use csa::{ConnectionSet, ValueSet, NeuronSet};
+//! Family of models where connectivity is parameterized by a single value.
 
+use crate::models::generator;
+use crate::models::generator::{Generator, NetworkModel};
+use crate::models::generator_model::ModelConfig;
+
+use csa::{NetworkSet, ConnectionSet, ValueSet, NeuronSet, NeuronMask};
+
+use utils::config::{ConfigSection, Configurable, EmptyConfig};
+use utils::environment::Environment;
+use utils::parameters::{Parameter, ParameterSet};
+
+use rand::Rng;
 use ndarray::array;
+
+use serde::Deserialize;
 
 use std::sync::Arc;
 
-pub struct ERModel;
 
-impl Generator for ERModel {
-    type Parameters = f32;
+const MAX_W: f32 = 5.0;
 
-    fn g(p: f32) -> NetworkModel {
-        let a = csa::mask::random(p);
-        let w = ValueSet { f: Arc::new( move |_i, _j| 1.0) };
+#[derive(Clone, Debug)]
+pub struct ER0Model;
 
-        let c = ConnectionSet { m: a, v: vec![w]};
+impl Generator for ER0Model {
+    fn get(ps: &ParameterSet, config: &ModelConfig<Self>, env: &Environment) -> (NetworkSet, ConnectionSet) {
+        let mut rng = rand::thread_rng();
 
-        // Default dynamics
-        let d = NeuronSet { f: Arc::new( move |i| array![0.02, 0.2, -65.0, 8.0, 0.0] ) };
+        let p: f32 = match &ps.set[0] {
+            Parameter::Scalar(x) => {*x},
+            _ => { panic!("invalid parameter set") }
+        };
 
-        let a_i = csa::mask::random(p);
-        let w_i = ValueSet { f: Arc::new( move |_i, _j| 1.0) };
+        let m = csa::mask::random(p);
 
-        let i = ConnectionSet { m: a_i, v: vec![w_i]};
+        let d = generator::blk::dynamics::uniform();
 
-        NetworkModel (c, d, i)
+        let w = ValueSet { f: Arc::new( move |_i, _j| rand::thread_rng().gen_range(0.0..MAX_W) ) };
+
+        let ns = NetworkSet {
+            m,
+            v: vec![w],
+            d: vec![d]
+        };
+
+        let input_mask = csa::mask::random(p);
+
+        let input_w = ValueSet { f: Arc::new( move |_i, _j| rand::thread_rng().gen_range(0.0..MAX_W) ) };
+
+        let input_cs = ConnectionSet {
+            m: input_mask,
+            v: vec![input_w]
+        };
+
+        (ns, input_cs)
+    }
+
+    fn params(config: &ModelConfig<Self>, env: &Environment) -> ParameterSet {
+        let p = Parameter::Scalar(0.0);
+
+        ParameterSet {
+            set: vec![p]
+        }
     }
 }
 
-fn random_dynamics() {
-
+impl Configurable for ER0Model {
+    type Config = EmptyConfig;
 }

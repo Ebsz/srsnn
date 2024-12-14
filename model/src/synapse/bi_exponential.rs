@@ -49,5 +49,4 @@ impl Synapse for BiExponentialSynapse {
         self.s = Array::zeros(self.w.shape()[0]);
         self.h = Array::zeros(self.w.shape()[0]);
     }
-
 }

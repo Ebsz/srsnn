@@ -6,7 +6,7 @@ import numpy as np
 import sys
 import json
 
-from parse import parse_array1, parse_array2
+from parser import parse_array1, parse_array2
 
 from network import Network
 
@@ -52,8 +52,8 @@ def plot_system(arr):
 
     plt.show()
 
-def plot_vec(arr):
-    plt.plot(arr)
+def plot_array(a):
+    plt.plot(a)
     plt.show()
 
 
@@ -145,6 +145,34 @@ def plot_neuron_models(d):
     plt.savefig(filename)
     print(f"Saved to {filename}")
 
+def plot_models(d):
+    series = [ parse_array1(x) for x in d ]
+
+
+    for i in range(len(series)):
+        plt.plot(series[i], label=f"Model {i}")
+    #plt.plot(series[2], label="Uniform Model")
+
+    plt.xlabel("Generation")
+    #plt.ylabel("Standard deviations")
+
+    plt.legend()
+    plt.show()
+
+
+# Assumes d[0] is data, d[1] is stddev
+#def plot_std(d):
+#    series = [ parse_array1(x) for x in d ]
+#
+#    data = series[0]
+#    stddev = series[1]
+#
+#    x = [i for i in range(len(data))]
+#
+#    plt.errorbar(x, data, stddev, linestyle='None')
+#
+#    plt.show()
+
 def run():
     #files = ["results/dynamics/neurons/lapicque_r10.0-c0.001.json",
     #         "results/dynamics/neurons/lapicque_r5.0-c0.001.json",
@@ -164,7 +192,14 @@ def run():
     n = len(d)
     print(f"loaded {n} files")
 
-    plot_time_series(d)
+    #arr = parse_array1(d[0])
+
+    plot_models(d)
+    #plot_std(d)
+
+    #plot_array(arr)
+
+    #plot_time_series(d)
 
 
 

@@ -2,7 +2,6 @@
 
 use crate::{random, math};
 
-
 use ndarray::{Array, Array1, Array2, Zip};
 use ndarray_rand::rand_distr::Uniform;
 

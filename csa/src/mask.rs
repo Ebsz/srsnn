@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 pub type MaskFn = Arc<dyn Fn(u32, u32) -> bool>;
 
-/// A mask consists of a function (i,j) -> {0,1}
+/// A mask is a function (i,j) -> {0,1}
 #[derive(Clone)]
 pub struct Mask {
     pub f: MaskFn
@@ -136,4 +136,3 @@ mod tests {
         assert!(matrix == id_m);
     }
 }
-

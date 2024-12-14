@@ -9,9 +9,20 @@ use crate::config::{get_config, BaseConfig};
 use crate::optimization::{Optimizer, OptimizationConfig};
 
 use crate::models::generator_model::GeneratorModel;
+
 use crate::models::generator::uniform::UniformModel;
+use crate::models::generator::typed_uniform::TypedUniformModel;
 use crate::models::generator::base::BaseModel;
 use crate::models::generator::ed::EvolvedDynamicsModel;
+use crate::models::generator::er::ER0Model;
+
+use crate::models::generator::udd_base::UDDBaseModel;
+use crate::models::generator::utd_base::UTDBaseModel;
+use crate::models::generator::edd_base::EDDModel;
+
+use crate::models::generator::ex1_ablation::GeometricModel;
+use crate::models::generator::ex1_ablation::TypedModel;
+use crate::models::generator::ex1_ablation::GeometricTypedModel;
 
 use model::Model;
 
@@ -39,8 +50,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 
 pub trait Process: Sync {
-    //type Output;
-
     fn run<M: Model, T: Task + TaskEval>(conf: BaseConfig);
 
     fn init(config: BaseConfig) {
@@ -49,17 +58,17 @@ pub trait Process: Sync {
 
     fn resolve_m(config: BaseConfig) {
         match config.model.as_str() {
-            "base_model"        => { Self::resolve_t::<GeneratorModel<BaseModel>>(config); },
-            "ed_model"         => { Self::resolve_t::<GeneratorModel<EvolvedDynamicsModel>>(config); },
-            "uniform_model"         => { Self::resolve_t::<GeneratorModel<UniformModel>>(config); },
-            //"gt_model"          => { Self::resolve_t::<RSNNModel<GeometricTypedModel>>(config); },
-            //"test_model"        => { Self::resolve_t::<RSNNModel<TestModel>>(config); },
-            //"plain"         => { Self::resolve_t::<RSNNModel<PlainModel>>(config); },
-            //"er_model"      => { Self::resolve_t::<RSNNModel<ERModel>>(config); },
-            //"typed"         => { Self::resolve_t::<RSNNModel<TypedModel>>(config); },
-            //"nd_typed"      => { Self::resolve_t::<RSNNModel<NDTypedModel>>(config); },
-            //"main" => { Self::resolve_t::<MainStochasticModel>(config); },
-            //"matrix" => { Self::resolve_t::<MatrixModel>(config); },
+            "base_model"                => { Self::resolve_t::<GeneratorModel<BaseModel>>(config); },
+            "ed_model"                  => { Self::resolve_t::<GeneratorModel<EvolvedDynamicsModel>>(config); },
+            "uniform_model"             => { Self::resolve_t::<GeneratorModel<UniformModel>>(config); },
+            "er0_model"                 => { Self::resolve_t::<GeneratorModel<ER0Model>>(config); },
+            "typed_uniform_model"       => { Self::resolve_t::<GeneratorModel<TypedUniformModel>>(config); },
+            "udd_base_model"            => { Self::resolve_t::<GeneratorModel<UDDBaseModel>>(config); },
+            "utd_base_model"            => { Self::resolve_t::<GeneratorModel<UTDBaseModel>>(config); },
+            "edd_base_model"            => { Self::resolve_t::<GeneratorModel<EDDModel>>(config); },
+            "geometric_uniform"         => { Self::resolve_t::<GeneratorModel<GeometricModel>>(config); },
+            "typed_model"               => { Self::resolve_t::<GeneratorModel<TypedModel>>(config); },
+            "geometric_typed_model"     => { Self::resolve_t::<GeneratorModel<GeometricTypedModel>>(config); },
             _ => { println!("Unknown model: {}", config.model); }
         }
     }
@@ -77,10 +86,6 @@ pub trait Process: Sync {
             "testing"               => { Self::run::<M, TestTask>(config); },
             "single_sin_time_series"       => { Self::run::<M, TimeSeriesTask<SinSeries>>(config); },
             "multi_sin_time_series"       => { Self::run::<M, TimeSeriesTask<RandomSinSeries>>(config); },
-            //"polebalance"   => { Self::run::<M, PoleBalancingTask>(config); },
-            //"movement"    => { Self::run::<M, MovementTask>(config); },
-            //"survival"    => { Self::run::<M, SurvivalTask>(config); },
-            //"energy"      => { Self::run::<M, EnergyTask>(config); },
             _ => { println!("Unknown task: {}", config.task); }
         }
     }

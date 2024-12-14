@@ -65,23 +65,5 @@ impl<N: Network> RunnableNetwork<N> {
         (0..self.outputs).zip(network_state.data)
             .filter_map(|(i, f)| if f {Some(i as u32)} else { None })
             .collect()
-
-        //(&network_state).into()
     }
-
-    //fn network_state_to_task_input(&self, network_state: Spikes) -> Vec<TaskInput> {
-    //    let mut task_inputs: Vec<TaskInput> = Vec::new();
-
-    //    //log::info!("{}",network_state.data.len()); = n  = (128)
-
-    //    // Parse the firing state of output neurons to commands
-    //    for i in 0..self.outputs as usize {
-    //        // If the neurons assigned to be output fire, add the corresponding input
-    //        if network_state.data[i] {
-    //            task_inputs.push(TaskInput { input_id: i as u32});
-    //        }
-    //    }
-
-    //    task_inputs
-    //}
 }

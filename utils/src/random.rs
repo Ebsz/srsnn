@@ -16,7 +16,6 @@ use rand::seq::SliceRandom;
 
 pub const SEED: u64 = 1337;
 
-
 // TODO: Replace with ThreadRng?
 thread_local! {
     static RNG: RefCell<StdRng> = RefCell::new(StdRng::seed_from_u64(SEED));
@@ -46,7 +45,6 @@ pub fn gaussian(x: f32, w: f32, bounds: (f32, f32)) -> f32 {
     math::clamp(y, bounds.0, bounds.1)
 }
 
-
 pub fn random_matrix<T, D: Distribution<T>>(shape: (usize, usize), dist: D) -> Array2<T>{
     Array::random(shape, dist)
 }
@@ -54,18 +52,6 @@ pub fn random_matrix<T, D: Distribution<T>>(shape: (usize, usize), dist: D) -> A
 pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> {
     Array::random(size, dist)
 }
-
-//pub fn random_matrix<T, D: Distribution<T>>(shape: (usize, usize), dist: D) -> Array2<T>{
-//    RNG.with(|rng| {
-//        Array::random_using(shape, dist, &mut (*rng.borrow_mut()))
-//    })
-//}
-//
-//pub fn random_vector<D: Distribution<f32>>(size: usize, dist: D) -> Array1<f32> {
-//    RNG.with(|rng| {
-//        Array::random_using(size, dist, &mut (*rng.borrow_mut()))
-//    })
-//}
 
 /// Get a random sample from a specified range
 pub fn random_range<T: SampleUniform + PartialOrd>(range: (T, T)) -> T {
@@ -84,8 +70,3 @@ pub fn random_choice<T> (v: &Vec<T>) -> &T {
 
     RNG.with(|rng| v.choose(&mut (*rng.borrow_mut()))).unwrap()
 }
-
-// TODO: use this
-//pub fn indices<T: Iterator>(x: T, pred: fn()) -> Vec<usize> {
-//    x.iter().enumerate().filter(|(_, n)| **n != 0.0).map(|(i,_)| i).collect()
-//}

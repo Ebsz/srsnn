@@ -80,15 +80,7 @@ impl Experiment {
     }
 
     fn run_report<T: Task + TaskEval>(stats: &OptimizationStatistics, n: usize) {
-        //plots::plot_stats(stats, format!("run_{n}").as_str());
-
         Self::save::<OptimizationStatistics>(stats.clone(), format!("run_stats_{n}"));
-        let (f, repr, _) = stats.best();
-
-        //let setup = T::eval_setups()[0].clone();
-        //let record = analysis::run_analysis::<T>(repr, &[setup])[0].clone();
-
-        //plots::plot_run_spikes(&record, Some(format!("spikeplot_{n}").as_str()));
     }
 
     fn experiment_report(stats: Vec<OptimizationStatistics>, base_conf: BaseConfig, conf: ExperimentConfig) {

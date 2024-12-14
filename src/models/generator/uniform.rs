@@ -1,6 +1,7 @@
 //! Uniform model. Serves as a baseline model by sweeping uniformly(ish)
 //! over the rsnn space.
 
+use crate::models::generator;
 use crate::models::generator::{Generator, NetworkModel};
 use crate::models::generator_model::ModelConfig;
 
@@ -8,7 +9,7 @@ use csa::{NetworkSet, ConnectionSet, ValueSet, NeuronSet, NeuronMask};
 
 use model::neuron::izhikevich::IzhikevichParameters;
 
-use utils::config::{ConfigSection, Configurable};
+use utils::config::{ConfigSection, Configurable, EmptyConfig};
 use utils::environment::Environment;
 use utils::parameters::{Parameter, ParameterSet};
 
@@ -32,7 +33,7 @@ impl Generator for UniformModel {
         let p = rng.gen_range(0.0..1.0);
         let m = csa::mask::random(p);
 
-        let d = uniform_dynamics();
+        let d = generator::blk::dynamics::uniform();
 
         let w = ValueSet { f: Arc::new( move |_i, _j| rand::thread_rng().gen_range(0.0..MAX_W) ) };
 
@@ -62,32 +63,6 @@ impl Generator for UniformModel {
     }
 }
 
-fn uniform_dynamics() -> NeuronSet {
-    let r = IzhikevichParameters::RANGES;
-
-
-    NeuronSet {f: Arc::new(
-        move |_i| array![
-            rand::thread_rng().gen_range(r[0].0..r[0].1),  // a
-            rand::thread_rng().gen_range(r[1].0..r[1].1),     // b
-            rand::thread_rng().gen_range(r[2].0..r[2].1),     // c
-            rand::thread_rng().gen_range(r[3].0..r[3].1),     // d
-            if rand::random::<f32>() > 0.5 { 1.0 } else { 0.0 }
-        ]
-    )}
-}
-
-#[derive(Clone, Debug, Deserialize)]
-pub struct UniformModelConfig {
-
-}
-
-impl ConfigSection for UniformModelConfig {
-    fn name() -> String {
-        "uniform_model".to_string()
-    }
-}
-
 impl Configurable for UniformModel {
-    type Config = UniformModelConfig;
+    type Config = EmptyConfig;
 }

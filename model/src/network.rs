@@ -44,8 +44,6 @@ impl<N: NeuronModel, S: Synapse> Network for SpikingNetwork<N, S> {
         assert!(input.len() == self.env.inputs);
 
         let external_input = self.input_synapse.step(&input);
-        //let input_f: Array1<f32> = (&input).into();
-        //let external_input = self.input_matrix.dot(&input_f);
 
         let mut synaptic_input = self.synapse.step(&self.network_state);
 

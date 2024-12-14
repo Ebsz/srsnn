@@ -1,7 +1,7 @@
 pub mod mask;
 pub mod op;
 
-use ndarray::{s, Array, Array1, Array2};
+use ndarray::{s, array, Array, Array1, Array2};
 
 use std::sync::Arc;
 
@@ -57,6 +57,18 @@ impl ValueSet {
 
         mx
     }
+
+    ///// Merge a value set of values R^a with a value set of values R^b into a value set
+    ///// of values R^(a+b), where the first values
+    ///// TODO: This can instead be accomplished by implementing Add for ValueSet
+    //pub fn merge(v1: ValueSet, v2: ValueSet) -> ValueSet {
+    //    let f1 = v1.f.clone();
+    //    let f2 = v2.f.clone();
+
+    //    ValueSet {
+    //        f: Arc::new(move |i,j| f1(i,j)  f2(i,j))
+    //    }
+    //}
 }
 
 pub type NeuronFn = Arc<dyn Fn(u32) -> Array1<f32>>;
@@ -85,112 +97,18 @@ impl NeuronSet  {
     }
 }
 
-pub mod object {
-    use super::*;
+pub type NeuronMaskFn = Arc<dyn Fn(u32) -> bool>;
 
-    pub enum Object<D,R,O: Clone> {
-        Function(Arc<dyn Fn(D) -> R>),
-        Value(O)
-    }
+#[derive(Clone)]
+pub struct NeuronMask {
+    pub f: NeuronMaskFn
+}
 
-    pub trait CSAObject<D, R, O: Clone> {
-        fn from_fn(f: Arc<dyn Fn(D) -> R>)  -> Self;
-        fn from_value(v: O) -> Self;
-
-        fn get(&self, n: usize) -> O {
-            match self.obj() {
-                Object::Value(o) => { o.clone() },
-                Object::Function(f) => { Self::generate(f, n) }
-            }
+impl Into<NeuronSet> for NeuronMask {
+    fn into(self) -> NeuronSet {
+        let f = self.f;
+        NeuronSet {
+            f: Arc::new(move |i| array![(if f(i) { 1.0 } else  { 0.0 } )])
         }
-
-        fn obj(&self) -> &Object<D,R,O>;
-        fn generate(f: &Arc<dyn Fn(D) -> R>, n: usize) -> O;
     }
-
-    //pub type MaskObject = Object<(u32, u32), bool, Array2<u32>>;
-    //pub type ValueObject = Object<(u32, u32), f32, Array2<f32>>;
-
-    //pub struct ValueObject {
-    //    o: Object<(u32, u32), f32, Array2<f32>>
-    //}
-
-    //impl CSAObject<(u32, u32), f32, Array2<f32>> for ValueObject {
-    //    fn from_value(v: Array2<f32>) -> Self {
-    //        ValueSet {
-    //            o: Object::Value(v)
-    //        }
-    //    }
-    //
-    //    fn from_fn(f: Arc<dyn Fn((u32, u32)) -> f32>) -> Self {
-    //        ValueSet {
-    //            o: Object::Function(f)
-    //        }
-    //    }
-
-    //    fn obj(&self) -> &Object<(u32, u32), f32, Array2<f32>> {
-    //        &self.o
-    //    }
-
-    //    fn generate(f: &Arc<dyn Fn((u32, u32)) -> f32>, n: usize) -> Array2<f32> {
-    //        let mut m: Array2<f32> = Array::zeros((n, n));
-
-    //        for (ix, v) in m.iter_mut().enumerate() {
-    //            let i = (ix / n) as u32;
-    //            let j = (ix % n) as u32;
-
-    //            *v = (f)((i, j));
-    //        }
-
-    //        m
-    //    }
-    //}
-
-
-    //pub struct Mask {
-    //    o: MaskObject
-    //}
-
-    //impl CSAObject<(u32, u32), bool, Array2<u32>> for Mask
-    //{
-    //    fn obj(&self) -> &MaskObject {
-    //        &self.o
-    //    }
-    //    fn from_fn(f: &Arc<dyn Fn((u32, u32)) -> bool>, n: usize) -> Array2<u32> {
-    //        let mut m = Array::zeros((n,n));
-
-    //        for (ix, v) in m.iter_mut().enumerate() {
-    //            let i = (ix / n) as u32;
-    //            let j = (ix % n) as u32;
-
-    //            if (f)((i,j)) {
-    //                *v = 1;
-    //            }
-    //        }
-
-    //        m
-    //    }
-    //}
-    //pub type DynamicsObject = Object<u32, Array1<f32>, Vec<Array1<f32>>>;
-    //
-    //pub struct DynamicsSet {
-    //    o: DynamicsObject
-    //}
-    //
-    //impl CSAObject<u32, Array1<f32>, Vec<Array1<f32>>> for DynamicsSet {
-    //    fn obj(&self) -> &DynamicsObject {
-    //        &self.o
-    //    }
-    //
-    //    fn from_fn(f: &Arc<dyn Fn(u32) -> Array1<f32>>, n: usize) -> Vec<Array1<f32>> {
-    //        let mut s = Vec::new();
-    //
-    //        for i in 0..n as u32 {
-    //            let v = f(i);
-    //            s.push(v);
-    //        }
-    //
-    //        s
-    //    }
-    //}
 }

@@ -7,14 +7,9 @@ import json
 
 import matplotlib.pyplot as plt
 import numpy as np
-#import networkx as nx
+import networkx as nx
 
-#from force_graph import GraphWindow
-
-from parse import parse_array1, parse_array2
-
-
-#def parse_network(dat):
+from parser import parse_array1, parse_array2
 
 class Network():
     def __init__(self, data):
@@ -29,20 +24,6 @@ class Network():
 
         self.input_cm = parse_array2(data['input_cm'])
         self.input_w = parse_array2(data['input_w'])
-
-        #n = network['neurons']
-        #self.neurons
-
-        #self.input = (input_cm, input_w)
-
-        #network = d[0]
-        #print(network.keys())
-
-        #self.neurons =
-        #print(f"n: {n}")
-
-        ##neurons = parse_array(network['neurons'])
-        #print(neurons.keys())
 
     def __repr__(self):
         return f"N(n: {self.n}, env: {self.env})"
@@ -80,34 +61,23 @@ def run():
 
     print(network.network_cm.shape)
 
-
     edges = parse_graph(network.network_cm)
     print(f"number of edges: {len(edges)}")
 
-    print(network.input_cm.shape)
+    print(f"shape: {network.input_cm.shape}")
 
+    print("creating network")
 
-    #print(f"{edges}")
-
+    print("creating network")
     g = nx.DiGraph()
     g.add_edges_from(edges)
 
-    p = nx.spring_layout(g, k=0.5)
+    p = nx.spring_layout(g)
 
-    nx.draw(g, p, node_color='gray', node_size=100, arrowsize=20)
-    #nx.draw(g, p)
-    #plt.show()
+    nx.draw(g, p, node_color='gray', node_size=100, arrowsize=10)
+
+    print("saving network")
     plt.savefig("graph.png")
-
-    #w = GraphWindow(N, edges) # , precompute=True
-    #w.loop()
-
-
-    #fun()
-
-    #neurons = parse_array2(network['neurons'])
-    #pretty_print(neurons)
-
 
 if __name__ == "__main__":
     run()

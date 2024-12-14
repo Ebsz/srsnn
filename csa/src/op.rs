@@ -100,10 +100,7 @@ pub mod geometric {
             ((ix - jx).powf(2.0) + (iy - jy).powf(2.0)).sqrt()
         })
     }
-
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -155,10 +152,5 @@ mod tests {
         assert!(b.iter().all(|x| *x == 1));
         assert!(c.iter().all(|x| *x == 1));
         assert!(d.iter().all(|x| *x == 0));
-    }
-
-    #[test]
-    fn group_op() {
-        // TODO: implement
     }
 }

@@ -30,10 +30,6 @@ impl NetworkBuilder {
         let input_matrix = &(desc.input_cm.mapv(|v| v as f32)) * &desc.input_w;
         let input_synapse = S::new(input_matrix, Array::ones(desc.env.inputs));
 
-        //use crate::network::representation::DefaultRepresentation;
-        //utils::data::save::<NetworkRepresentation<NeuronDescription<N>>>(desc.clone(), "network.json");
-        //panic!("saved");
-
         SpikingNetwork::new(model, synapse, input_synapse, desc.env.clone())
     }
 

@@ -51,7 +51,6 @@ impl Algorithm for SeparableNES {
         }
     }
 
-    // TODO: Add indices to evals to ensure they are correct.
     fn step(&mut self, evals: Vec<f32>) {
         let e: Array1<f32> = Array::from_vec(evals);
 

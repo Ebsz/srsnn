@@ -1,9 +1,8 @@
 log_level = "debug"
 
-process = "experiment"
-
+process = "default"
 model = "uniform_model"
-#task = "multi_sin_time_series"
+
 task = "pattern_similarity"
 
 [experiment]
@@ -31,18 +30,20 @@ trials = 1
 [batch]
 batch_size = 32
 
-[generator]
+[generator] # Model-independent parameters
 n = 128
 
-[generator.model]
+[generator.model] # Model-specific parameters
+# typed parameters
 k = 8
 k_in = 1
 k_out = 1
 
+# Geometric parameters
 distance_threshold = 3.0
 max_coordinate = 10.0
 
-exc_w = 1.1 # 0.33
-inh_w = 1.32 # 0.41
-
-input_w = 1.44 # 0.55
+# Parameters for static weights
+exc_w = 1.1
+inh_w = 1.32
+input_w = 1.44

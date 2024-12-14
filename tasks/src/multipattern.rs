@@ -147,17 +147,6 @@ impl TaskEval for MultiPatternTask {
             }
         }
 
-        // 2. Randomly generated patterns from class centers
-
-        //for _ in 0..DATASET_SIZE {
-        //    let l = random::random_range((0, N_CLASSES));
-
-        //    setups.push(MultiPatternSetup {
-        //        dist: pattern(PATTERN_SIZE, CLASS_CENTERS[l]),
-        //        label: l,
-        //    });
-        //}
-
         setups
     }
 
@@ -170,11 +159,9 @@ impl TaskEval for MultiPatternTask {
             let mut bin_count: Array1<f32> = r.response
                 .exact_chunks((RESPONSE_BIN_LEN as usize, AGENT_OUTPUTS))
                 .into_iter().map(|x| x.sum() as f32).collect();
-            //println!("total_bin_count: {}", bin_count);
 
             // Apply spike rate cap
             bin_count = bin_count.mapv(|x| math::minf(&[x, SPIKE_CAP]));
-            //println!("bin_count_post_cap: {}", bin_count);
 
             // Subtract the max count
             bin_count = &bin_count - math::maxf(bin_count.as_slice().unwrap());
@@ -190,12 +177,10 @@ impl TaskEval for MultiPatternTask {
             label[r.label] = 1.0;
 
             let loss = math::ml::cross_entropy(&predictions, &label);
-            //println!("bin_count: {}\nlabel: {}\npredictions: {}\nloss: {}\n\n", bin_count, label, predictions, loss);
 
             total_loss += loss;
         }
 
-        //100.0 - total_loss +
         Self::accuracy(&results).unwrap() * 100.0
     }
 
@@ -219,107 +204,16 @@ impl TaskEval for MultiPatternTask {
 
             let predicted_label = math::max_index(predictions);
 
-            //log::info!("predicted: {}, label: {}", predicted_label, r.label);
-
-            //println!("p: {predicted_label}, l: {}", r.label);
             if predicted_label == r.label {
                 correct += 1;
             }
         }
 
-        //println!("correct: {correct}/{}", results.len());
         let accuracy = correct as f32 / results.len() as f32;
 
         Some(accuracy)
     }
 
-    // TODO: Rate regularization: firing rate of MAX is equal to 1.0.
-    // Might not be necessary, because it is relative due to softmax?
-    //fn fitness(results: Vec<Self::Result>) -> f32 {
-    //    let mut total_loss = 0.0;
-
-    //    for r in &results {
-    //        // sum of spikes per output neuron
-    //        let sum = r.response.sum_axis(Axis(0));
-
-    //        // sum of spikes per label
-    //        let mut label_sum: Array1<f32> = sum.exact_chunks(OUTPUTS_PER_CLASS)
-    //            .into_iter().map(|x| x.sum() as f32).collect();
-
-    //        //if label_sum.iter().all(|x| *x == 0.0) {
-    //        //    log::info!("fuck");
-    //        //}
-
-    //        assert!(label_sum.shape()[0] == N_CLASSES);
-
-    //        label_sum = &label_sum - math::maxf(label_sum.as_slice().unwrap());
-
-    //        // Firing rates per label
-    //        // let firing_rates: Array1<f32> = label_sum.map(|x| *x as f32)
-    //        //    / (OUTPUTS_PER_CLASS as f32 * r.response.shape()[0] as f32);
-
-    //        //let firing_rates = array![0.0,0.0,0.0,0.0, 2.0];
-
-    //        let predictions = math::ml::softmax(&label_sum);
-    //        let mut label = Array::zeros(N_CLASSES);
-    //        label[r.label] = 1.0;
-
-    //        let loss = math::ml::cross_entropy(&predictions, &label);
-
-    //        //println!("label sum: {}", label_sum);
-    //        //println!("predictions: {}", predictions);
-    //        //println!("loss: {:?}", loss);
-    //        //println!("label: {}", label);
-    //        //println!("firing rates: {}", firing_rates);
-
-    //        total_loss += loss;
-
-    //        //fitness += 10.0 - math::minf(&[loss, 10.0]);
-    //    }
-
-    //    10.0 - total_loss / results.len() as f32
-
-    //    //let acc = Self::accuracy(&results).unwrap();
-    //    //10.0 - total_loss / results.len() as f32 + acc * 10.0
-
-    //    //10.0 * results.len() as f32 - total_loss
-
-    //    //100.0 - total_loss
-
-    //    //fitness = fitness * 100.0 / (10.0 * results.len() as f32);
-
-    //    //fitness
-    //}
-
-    //fn accuracy(results: &[MultiPatternTaskResult]) -> Option<f32> {
-    //    let mut correct = 0;
-
-    //    for r in results {
-    //        let sum = r.response.sum_axis(Axis(0));
-
-    //        // sum of spikes per label
-    //        let mut label_sum: Array1<f32> = sum.exact_chunks(OUTPUTS_PER_CLASS)
-    //            .into_iter().map(|x| x.sum() as f32).collect();
-
-    //        assert!(label_sum.shape()[0] == N_CLASSES);
-
-    //        label_sum = &label_sum - math::maxf(label_sum.as_slice().unwrap());
-
-    //        let predictions = math::ml::softmax(&label_sum);
-
-    //        let predicted_label = math::max_index(predictions);
-
-    //        //println!("p: {predicted_label}, l: {}", r.label);
-    //        if predicted_label == r.label {
-    //            correct += 1;
-    //        }
-    //    }
-
-    //    //println!("correct: {correct}/{}", results.len());
-    //    let accuracy = correct as f32 / results.len() as f32;
-
-    //    Some(accuracy)
-    //}
 }
 
 /// Sample [t x len] pattern

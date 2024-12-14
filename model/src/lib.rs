@@ -21,7 +21,6 @@ pub type DefaultNetwork = SpikingNetwork<Izhikevich, ExponentialSynapse>;
 pub type DefaultNeuron = NeuronDescription<Izhikevich>;
 
 /// A parameterized model that can be developed into a network.
-//pub trait NetworkModel<N=DefaultNeuron>: Configurable + Sync {
 pub trait Model<N=DefaultNeuron>: Configurable + Sync {
     fn new(config: &Self::Config, p: &ParameterSet, env: &Environment) -> Self;
 

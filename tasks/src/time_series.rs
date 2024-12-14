@@ -15,16 +15,13 @@ use ndarray::{s, Array, Array1, Array2, Axis};
 use ndarray_rand::rand::Rng;
 
 
-const N_SETUPS: usize = 32;
+const N_SETUPS: usize = 100;
 
 const MAX_FR: f32 = 0.2;
 
 const T: u32 = 800;
 
 const SEND_TIME: u32 = 300; // How long the time series is sent for
-
-//const T: u32 = SEND_TIME + RESPONSE_DELAY + RESPONSE_WINDOW; // Max time
-//const T1: u32 = SEND_TIME;
 
 const N_VARIABLES: usize = 1; //TODO: TMP, for sin series
 const OUTPUTS_PER_VARIABLE: usize = 10;
@@ -33,7 +30,6 @@ const AGENT_INPUTS: usize = N_VARIABLES * OUTPUTS_PER_VARIABLE;
 const AGENT_OUTPUTS: usize = N_VARIABLES * OUTPUTS_PER_VARIABLE;
 
 const OUTPUT_MAX_PROBABILITY: f32 = 0.1;
-
 
 #[derive(Debug)]
 pub struct TimeSeriesResult {
@@ -102,6 +98,7 @@ impl<S: TimeSeries> Task for TimeSeriesTask<S> {
     }
 }
 
+
 impl<S: TimeSeries> TimeSeriesTask<S> {
     fn get_output(&self) -> TaskOutput {
         let data = if self.t < SEND_TIME {
@@ -109,15 +106,7 @@ impl<S: TimeSeries> TimeSeriesTask<S> {
 
             a = a * self.setup.series[[self.t as usize, 0]];
 
-            //for (i, mut c) in a.exact_chunks_mut(5).into_iter().enumerate() {
-            //    c.fill(self.setup.series[[self.t as usize, i]]);
-            //}
-
-            // TODO: TEMP, while testing with SIN
-            //let mut a = sin_t(self.t);
-
             rate_encode(&(a * OUTPUT_MAX_PROBABILITY))
-            //Array::zeros(AGENT_INPUTS)
         } else {
             Array::zeros(AGENT_INPUTS)
         };
@@ -172,14 +161,13 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
 
         let mut fitness = 0.0;
 
+        let n_results = results.len();
+
         for r in results {
             let firing_rates: Array2<f32> = utils::analysis::firing_rate(r.response, FR_WINDOW);
 
             //let fr = firing_rates.mapv(|x| math::minf(&[x, MAX_FR])) * (1.0 / MAX_FR);
             let fr = firing_rates;
-
-            // NOTE: This way of doing it only works for D=1, aka. single-dimensional time series
-            //let fr_sum = &fr.sum_axis(Axis(1)) / fr.shape()[1] as f32;
 
             // Average firing rate per time per bin
             let mut arr: Array2<f32> = Array::zeros((T as usize, N_VARIABLES));
@@ -208,51 +196,10 @@ impl<S: TimeSeries> TaskEval for TimeSeriesTask<S> {
                 row.assign(&a);
             }
 
-            // NOTE: Use this to save time series
-            //let o = observed.clone().into_shape(observed.shape()[0] as usize).unwrap();
-            //let p = predicted.clone().into_shape(predicted.shape()[0] as usize).unwrap();
-            //let d = deviations.clone().into_shape(deviations.shape()[0] as usize).unwrap();
-
-            //let f1 = "data/ts/observed.json";
-            //let f2 = "data/ts/predicted.json";
-            //let f3 = "data/ts/deviations.json";
-
-            //utils::data::save::<Array1<f32>>(o, f1);
-            //println!("data saved to {}", f1);
-
-            //utils::data::save::<Array1<f32>>(p, f2);
-            //println!("data saved to {}", f2);
-
-            //utils::data::save::<Array1<f32>>(d, f3);
-            //println!("data saved to {}", f3);
-
-            // ----------- END ---------
-
-            //let mut deviations: Array2<f32>
-            //    = observed.outer_iter().zip(predicted.outer_iter()).map(|(o, p)| (&o - &p).map(|x| x.powf(2.0))).collect();
-
-            //println!("{arr}");
-            //println!("{fr_sum}");
-
-            //let ak: Array1<f32> = arr.into_shape(T as usize).unwrap();
-
-            //for i in 0..T {
-            //    println!("{} = {}", fr_sum[i as usize], ak[i as usize])
-
-            //}
-
-            //assert!(fr_sum == ak);
-
-            // T x D matrices
-            //let predicted: Array1<f32> = fr_sum.slice(s![EVAL_T..]).to_owned();
-            //let observed: Array1<f32> = (r.observed.into_shape(T as usize).unwrap()).slice(s![EVAL_T..]).to_owned();
-
-
-            //println!("{:?}, {:?}", predicted.shape(), observed.shape());
-
-
             fitness += - deviations.sum();
         }
+
+        fitness /= n_results as f32;
 
         fitness
     }

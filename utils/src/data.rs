@@ -5,8 +5,8 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 
-const DEFAULT_OUT_DIR: &str = "out";
 
+const DEFAULT_OUT_DIR: &str = "out";
 
 pub fn save<T: Serialize>(x: T, path: &str) -> std::io::Result<()> {
     let serialized_string = serde_json::to_string(&x).unwrap();

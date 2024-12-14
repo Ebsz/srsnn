@@ -66,12 +66,11 @@ impl<G: Generator> Model for GeneratorModel<G> {
 
         assert!(neurons.len() == n);
 
-        // Hacky way to make sure output neurons are always excitatory
         for mut n in neurons[(n - self.env.outputs)..].iter_mut() {
             n.inhibitory = false;
         }
 
-        // ensure output neurons are excitatory
+        // output neurons must be excitatory
         assert!(neurons[(n - self.env.outputs)..].iter().all(|x| !x.inhibitory),
         "developing network with inhibitory output neurons");
 
